@@ -12,7 +12,7 @@ const report={sampleCount:count,seeds:3,ordinaryPercent:Math.round(ordinary/coun
 mkdirSync('outputs',{recursive:true});writeFileSync('outputs/world-distribution.json',JSON.stringify(report,null,2));
 mkdirSync('docs',{recursive:true});
 writeFileSync('docs/world-fields.md',[
- '# World fields, version 3','',
+ '# World fields, version 6','',
  'The app computes 75 fields: twelve baseline conditions and 63 independently shaped features. Features can be exactly zero. Zero means absent, not an atmospheric hint. One means full strength, not a guarantee that a reward is available. Events and repeat rules remain app-owned. Each feature has its own recipe; sharing a noise primitive does not mean sharing a spatial distribution.','',
  'The deterministic audit samples '+count+' widely spaced coordinates across three seeds. **'+report.ordinaryPercent+'% have no special features.** Observed presence is a sample statistic, not a gameplay promise; very rare rolls can be absent from this sample. Roads and contour rivers are procedural shapes, not physical drainage or a road network solver.','',
  '| Field | Kind | Meaning, low → high | Observed presence | Derivation |',

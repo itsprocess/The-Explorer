@@ -1,14 +1,14 @@
-# World fields, version 3
+# World fields, version 6
 
 The app computes 75 fields: twelve baseline conditions and 63 independently shaped features. Features can be exactly zero. Zero means absent, not an atmospheric hint. One means full strength, not a guarantee that a reward is available. Events and repeat rules remain app-owned. Each feature has its own recipe; sharing a noise primitive does not mean sharing a spatial distribution.
 
-The deterministic audit samples 12000 widely spaced coordinates across three seeds. **33.9% have no special features.** Observed presence is a sample statistic, not a gameplay promise; very rare rolls can be absent from this sample. Roads and contour rivers are procedural shapes, not physical drainage or a road network solver.
+The deterministic audit samples 12000 widely spaced coordinates across three seeds. **28.2% have no special features.** Observed presence is a sample statistic, not a gameplay promise; very rare rolls can be absent from this sample. Roads and contour rivers are procedural shapes, not physical drainage or a road network solver.
 
 | Field | Kind | Meaning, low → high | Observed presence | Derivation |
 | --- | --- | --- | --- | --- |
-| Elevation | baseline | low basin → high ridge | everywhere | continental fBm, 600-cell wavelength |
-| Temperature | baseline | freezing → hot | everywhere | 400-cell climate gradient minus elevation lapse |
-| Moisture | baseline | dry → wet | everywhere | warped 230-cell moisture field |
+| Elevation | baseline | low basin → high ridge | everywhere | expanded continental fBm, 300-cell wavelength |
+| Temperature | baseline | freezing → hot | everywhere | expanded 160-cell thermal gradient minus elevation lapse |
+| Moisture | baseline | dry → wet | everywhere | expanded warped 120-cell moisture field |
 | Space | baseline | tight passage → wide clearing or hall | everywhere | squared local fBm, mostly modest spaces |
 | Enclosure | baseline | open sky → underground | everywhere | thresholded 90-cell rock roof with eroded margins |
 | Stability | baseline | broken ground or masonry → sound ground or masonry | everywhere | inverse fourth-power fracture field, usually high |
@@ -20,13 +20,13 @@ The deterministic audit samples 12000 widely spaced coordinates across three see
 | Strangeness | baseline | ordinary → unfamiliar forms and materials | everywhere | sixth-power 110-cell anomaly field, usually near zero |
 | Ocean | feature | absent → deep open ocean | 12.57% | warped 650-cell basins with 95-cell coastal roughness; dry origin buffer |
 | Coast | feature | absent → wide tidal shore | 2.96% | narrow shoreline band around the ocean threshold |
-| Forest | feature | absent → dense trees | 19.58% | warped threshold islands minus cellular clearings; temperature gate |
+| Forest | feature | absent → dense trees | 18.66% | warped threshold islands minus cellular clearings; temperature gate |
 | River | feature | absent → wide river channel | 5.19% | thin contour of blended 120/47-cell fields, sparse watershed mask |
-| Lake | feature | absent → deep pool or lake | 0.18% | rare 6-cell basins in low terrain |
+| Lake | feature | absent → deep pool or lake | 0.17% | rare 6-cell basins in low terrain |
 | Lava | feature | absent → exposed lava | 0.68% | high volcanic tail AND narrow fissure contour |
 | Chasm | feature | absent → deep fissure | 0.63% | ridged fault line restricted to fractured districts |
-| Fungal colony | feature | absent → large fungal colony | 1.49% | moist underground pockets with subtractive local noise |
-| Herd | feature | absent → large herd | 0.33% | small occupied grazing clusters outside forest |
+| Fungal colony | feature | absent → large fungal colony | 1.92% | moist underground pockets with subtractive local noise |
+| Herd | feature | absent → large herd | 0.34% | small occupied grazing clusters outside forest |
 | Nest | feature | absent → large occupied nest | 1.13% | isolated 1-in-90 sites, amplified by tree cover |
 | Settlement | feature | absent → compact town | 0.44% | isolated 1-in-400 outposts plus rare 3-cell settlement centers |
 | Road | feature | absent → paved route | 3.23% | broken contour routes across inhabited districts |
@@ -47,19 +47,19 @@ The deterministic audit samples 12000 widely spaced coordinates across three see
 | Haunting | feature | absent → visible haunting | 0.03% | burial/ruin gate AND 1-in-80 spectral roll |
 | Portal | feature | absent → active portal | 0% | independent 1-in-a-million point, safe-origin override |
 | Impossible landmark | feature | absent → impossible landmark | 0% | independent 1-in-a-million landmark; no implied reward |
-| Dunes | feature | absent → large dune field | 7.08% | dry-climate gate, threshold desert provinces with directional ripples |
-| Glacier | feature | absent → thick glacier | 1.23% | cold-climate upper tail stretched along mountain valleys |
-| Marsh | feature | absent → deep wetland | 4.26% | wet lowland mask with cellular dry islands |
-| Mesa | feature | absent → flat-topped plateau | 2.16% | terraced highland lobes with sharp threshold edges |
+| Dunes | feature | absent → large dune field | 11.68% | dry-climate gate, threshold desert provinces with directional ripples |
+| Glacier | feature | absent → thick glacier | 7.92% | cold-climate upper tail stretched along mountain valleys |
+| Marsh | feature | absent → deep wetland | 6.08% | wet lowland mask with cellular dry islands |
+| Mesa | feature | absent → flat-topped plateau | 2.88% | terraced highland lobes with sharp threshold edges |
 | Archipelago | feature | absent → cluster of islands | 0.73% | cellular island clusters inside ocean basins |
 | Reef | feature | absent → extensive reef | 2.03% | shallow ocean band AND broken cellular reef rim |
 | Waterfall | feature | absent → high waterfall | 2.77% | river presence AND steep local elevation gradient |
-| Salt flat | feature | absent → broad salt pan | 0.68% | dry lowland basins, flattened threshold interiors |
+| Salt flat | feature | absent → broad salt pan | 2.77% | dry lowland basins, flattened threshold interiors |
 | Geyser | feature | absent → active geyser field | 0.04% | rare geothermal centers with short 2-cell radii |
 | Crystal formation | feature | absent → large crystal formations | 1.88% | underground mineral veins cut by a narrow contour mask |
 | Columnar rock | feature | absent → columnar rock formation | 2.31% | volcanic district AND cellular outcrop cores |
-| Reed or bamboo grove | feature | absent → tall cane grove | 1.05% | warm wet pockets with fine subtractive gaps |
-| Giant growth | feature | absent → oversized local flora | 0.03% | forest gate AND 1-in-700 botanical exception |
+| Reed or bamboo grove | feature | absent → tall cane grove | 1.92% | warm wet pockets with fine subtractive gaps |
+| Giant growth | feature | absent → oversized local flora | 0.05% | forest gate AND 1-in-700 botanical exception |
 | Orchard | feature | absent → old cultivated grove | 0.15% | settlement hinterland rings with broken planted plots |
 | Fortification | feature | absent → substantial fortification | 0.02% | rare 2-cell defensive sites along road districts |
 | Archive or library | feature | absent → collection of preserved knowledge | 0.08% | inhabited/ruined site gate AND independent 1-in-25 roll |
@@ -78,7 +78,7 @@ The deterministic audit samples 12000 widely spaced coordinates across three see
 | Suspended matter | feature | absent → floating rocks or structures | 0.01% | gravity-distortion gate AND rare 2-cell anomaly core |
 | Vitrified ground | feature | absent → glasslike landscape | 0.25% | rare heat-scar provinces with subtractive erosion |
 | Impact site | feature | absent → impact crater | 0.02% | isolated 4-cell circular impact basins |
-| Persistent mirage | feature | absent → unusual visual phenomenon | 0.04% | dry district AND narrow heat-band AND rare local roll |
+| Persistent mirage | feature | absent → unusual visual phenomenon | 0.18% | dry district AND narrow heat-band AND rare local roll |
 | Unique features | feature | absent → one modest distinctive detail | 19.68% | single 17-cell Perlin field, upper fifth only; scenery without events |
 | Standing monument | feature | absent → large standing monument | 0.03% | rare point monuments in ancient provinces |
 

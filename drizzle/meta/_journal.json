@@ -50,6 +50,13 @@
       "when": 1788758139235,
       "tag": "0006_reset_world_v5",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1788786938931,
+      "tag": "0007_reset_wild_horizons",
+      "breakpoints": true
     }
   ]
 }

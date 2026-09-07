@@ -5,6 +5,6 @@ if(!process.env.OPENAI_API_KEY)throw Error('OPENAI_API_KEY missing from root .en
 writeFileSync(new URL('../.dev.vars',import.meta.url),[
   'OPENAI_API_KEY='+JSON.stringify(process.env.OPENAI_API_KEY),
   'OPENAI_MODEL='+JSON.stringify(process.env.OPENAI_MODEL||'gpt-5.6-luna'),
-  'WORLD_SEED='+JSON.stringify(process.env.WORLD_SEED||'the-explorer-first-world'),
+  'WORLD_SEED='+JSON.stringify(process.env.WORLD_SEED||'the-explorer-wild-horizons-20260907'),
 ].join('\n')+'\n');
 console.log('Local server secret configured; key not displayed.');

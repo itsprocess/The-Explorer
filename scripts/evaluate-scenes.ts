@@ -11,7 +11,7 @@ async function complete<T>(name:string,schema:unknown,prompt:Prompt):Promise<T>{
 }
 const cases=[{name:'ordinary',id:null},{name:'forest',id:'vegetation.forest'},{name:'settlement',id:'civilization.settlement'},{name:'treasure',id:'encounters.treasure'},{name:'interaction',id:null},{name:'unique scenery',id:'scenery.unique_features'}];
 const results=[];
-for(const sample of cases){
+for(const sample of cases.filter(c=>!process.env.SCENE_CASE||c.name===process.env.SCENE_CASE)){
  let found:{x:number;y:number}|undefined;
  for(let i=1;i<100000;i++){
   const x=i*8,y=i%179-89,rs=deriveRatings('scene-evaluation',x,y);

@@ -4,9 +4,10 @@ export type Character={id:string;name:string;x:number;y:number;alive:boolean;dea
 
 type EventRecord={text:string;newBadge:string|null;kind:string};
 export const fill=(text:string,name:string)=>text.replaceAll('{character_name}',name);
+export function awardDistanceBadges(c:Character){for(const mark of [10,50,100,500,1000,10000])if(c.furthest>=mark&&!c.badges.some(b=>b.id==='distance:'+mark))c.badges.push({id:'distance:'+mark,title:mark+' from the origin',description:'Reached a distance of '+mark+' cells.',kind:'distance'});}
 export function resolveArrival(original:Character,p:CellPackage,globalConsumed=false){
  const c:Character=structuredClone(original);c.x=p.context.x;c.y=p.context.y;c.furthest=Math.max(c.furthest,p.context.distance);
- let event:EventRecord={text:'You arrived at '+p.scene.title+'.',newBadge:null,kind:'arrival'};
+ let event:EventRecord={text:c.name+' arrived at '+p.scene.title+'.',newBadge:null,kind:'arrival'};
  const award=(b:Badge)=>{if(!c.badges.some(old=>old.id===b.id)){c.badges.push(b);event.newBadge=b.title;}};
  const region=p.regions.find(r=>r.kind==='kingdom'),faction=p.regions.find(r=>r.kind==='faction');
  const hostile=!p.context.safeApproach&&p.context.hostilityPolicy.enforcesForeignHonors&&c.badges.some(b=>b.kind==='honor'&&b.entityId?.startsWith('faction:')&&b.entityId!==faction?.id);
@@ -24,6 +25,6 @@ export function resolveArrival(original:Character,p:CellPackage,globalConsumed=f
   }
  }
  // Death and arrival records persist; distance milestones do not change player power.
- for(const mark of [10,50,100,500,1000,10000])if(c.furthest>=mark&&!c.badges.some(b=>b.id==='distance:'+mark))c.badges.push({id:'distance:'+mark,title:mark+' from the origin',description:'Reached a distance of '+mark+' cells.',kind:'distance'});
+ awardDistanceBadges(c);
  return {character:c,event};
 }

@@ -68,7 +68,7 @@ test('features are sparse, stability is usually high, and forests form patches',
   if(v['architecture.structural_integrity']>.8)stability++;
   if(v['vegetation.forest']>0){forest++;if(deriveRatings(seed,x+1,y).find(r=>r.id==='vegetation.forest')!.value>0)forestNext++;}
  }
- assert.ok(quiet/n>.4,'At least 40% should have no special features');
+ assert.ok(quiet/n>.3,'At least 30% should have no special features beyond minor scenery');
  assert.ok(stability/n>.85,'Sound structure should be the ordinary baseline');
  assert.ok((counts['civilization.settlement']||0)/n<.03);
  assert.ok((counts['encounters.treasure']||0)/n<.004);

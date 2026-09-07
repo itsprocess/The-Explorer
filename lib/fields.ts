@@ -20,9 +20,9 @@ function centers(p:Sample,id:string,size:number,chance:number,radius:number){
 }
 const field=(id:string,name:string,kind:Field['kind'],low:string,high:string,recipe:string,derive:Field['derive']):Field=>({id,name,kind,low,high,recipe,derive});
 export const recipes:Field[]=[
- field('terrain.elevation','Elevation','baseline','low basin','high ridge','continental fBm, 600-cell wavelength',p=>noise(p,'elevation',600)),
- field('climate.temperature','Temperature','baseline','freezing','hot','400-cell climate gradient minus elevation lapse',p=>clamp(noise(p,'temperature',400)-.25*(p.v['terrain.elevation']-.5))),
- field('climate.humidity','Moisture','baseline','dry','wet','warped 230-cell moisture field',p=>fbm(p.s,'moisture',p.x+45*(noise(p,'moisture-warp',90)-.5),p.y,230)),
+ field('terrain.elevation','Elevation','baseline','low basin','high ridge','expanded continental fBm, 300-cell wavelength',p=>clamp(.5+3*(noise(p,'elevation',300)-.5))),
+ field('climate.temperature','Temperature','baseline','freezing','hot','expanded 160-cell thermal gradient minus elevation lapse',p=>clamp(.5+3.4*(noise(p,'temperature',160)-.5)-.22*(p.v['terrain.elevation']-.5))),
+ field('climate.humidity','Moisture','baseline','dry','wet','expanded warped 120-cell moisture field',p=>clamp(.5+3.5*(fbm(p.s,'moisture',p.x+45*(noise(p,'moisture-warp',90)-.5),p.y,120)-.5))),
  field('terrain.space_extent','Space','baseline','tight passage','wide clearing or hall','squared local fBm, mostly modest spaces',p=>noise(p,'space',15)**2),
  field('terrain.enclosure','Enclosure','baseline','open sky','underground','thresholded 90-cell rock roof with eroded margins',p=>oceanStrength(p.s,p.x,p.y)>.1?0:clamp((noise(p,'roof',90)-.34)*4)),
  field('architecture.structural_integrity','Stability','baseline','broken ground or masonry','sound ground or masonry','inverse fourth-power fracture field, usually high',p=>1-noise(p,'fracture',19)**4),
@@ -36,7 +36,10 @@ export const recipes:Field[]=[
  field('water.coast','Coast','feature','absent','wide tidal shore','narrow shoreline band around the ocean threshold',p=>band(p.v['water.ocean'],.01,.1,.01)),
  field('vegetation.forest','Forest','feature','absent','dense trees','warped threshold islands minus cellular clearings; temperature gate',p=>{
   const warped={...p,x:p.x+18*(noise(p,'forest-warp',31)-.5)};
-  return p.v['climate.temperature']<.25?0:tail(noise(warped,'forest',42),.56)*2*(cellular(p.s,'clearings',p.x,p.y,9)>.19?1:0);
+  const t=p.v['climate.temperature'],h=p.v['climate.humidity'],n=noise(warped,'forest',42);
+  if(t<.12||h<.2)return 0;
+  const canopy=t>.62&&h>.65&&n>.43?.65+.35*tail(n,.43):tail(n,.55)*4;
+  return canopy*(cellular(p.s,'clearings',p.x,p.y,9)>.19?1:0);
  }),
  field('water.river','River','feature','absent','wide river channel','thin contour of blended 120/47-cell fields, sparse watershed mask',p=>band(.7*noise(p,'river-a',120,4)+.3*noise(p,'river-b',47),.495,.505,.006)*(noise(p,'watershed',300)>.51?1:0)),
  field('water.lake','Lake','feature','absent','deep pool or lake','rare 6-cell basins in low terrain',p=>p.v['terrain.elevation']<.5?centers(p,'lakes',80,.3,6):0),

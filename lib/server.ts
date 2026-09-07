@@ -3,13 +3,13 @@ import {VERSION} from './world';
 export type Bindings={DB:D1Database;IMAGES:R2Bucket;OPENAI_API_KEY?:string;OPENAI_MODEL?:string;OPENAI_IMAGE_MODEL?:string;WORLD_SEED?:string};
 export const bindings=()=>env as unknown as Bindings;
 export const db=()=>bindings().DB;
-export const worldSeed=()=>bindings().WORLD_SEED||'the-explorer-first-world';
+export const worldSeed=()=>bindings().WORLD_SEED||'the-explorer-wild-horizons-20260907';
 export class AppError extends Error{constructor(message:string,public status=400,public code?:string){super(message);}}
 // Deployment migration queues retired images. Idempotent deletion survives interrupted requests.
 export async function removeRetiredImages(){
  const rows=await db().prepare("SELECT key,value FROM server_settings WHERE key LIKE 'retired-image:%' LIMIT 1000").all<{key:string;value:string}>();
  if(!rows.results.length)return;
- const retired=rows.results.filter(r=>r.value.startsWith(worldSeed()+':world-')&&r.value.includes(':illustrations/')&&!r.value.startsWith(namespace()));
+ const retired=rows.results.filter(r=>r.value.startsWith(r.key.slice('retired-image:'.length).replace(/image:-?\d+:-?\d+$/, 'illustrations/'))&&r.value.includes(':illustrations/')&&!r.value.startsWith(namespace()));
  if(retired.length!==rows.results.length)throw Error('Invalid retired image reference.');
  await bindings().IMAGES.delete(retired.map(r=>r.value));
  await db().batch(retired.map(r=>db().prepare('DELETE FROM server_settings WHERE key=? AND value=?').bind(r.key,r.value)));

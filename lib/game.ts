@@ -3,7 +3,7 @@ import {db,readPackage,namespace,worldSeed,AppError} from './server';
 import {ensureCell,cellKey,publicCell,type CellPackage} from './generation';
 import {connections,directions,exists,type Direction} from './world';
 
-import {resolveArrival,type Character} from './rules';
+import {resolveArrival,awardDistanceBadges,type Character} from './rules';
 export type {Character} from './rules';
 
 export async function createCharacter(name:string,nameKey:string,passwordHash:string){
@@ -41,14 +41,15 @@ export async function moveCharacter(owner:string,id:string,requestId:string,dire
  let winner=resolveArrival(base,p,false),loser=resolveArrival(base,p,true);
  if(direction==='return'){winner.event={text:original.name+' returned to '+p.scene.title+', carrying every story.',kind:'return',newBadge:null};loser=winner;}
  // A portal performs one committed transfer. Destination arrival events wait until a later entry.
- if(winner.character.alive&&winner.event.kind==='portal'&&p.context.portalDestination){const destination=await ensureCell(p.context.portalDestination.x,p.context.portalDestination.y);winner.character.x=destination.context.x;winner.character.y=destination.context.y;winner.character.furthest=Math.max(winner.character.furthest,destination.context.distance);winner.event.text+=' You emerge at '+destination.scene.title+'.';loser=winner;}
+ if(winner.character.alive&&winner.event.kind==='portal'&&p.context.portalDestination){const destination=await ensureCell(p.context.portalDestination.x,p.context.portalDestination.y);winner.character.x=destination.context.x;winner.character.y=destination.context.y;winner.character.furthest=Math.max(winner.character.furthest,destination.context.distance);awardDistanceBadges(winner.character);winner.event.text+=' '+original.name+' arrived at '+destination.scene.title+'.';loser=winner;}
  const isGlobal=p.context.event?.mode==='once_ever'&&winner.event.kind!=='death';const claimKey=cellKey(x,y)+':'+p.context.event?.id;
  const now=Date.now(),queries:D1PreparedStatement[]=[];
  if(isGlobal)queries.push(db().prepare('INSERT OR IGNORE INTO claims(key,character,operation,at) SELECT ?,?,?,? WHERE EXISTS(SELECT 1 FROM characters WHERE id=? AND owner=? AND revision=?)').bind(claimKey,id,op,now,id,owner,row.revision));
  const condition=isGlobal?'EXISTS(SELECT 1 FROM claims WHERE key=? AND operation=?)':'1=1';
  const params=isGlobal?[claimKey,op]:[];
  queries.push(db().prepare('UPDATE characters SET value=CASE WHEN '+condition+' THEN ? ELSE ? END,revision=revision+1,last_op=?,updated=? WHERE id=? AND owner=? AND revision=?').bind(...params,JSON.stringify(winner.character),JSON.stringify(loser.character),op,now,id,owner,row.revision));
- queries.push(db().prepare('INSERT OR IGNORE INTO visits(id,character,x,y,value,at) SELECT ?,?,?,?,CASE WHEN '+condition+' THEN ? ELSE ? END,? WHERE EXISTS(SELECT 1 FROM characters WHERE id=? AND last_op=? AND revision=?)').bind(op,id,winner.character.x,winner.character.y,...params,JSON.stringify({event:winner.event}),JSON.stringify({event:loser.event}),now,id,op,row.revision+1));
+ queries.push(db().prepare('INSERT OR IGNORE INTO visits(id,character,x,y,value,at) SELECT ?,?,?,?,CASE WHEN '+condition+' THEN ? ELSE ? END,? WHERE EXISTS(SELECT 1 FROM characters WHERE id=? AND last_op=? AND revision=?)').bind(op,id,x,y,...params,JSON.stringify({event:winner.event}),JSON.stringify({event:loser.event}),now,id,op,row.revision+1));
+ if(winner.event.kind==='portal'&&(winner.character.x!==x||winner.character.y!==y)){queries.push(db().prepare('INSERT OR IGNORE INTO visits(id,character,x,y,value,at) SELECT ?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM characters WHERE id=? AND last_op=? AND revision=?)').bind(op+':landing',id,winner.character.x,winner.character.y,JSON.stringify({event:{text:original.name+' arrived after an unexpected journey.',kind:'arrival',newBadge:null}}),now-1,id,op,row.revision+1));}
  const results=await db().batch(queries);const updated=results[isGlobal?1:0];
  if(!updated.meta.changes){const applied=await db().prepare('SELECT id FROM visits WHERE id=?').bind(op).first();if(!applied)throw new AppError('This character moved in another window. Refresh before taking another step.',409);}
  return snapshot(owner,id);

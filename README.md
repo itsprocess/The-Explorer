@@ -2,6 +2,8 @@
 
 A working Sites/Vinext application with deterministic world generation, two OpenAI text passes, saved location illustrations, persistent regional identities, characters, and encounter history.
 
+The current world uses the Wild Horizons seed, expanded climate ranges, derived terrain situations, historical encounter prose and roughly one transport per eighteen traversable cells. See [Wild Horizons](docs/wild-horizons.md) for the distribution audit and reset behavior, and [frontier preloading](docs/frontier-preloading.md) for caching without discovery.
+
 ## Run locally
 
 Requirements: Node 22.13+ and the root workspace `.env.local` containing `OPENAI_API_KEY`. Optional `OPENAI_MODEL` and `WORLD_SEED` override the defaults.
@@ -83,7 +85,7 @@ Unit tests cover deterministic and bounded ratings, origin protection, reciproca
 
 Regional naming and both text passes use [GPT-5.6 Luna](https://developers.openai.com/api/docs/models/gpt-5.6-luna) through the Responses API with strict Structured Outputs, low reasoning effort, and low verbosity. Illustrations use [GPT Image 2](https://developers.openai.com/api/docs/models/gpt-image-2), separately configurable through OPENAI_IMAGE_MODEL.
 
-Images live in the IMAGES R2 binding (local files under .wrangler/state/v3/r2). Local world/all resets delete recorded image objects as well as generated records. The one-time 0003 migration performs the latest user-requested full database reset, including characters and sessions.
+Images live in the IMAGES R2 binding (local files under .wrangler/state/v3/r2). Local world/all resets delete recorded image objects as well as generated records. The latest reset, migration 0007, clears world and progress while preserving character names, password hashes and sessions; retired images are removed on subsequent package access.
 
 Location records are explicitly labeled View only. Their GET requests never move a character, generate content, or record a visit. Profile badges precede stats, and history is collapsed by default. The map uses fixed 11×11 grid tracks and size-constrained markers.
 
