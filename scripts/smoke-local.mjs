@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import {mkdirSync,writeFileSync} from 'node:fs';
+const base='http://localhost:3000';
+const sign=await fetch(base+'/signin-with-chatgpt?return_to=/',{redirect:'manual'});
+const cookie=sign.headers.getSetCookie().map(s=>s.split(';')[0]).join('; ');
+async function call(path,body){const r=await fetch(base+path,{method:body?'POST':'GET',headers:{cookie,...(body?{'Content-Type':'application/json',Origin:base}:{})},body:body?JSON.stringify(body):undefined});const d=await r.json();if(!r.ok)throw Error(r.status+': '+d.error);return d;}
+const characterRequest={action:'create',name:'First Wanderer',requestId:'first-wanderer-smoke-v1'};
+let state=await call('/api/game',characterRequest);
+assert.equal(state.character.x,0);assert.equal(state.character.alive,true);
+console.log('Origin: '+state.cell.scene.title);
+const originalId=state.character.id;
+const repeated=await call('/api/game',characterRequest);assert.equal(repeated.character.id,originalId);
+const initial=state.character;
+const moveRequest={action:'move',character:originalId,direction:'east',requestId:'first-east-smoke-v1'};
+state=await call('/api/game',moveRequest);
+const replay=await call('/api/game',moveRequest);assert.equal(replay.character.x,state.character.x);assert.equal(replay.character.deaths,state.character.deaths);
+assert.equal(state.character.x,1);assert.equal(state.character.furthest,1);
+const workshop=await call('/api/workshop?x=1&y=0');
+assert.equal(workshop.ratings.length,160);assert.ok(workshop.pass1Result.details.length>0);assert.ok(workshop.pass2Result.result.description.length>120);assert.equal(workshop.imagePackage.enabled,false);
+const input=JSON.parse(workshop.pass2Prompt.input);assert.ok(input.connected_cells.some(n=>n.x===0&&n.y===0&&n.package));
+assert.equal('context' in state.cell,false);assert.equal('ratings' in state.cell,false);
+mkdirSync('outputs',{recursive:true});writeFileSync('outputs/example-cell-package.json',JSON.stringify(workshop,null,2));
+console.log('Neighbor: '+state.cell.scene.title);
+console.log('Verified two real text passes, origin-neighbor context, persistence, retry deduplication, and hidden public ratings.');

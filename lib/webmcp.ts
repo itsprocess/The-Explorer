@@ -1,0 +1,7 @@
+export function registerExplorerTools(read:()=>Promise<any>,move:(direction:string)=>Promise<any>){
+ const context=(document as any).modelContext;if(!context?.registerTool)return ()=>{};const lifecycle=new AbortController();
+ const install=(tool:any)=>{try{Promise.resolve(context.registerTool(tool,{signal:lifecycle.signal})).catch(()=>{});}catch{ /* optional browser capability */ }};
+ install({name:'explorer_read_journey',title:'Read your journey',description:'Read the active character, current place, and available passages. Does not move or generate a place.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,untrustedContentHint:true},execute:async(input:unknown)=>{if(!input||typeof input!=='object'||Object.keys(input).length)throw Error('No arguments expected.');return read();}});
+ install({name:'explorer_enter_passage',title:'Enter a passage',description:'Move the active character into a connected cell, generating its text if needed and resolving its encounter. May cause death.',inputSchema:{type:'object',properties:{direction:{type:'string',enum:['north','east','south','west']}},required:['direction'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:true},execute:async(input:any)=>{if(!input||Object.keys(input).length!==1||!['north','east','south','west'].includes(input.direction))throw Error('Choose one cardinal direction.');return move(input.direction);}});
+ return ()=>lifecycle.abort();
+}
