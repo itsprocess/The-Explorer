@@ -1,0 +1,1 @@
+import{t as e}from"./framework~index~page~layout~page~page~app-page-cache-render~app-page-cache~seed-cache~app-r~njfoc8j1-DNTiJKbg.js";import{T as t}from"../../../index.js";var n=t(()=>{throw Error(`Unexpectedly client reference export 'default' is called on server`)},`08283798cc6e`,`default`),r=e();function i(){return(0,r.jsx)(n,{})}export{i as default};

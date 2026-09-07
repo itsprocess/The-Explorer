@@ -1,0 +1,83 @@
+{
+  "_Icon-jpk45vUa.js": {
+    "file": "the-explorer/_next/static/chunks/Icon-jpk45vUa.js",
+    "name": "Icon",
+    "imports": [
+      "_rolldown-runtime-hePW80VL.js",
+      "_framework-DTZGTDtF.js"
+    ]
+  },
+  "_framework-DTZGTDtF.js": {
+    "file": "the-explorer/_next/static/chunks/framework-DTZGTDtF.js",
+    "name": "framework",
+    "imports": [
+      "_rolldown-runtime-hePW80VL.js"
+    ]
+  },
+  "_rolldown-runtime-hePW80VL.js": {
+    "file": "the-explorer/_next/static/chunks/rolldown-runtime-hePW80VL.js",
+    "name": "rolldown-runtime"
+  },
+  "_vinext-19ugDcPh.js": {
+    "file": "the-explorer/_next/static/chunks/vinext-19ugDcPh.js",
+    "name": "vinext",
+    "imports": [
+      "_rolldown-runtime-hePW80VL.js",
+      "_framework-DTZGTDtF.js"
+    ],
+    "dynamicImports": [
+      "_vinext-19ugDcPh.js"
+    ]
+  },
+  "app/explorer.tsx": {
+    "file": "the-explorer/_next/static/chunks/explorer-BAXxQM1b.js",
+    "name": "explorer",
+    "src": "app/explorer.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-hePW80VL.js",
+      "_framework-DTZGTDtF.js",
+      "_Icon-jpk45vUa.js",
+      "app/history-browser.tsx"
+    ]
+  },
+  "app/history-browser.tsx": {
+    "file": "the-explorer/_next/static/chunks/history-browser-C0BWFHih.js",
+    "name": "history-browser",
+    "src": "app/history-browser.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-hePW80VL.js",
+      "_framework-DTZGTDtF.js"
+    ]
+  },
+  "node_modules/vinext/dist/shims/layout-segment-context.js": {
+    "file": "the-explorer/_next/static/chunks/layout-segment-context-BWHdiZm0.js",
+    "name": "layout-segment-context",
+    "src": "node_modules/vinext/dist/shims/layout-segment-context.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_rolldown-runtime-hePW80VL.js",
+      "_framework-DTZGTDtF.js",
+      "_vinext-19ugDcPh.js"
+    ]
+  },
+  "virtual:vinext-app-browser-entry": {
+    "file": "the-explorer/_next/static/chunks/index-ZFg5MKLT.js",
+    "name": "index",
+    "src": "virtual:vinext-app-browser-entry",
+    "isEntry": true,
+    "imports": [
+      "_rolldown-runtime-hePW80VL.js",
+      "_framework-DTZGTDtF.js",
+      "_vinext-19ugDcPh.js"
+    ],
+    "dynamicImports": [
+      "app/explorer.tsx",
+      "_vinext-19ugDcPh.js",
+      "node_modules/vinext/dist/shims/layout-segment-context.js",
+      "_Icon-jpk45vUa.js",
+      "app/history-browser.tsx"
+    ]
+  }
+}

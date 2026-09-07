@@ -1,0 +1,1 @@
+function e(e){return e===`/the-explorer`||e.startsWith(`/the-explorer/`)?e:`/the-explorer`+e}export{e as t};

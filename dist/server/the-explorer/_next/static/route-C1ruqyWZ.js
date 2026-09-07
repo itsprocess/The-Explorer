@@ -1,0 +1,1 @@
+import{i as e,n as t,r as n}from"./auth-CzMU-mwm.js";import{a as r}from"./provider-health-Ch28Qrw9.js";async function i(i){try{return t(i),await e(),await r(),Response.json({ready:!0},{headers:{"Cache-Control":`no-store`}})}catch(e){return n(e)}}export{i as POST};

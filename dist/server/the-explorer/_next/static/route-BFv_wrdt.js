@@ -1,0 +1,1 @@
+async function e(){return Response.json({ready:!1,disabled:!0},{headers:{"Cache-Control":`no-store`}})}export{e as POST};
