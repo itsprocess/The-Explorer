@@ -1,4 +1,4 @@
-import {sqliteTable,text,integer,index} from 'drizzle-orm/sqlite-core';
+import {sqliteTable,text,integer,index,uniqueIndex} from 'drizzle-orm/sqlite-core';
 export const packages=sqliteTable('packages',{
  key:text('key').primaryKey(),kind:text('kind').notNull(),value:text('value'),
  token:text('token'),lease:integer('lease').notNull().default(0),updated:integer('updated').notNull(),
@@ -13,4 +13,16 @@ export const visits=sqliteTable('visits',{
 },t=>[index('visits_character_at').on(t.character,t.at),index('visits_cell_at').on(t.x,t.y,t.at)]);
 export const claims=sqliteTable('claims',{
  key:text('key').primaryKey(),character:text('character').notNull(),operation:text('operation').notNull(),at:integer('at').notNull(),
+});
+export const credentials=sqliteTable('character_credentials',{
+ character:text('character').primaryKey(),nameKey:text('name_key').notNull(),passwordHash:text('password_hash'),created:integer('created').notNull(),
+},t=>[uniqueIndex('character_names_global_unique').on(t.nameKey)]);
+export const sessions=sqliteTable('character_sessions',{
+ tokenHash:text('token_hash').primaryKey(),character:text('character').notNull(),expires:integer('expires').notNull(),
+},t=>[index('character_sessions_expiry').on(t.expires)]);
+export const authAttempts=sqliteTable('auth_attempts',{
+ key:text('key').primaryKey(),count:integer('count').notNull(),expires:integer('expires').notNull(),
+});
+export const settings=sqliteTable('server_settings',{
+ key:text('key').primaryKey(),value:text('value').notNull(),
 });

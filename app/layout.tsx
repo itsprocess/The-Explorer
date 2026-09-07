@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'The Explorer — A world, remembered',
+  title: 'The Explorer',
   description: 'An infinite dungeon, written as you explore. Keep your discoveries and misadventures.',
 };
 

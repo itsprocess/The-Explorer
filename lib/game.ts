@@ -1,9 +1,20 @@
 import {db,readPackage,namespace,worldSeed,AppError} from './server';
 import {ensureCell,cellKey,publicCell,type CellPackage} from './generation';
 import {connections,directions,exists,type Direction} from './world';
-import {hash} from './noise';
+
 import {resolveArrival,type Character} from './rules';
 export type {Character} from './rules';
+
+export async function createCharacter(name:string,nameKey:string,passwordHash:string){
+ const id=crypto.randomUUID(),p=await ensureCell(0,0),now=Date.now();
+ const character:Character={id,name,x:0,y:0,alive:true,deaths:0,furthest:0,badges:[],consumed:[]};
+ try{await db().batch([
+  db().prepare('INSERT INTO character_credentials(character,name_key,password_hash,created) VALUES(?,?,?,?)').bind(id,nameKey,passwordHash,now),
+  db().prepare('INSERT INTO characters(id,owner,value,revision,updated) VALUES(?,?,?,0,?)').bind(id,id,JSON.stringify(character),now),
+  db().prepare('INSERT INTO visits(id,character,x,y,value,at) VALUES(?,?,0,0,?,?)').bind(crypto.randomUUID(),id,JSON.stringify({event:{text:name+' arrived at '+p.scene.title+'.',kind:'arrival',newBadge:null}}),now),
+ ]);}catch(e){if(await db().prepare('SELECT character FROM character_credentials WHERE name_key=?').bind(nameKey).first())throw new AppError('That character name is already taken.',409);throw e;}
+ return {id,owner:id};
+}
 type CharacterRow={id:string;owner:string;value:string;revision:number;last_op:string|null};
 export async function characterRow(owner:string,id:string){const row=await db().prepare('SELECT * FROM characters WHERE id=? AND owner=?').bind(id,owner).first<CharacterRow>();if(!row)throw new AppError('That character could not be found.',404);return row;}
 export async function snapshot(owner:string,id?:string,offset=0){
@@ -18,14 +29,6 @@ export async function snapshot(owner:string,id?:string,offset=0){
  const first=c?await db().prepare('SELECT value FROM visits WHERE character=? ORDER BY at DESC,id DESC LIMIT 1').bind(c.id).first<{value:string}>():null;
  const lastEvent=first?JSON.parse(first.value).event:null;
  return {character:c?{id:c.id,name:c.name,x:c.x,y:c.y,alive:c.alive,deaths:c.deaths,furthest:c.furthest}:null,characters:rows.map(r=>({id:r.id,name:JSON.parse(r.value).name})),cell:publicCell(saved),map,connections:connections(worldSeed(),x,y),badges:c?.badges??[],history:history.slice(0,25).map(h=>({id:h.id,x:h.x,y:h.y,at:h.at,...JSON.parse(h.value).event})),historyHasMore:history.length>25,historyOffset:offset,lastEvent};
-}
-export async function createCharacter(owner:string,name:string,requestId:string){
- const id='c_'+hash(owner+':'+requestId).toString(16)+'_'+hash(requestId+':'+owner).toString(16);
- const found=await db().prepare('SELECT id FROM characters WHERE id=? AND owner=?').bind(id,owner).first();if(found)return snapshot(owner,id);
- const count=await db().prepare('SELECT count(*) as n FROM characters WHERE owner=?').bind(owner).first<{n:number}>();if((count?.n??0)>=30)throw new AppError('This first edition supports 30 characters per account.');
- const p=await ensureCell(0,0);const c:Character={id,name,x:0,y:0,alive:true,deaths:0,furthest:0,badges:[],consumed:[]};const now=Date.now();
- await db().batch([db().prepare('INSERT OR IGNORE INTO characters(id,owner,value,revision,last_op,updated) VALUES(?,?,?,0,?,?)').bind(id,owner,JSON.stringify(c),requestId,now),db().prepare('INSERT OR IGNORE INTO visits(id,character,x,y,value,at) VALUES(?,?,0,0,?,?)').bind(owner+':'+requestId,id,JSON.stringify({event:{text:name+' first arrived at '+p.scene.title+'.',kind:'arrival',newBadge:null}}),now)]);
- return snapshot(owner,id);
 }
 export async function moveCharacter(owner:string,id:string,requestId:string,direction:Direction|'return'){
  const op=owner+':'+requestId;

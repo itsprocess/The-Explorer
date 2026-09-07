@@ -13,13 +13,16 @@
     "format": "oxfmt",
     "db:generate": "drizzle-kit generate",
     "setup:local": "node scripts/setup-local.mjs",
-    "db:local": "wrangler d1 execute DB --local --config wrangler.local.json --file drizzle/0000_tiny_hannibal_king.sql",
+    "db:local": "node scripts/data.mjs migrate",
+    "data:status": "node scripts/data.mjs status",
+    "data:reset": "node scripts/data.mjs reset",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
     "smoke:local": "node scripts/smoke-local.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",
+    "@noble/hashes": "^2.0.1",
     "@shadcn/react": "0.3.0",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
