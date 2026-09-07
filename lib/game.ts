@@ -23,6 +23,8 @@ export async function snapshot(owner:string,id?:string,offset=0){
  const row=id?await characterRow(owner,id):rows[0];const c:Character|null=row?JSON.parse(row.value):null;
  const x=c?.x??0,y=c?.y??0;
  const saved=c?await ensureCell(x,y):await readPackage<CellPackage>(cellKey(x,y));
+ // A reset preserves the character at origin but clears visits. Re-establish the actual arrival.
+ if(c&&saved&&x===0&&y===0)await db().prepare('INSERT OR IGNORE INTO visits(id,character,x,y,value,at) SELECT ?,?,0,0,?,? WHERE NOT EXISTS(SELECT 1 FROM visits WHERE character=?)').bind(namespace()+'initial:'+c.id,c.id,JSON.stringify({event:{text:c.name+' arrived at '+saved.scene.title+'.',kind:'arrival',newBadge:null}}),Date.now(),c.id).run();
  const known=(await db().prepare('SELECT DISTINCT x,y FROM visits WHERE x BETWEEN ? AND ? AND y BETWEEN ? AND ?').bind(x-5,x+5,y-5,y+5).all<{x:number;y:number}>()).results;
  const knownSet=new Set(known.map(r=>cellKey(r.x,r.y)));const map=[];
  for(let dy=-5;dy<=5;dy++)for(let dx=-5;dx<=5;dx++){const a=x+dx,b=y+dy;map.push({x:a,y:b,exists:Math.abs(a)<=1e9&&Math.abs(b)<=1e9&&exists(worldSeed(),a,b),generated:knownSet.has(cellKey(a,b))});}

@@ -29,7 +29,7 @@ export default function Explorer(){
  const locationKey=c?c.id+':'+c.x+':'+c.y:'';
  const [readyImage,setReadyImage]=useState('');
  const markImageReady=useCallback(()=>setReadyImage(locationKey),[locationKey]);
- return <main>{feedback.popup}{c?.alive&&cell&&<NeighborPreloader key={locationKey} x={c.x} y={c.y} connections={state.connections} imageReady={readyImage===locationKey||!!cell.imageUrl}/>}
+ return <main>{feedback.popup}{c?.alive&&cell&&<NeighborPreloader key={locationKey} x={c.x} y={c.y} connections={state.connections} imageReady={readyImage===locationKey}/>}
   <header className="masthead"><a className="brand" href="/">The Explorer</a><nav aria-label="Main"><button className={tab==='explore'?'active':''} onClick={()=>setTab('explore')}>Explore</button>{c&&<button className={tab==='profile'?'active':''} onClick={()=>setTab('profile')}>Profile</button>}<button className={tab==='dev'?'active':''} onClick={workshop}>Dev</button></nav>{feedback.soundButton}{c&&<button disabled={busy} onClick={()=>auth('logout')}>Log out</button>}</header>
   {error&&<div className="error" role="alert">{error}{error.includes("Sign in with ChatGPT")&&<> <a href="/signin-with-chatgpt?return_to=/">Sign in</a></>}</div>}
   {!state&&!error?<div className="workspace"><section className="reading-pane"><div className="image-placeholder"><span role="status"><span className="spinner" aria-hidden="true"/>Loading…</span></div></section></div>:!c&&tab!=='dev'?<form className="auth" onSubmit={e=>{e.preventDefault();auth('login');}}>
