@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {contextFor,deriveRatings,exists,connections,directions,recipes,regionalRefs} from '../lib/world';
+import {contextFor,deriveRatings,exists,connections,directions,recipes,regionalRefs,broadTerrain} from '../lib/world';
 import {random,oi} from '../lib/noise';
 import {detailPrompt,descriptiveIds,assertDetails,scenePrompt,assertScene,type Scene} from '../lib/prompts';
 import {resolveArrival,type Character} from '../lib/rules';
@@ -12,8 +12,8 @@ function fixture(x=8,y=4):CellPackage{
  const scene:Scene={title:'Test location',description:'A fixture scene for rule verification.',exits:context.edges.map(e=>({direction:e.direction as keyof typeof directions,description:e.material+' '+e.opening+' with a flat threshold.'})),visual_brief:'',continuity_facts:[],event_narrative:'{character_name} was pressed into a footnote.',consumed_narrative:'The ceremony is over.',hostility_narrative:'The kingdom remembered your rival honor.',death_badge_title:'Footnoted',death_badge_description:'Killed by an archival press.',honor_badge_title:'Honorary archivist'};
  return {context,scene,regions:context.regions.map(r=>({id:r.id,kind:r.kind,name:r.kind,lore:''})),created:0,pass2Prompt:null,pass2Result:null,imagePackage:{enabled:false}};
 }
-test('all 33 fields are deterministic, finite, and separately addressed',()=>{
- const a=deriveRatings(seed,-891,1702),b=deriveRatings(seed,-891,1702);assert.deepEqual(a,b);assert.equal(a.length,33);assert.equal(new Set(a.map(r=>r.recipe)).size,33);assert.equal(new Set(recipes.map(r=>r.recipe)).size,33);a.forEach(r=>assert.ok(r.value>=0&&r.value<=1));assert.notDeepEqual(a,deriveRatings(seed+'2',-891,1702));assert.throws(()=>oi(NaN));
+test('all 74 fields are deterministic, finite, and separately addressed',()=>{
+ const a=deriveRatings(seed,-891,1702),b=deriveRatings(seed,-891,1702);assert.deepEqual(a,b);assert.equal(a.length,74);assert.equal(new Set(a.map(r=>r.recipe)).size,74);assert.equal(new Set(recipes.map(r=>r.recipe)).size,74);a.forEach(r=>assert.ok(r.value>=0&&r.value<=1));assert.notDeepEqual(a,deriveRatings(seed+'2',-891,1702));assert.throws(()=>oi(NaN));
 });
 test('backbone, origin, and approaches survive any tested seed',()=>{
  for(let s=0;s<20;s++){const key='seed-'+s;for(let i=-64;i<=64;i++){assert.ok(exists(key,i,0));assert.ok(exists(key,0,i));}for(const [x,y] of [[0,0],[1,0],[0,-1],[2,0]]){const c=contextFor(key,x,y);assert.ok(c.exists);assert.ok(c.safeApproach);assert.equal(c.event,null);assert.equal(c.features.trap,false);assert.equal(c.features.portal,false);}}
@@ -26,7 +26,7 @@ test('nearby climate is coherent while entity IDs persist across cells',()=>{
  const a=deriveRatings(seed,20,20),b=deriveRatings(seed,21,20);for(const id of ['climate.temperature','climate.humidity'])assert.ok(Math.abs(a.find(r=>r.id===id)!.value-b.find(r=>r.id===id)!.value)<.1);assert.deepEqual(regionalRefs(seed,0,0).map(r=>r.id),regionalRefs(seed,1,0).map(r=>r.id));assert.notEqual(random(seed,'chest',0,0),random(seed,'portal',0,0));
 });
 test('first prompt carries all ratings but requests a bounded descriptive selection',()=>{
- const c=contextFor(seed,0,0),prompt=detailPrompt(c,[]),data=JSON.parse(prompt.input);assert.equal(data.ratings.length,33);assert.ok(data.selected_rating_ids.length<=6);assert.ok(prompt.instructions.includes('unique origin'));
+ const c=contextFor(seed,0,0),prompt=detailPrompt(c,[]),data=JSON.parse(prompt.input);assert.equal(data.ratings.length,74);assert.ok(data.selected_rating_ids.length<=6);assert.ok(prompt.instructions.includes('unique origin'));
  const valid={details:descriptiveIds(c).map(id=>({rating_id:id,description:'A grounded detail.'})),regional_texture:''};assert.doesNotThrow(()=>assertDetails(valid,c));assert.throws(()=>assertDetails({...valid,details:valid.details.slice(1)},c));const second=JSON.parse(scenePrompt(c,[],valid,[{package:{title:'Neighbor'}}]).input);assert.equal(second.connected_cells[0].package.title,'Neighbor');
 });
 test('a repeated death adds to the count but awards only one death badge',()=>{
@@ -69,4 +69,26 @@ test('features are sparse, stability is usually high, and forests form patches',
  assert.ok(forest/n>.03&&forest/n<.4);
  assert.ok(forestNext/forest>.65,'Forests must persist across adjacent cells');
  for(const count of Object.values(counts))assert.ok(count/n<.4,'No special feature should dominate the world');
+});
+test('direction descriptions partition the compass and previews exclude secret features',()=>{
+ for(const [x,y] of [[0,0],[13,27],[-19,51],[1000000000,0]]){
+  const c=contextFor(seed,x,y);
+  assert.equal(c.edges.length+c.blocked.length,4);
+  assert.equal(new Set([...c.edges,...c.blocked].map(e=>e.direction)).size,4);
+  for(const b of c.blocked){assert.equal(c.connections[b.direction],false);assert.ok(b.reason.length>15);}
+  for(const e of c.edges)assert.ok(e.glimpse.length>0);
+ }
+ const ordinary={'terrain.enclosure':0,'climate.temperature':.5};
+ assert.equal(broadTerrain(ordinary),broadTerrain({...ordinary,'encounters.treasure':1,'hazards.trap':1,'supernatural.portal':1,'civilization.prison':1}));
+});
+test('oceans have regional continuity and a dry connected origin',()=>{
+ let wet=0,adjacent=0;
+ for(let i=0;i<1500;i++){
+  const x=i*19-15000,y=i*37-18000;
+  const a=deriveRatings(seed,x,y).find(r=>r.id==='water.ocean')!.value;
+  if(a>.15){wet++;if(deriveRatings(seed,x+1,y).find(r=>r.id==='water.ocean')!.value>.15)adjacent++;}
+ }
+ assert.ok(wet>20);assert.ok(adjacent/wet>.9);
+ for(let x=-2;x<=2;x++)assert.equal(deriveRatings(seed,x,0).find(r=>r.id==='water.ocean')!.value,0);
+ assert.ok(recipes.filter(r=>r.kind==='feature').length>=54);assert.ok(recipes.filter(r=>r.kind==='baseline').length>=10);
 });

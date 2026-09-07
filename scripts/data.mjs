@@ -27,6 +27,13 @@ if(command==='migrate'){
  const scope=args.includes('--scope')?args[args.indexOf('--scope')+1]:'all';
  if(!args.includes('--confirm')||args[args.indexOf('--confirm')+1]!=='RESET'||!['all','characters','world'].includes(scope))throw Error('Use: npm run data:reset -- --scope all|characters|world --confirm RESET. Stop the dev server first.');
  const tables=['character_sessions','character_credentials','visits','claims','characters','auth_attempts'];
+ if(scope==='all'||scope==='world'){
+  for(const row of sql("SELECT value FROM packages WHERE kind='image' AND value IS NOT NULL")){
+   const objectKey=JSON.parse(row.value).objectKey;if(typeof objectKey!=='string')continue;
+   const removed=spawnSync(process.execPath,['node_modules/wrangler/bin/wrangler.js','r2','object','delete','site-creator-r2/'+objectKey,'--local','--config','wrangler.local.json','--persist-to',storage],{encoding:'utf8'});
+   if(removed.status!==0)throw Error('Could not clear a local image: '+removed.stderr);
+  }
+ }
  if(scope==='all')tables.push('packages');
  const queries=tables.map(t=>'DELETE FROM '+t+';').join('\n')+(scope==='all'?"\nINSERT INTO server_settings(key,value) VALUES ('bootstrap_disabled','1') ON CONFLICT(key) DO UPDATE SET value='1';":'');
  sql(scope==='world'?readFileSync('drizzle/0002_reset_world_v2.sql','utf8'):queries);

@@ -1,6 +1,7 @@
 import {contextFor,regionalRefs,directions,type CellContext} from './world';
 import {db,remember,readPackage,namespace,worldSeed} from './server';
 import {complete} from './openai';
+import {savedImage} from './location-images';
 import {entitySchema,detailsSchema,sceneSchema,detailPrompt,scenePrompt,assertDetails,assertScene,PROMPT_VERSION,type Details,type Scene,type Region} from './prompts';
 export type CellPackage={context:CellContext;regions:Region[];scene:Scene;created:number;pass2Prompt:unknown;pass2Result:unknown;imagePackage:unknown};
 export const cellKey=(x:number,y:number)=>namespace()+'cell:'+x+':'+y;
@@ -29,8 +30,8 @@ export async function ensureCell(x:number,y:number):Promise<CellPackage>{
    neighbors.push({direction,x:x+dx,y:y+dy,numerical_context:{biome:neighbor.biome,ratings:neighbor.ratings},package:saved?{title:saved.scene.title,description:saved.scene.description,continuity_facts:saved.scene.continuity_facts,regions:saved.regions,edges:saved.context.edges}:null});
   }
   const prompt=scenePrompt(context,regions,stage.result,neighbors),response=await complete<Scene>('canonical_scene',sceneSchema,prompt);assertScene(response.result,context);
-  return {context,regions,scene:response.result,created:Date.now(),pass2Prompt:prompt,pass2Result:{...response,version:PROMPT_VERSION},imagePackage:{enabled:false,instructions:'Render this canonical scene using its approved visual brief and connected-place context. No player identity, interface, or invented exits.',context,descriptivePackage:stage.result,scene:response.result,connectedCells:neighbors}};
+  return {context,regions,scene:response.result,created:Date.now(),pass2Prompt:prompt,pass2Result:{...response,version:PROMPT_VERSION},imagePackage:{enabled:true,instructions:'Render this canonical scene using its approved visual brief and connected-place context. No player identity, interface, or invented exits.',context,descriptivePackage:stage.result,scene:response.result,connectedCells:neighbors}};
  });
 }
-export async function workshopData(x:number,y:number){const context=contextFor(worldSeed(),x,y),saved=await readPackage<CellPackage>(cellKey(x,y)),stage=await readPackage(stageKey(x,y));return {ratings:context.ratings,context,pass1Prompt:stage?.prompt??detailPrompt(context,[]),pass1Result:stage?.result??null,pass2Prompt:saved?.pass2Prompt??null,pass2Result:saved?.pass2Result??null,imagePackage:saved?.imagePackage??{enabled:false}};}
-export const publicCell=(p:CellPackage|null)=>p?{scene:{title:p.scene.title,description:p.scene.description,exits:p.scene.exits},regions:p.regions.map(r=>({id:r.id,name:r.name,kind:r.kind})),x:p.context.x,y:p.context.y}:null;
+export async function workshopData(x:number,y:number){const context=contextFor(worldSeed(),x,y),saved=await readPackage<CellPackage>(cellKey(x,y)),stage=await readPackage(stageKey(x,y));return {ratings:context.ratings,context,pass1Prompt:stage?.prompt??detailPrompt(context,[]),pass1Result:stage?.result??null,pass2Prompt:saved?.pass2Prompt??null,pass2Result:saved?.pass2Result??null,imagePackage:await savedImage(x,y)??saved?.imagePackage??{enabled:true}};}
+export const publicCell=(p:CellPackage|null,imageUrl?:string)=>p?{scene:{title:p.scene.title,description:p.scene.description,exits:p.scene.exits.map(e=>({...e,glimpse:p.context.edges.find(n=>n.direction===e.direction)?.glimpse})),blocked:p.context.blocked},imageUrl,regions:p.regions.map(r=>({id:r.id,name:r.name,kind:r.kind})),x:p.context.x,y:p.context.y}:null;

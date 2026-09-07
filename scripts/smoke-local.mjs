@@ -26,8 +26,27 @@ const move={action:'move',direction:'east',requestId:crypto.randomUUID()};
 state=(await call('/api/game',move)).d;
 const replay=(await call('/api/game',move)).d;
 assert.equal(state.character.x,1);assert.equal(replay.character.x,1);assert.equal(state.character.furthest,1);
+const beforeView=(await call('/api/game')).d;
+const view=await (await fetch(base+'/cell/0/0',{headers:{cookie:platform+'; '+session}})).text();
+assert.match(view,/View only/);assert.match(view,/does not move your character/);
+const afterView=(await call('/api/game')).d;
+assert.deepEqual(afterView.character,beforeView.character);assert.deepEqual(afterView.history,beforeView.history);
+assert.equal(state.cell.scene.exits.length+state.cell.scene.blocked.length,4);
+assert.ok(state.cell.scene.exits.every(e=>typeof e.glimpse==='string'));
+await call('/api/image',{x:99,y:99},403);
+await call('/api/image',{x:1,y:0},401,platform);
+if(process.env.EXPLORER_TEST_IMAGE==='1'){
+ const illustration=(await call('/api/image',{x:1,y:0})).d;
+ const repeated=(await call('/api/image',{x:1,y:0})).d;
+ assert.equal(repeated.url,illustration.url);
+ const r=await fetch(base+illustration.url,{headers:{cookie:platform}});
+ assert.equal(r.status,200);assert.equal(r.headers.get('content-type'),'image/webp');
+ const bytes=Buffer.from(await r.arrayBuffer());assert.equal(bytes.subarray(8,12).toString(),'WEBP');assert.ok(bytes.length>5000);
+ mkdirSync('outputs',{recursive:true});writeFileSync('outputs/test-location.webp',bytes);
+ console.log('Verified generated image, persistent recall, and read-only image serving.');
+}
 const workshop=(await call('/api/workshop?x=1&y=0')).d;
-assert.equal(workshop.ratings.length,33);assert.ok(workshop.pass1Result.details.length>0);assert.ok(workshop.pass2Result.result.description.length>20);assert.equal(workshop.imagePackage.enabled,false);
+assert.equal(workshop.ratings.length,74);assert.ok(workshop.pass1Result.details.length>0);assert.ok(workshop.pass2Result.result.description.length>20);assert.ok(workshop.imagePackage.enabled||workshop.imagePackage.model==='gpt-image-2');
 assert.equal(workshop.pass2Result.model,'gpt-5.6-luna');
 assert.equal(workshop.pass2Result.result.exits.length,Object.values(state.connections).filter(Boolean).length);
 assert.ok(workshop.pass2Result.result.description.split(/\s+/).length<=80);
@@ -35,6 +54,9 @@ assert.ok(JSON.parse(workshop.pass2Prompt.input).connected_cells.some(n=>n.x===0
 assert.equal('context' in state.cell,false);assert.equal('ratings' in state.cell,false);
 const profile=await (await fetch(base+'/profile/'+state.character.id,{headers:{cookie:platform}})).text();
 assert.ok(!profile.includes(password));assert.ok(!profile.includes('scrypt$'));
+assert.match(profile,/<details[^>]*class="profile-history"[^>]*>/);
+assert.doesNotMatch(profile,/<details[^>]*class="profile-history"[^>]*\sopen(?:=|\s|>)/);
+assert.ok(profile.indexOf('Badges</h2>')<profile.indexOf('History</summary>'));
 await call('/api/character',{action:'logout'});
 await call('/api/game',move,401);assert.equal((await call('/api/game')).d.character,null);
 const login=await call('/api/character',{action:'login',name:name.toUpperCase(),password});

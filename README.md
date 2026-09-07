@@ -1,6 +1,6 @@
-# The Explorer — text edition
+# The Explorer
 
-A working Sites/Vinext application with deterministic world generation, two real OpenAI text passes, persistent regional identities, characters, and encounter history. Image generation is disabled.
+A working Sites/Vinext application with deterministic world generation, two OpenAI text passes, saved location illustrations, persistent regional identities, characters, and encounter history.
 
 ## Run locally
 
@@ -48,11 +48,11 @@ The root key file is read only by `setup:local`, which writes ignored `.dev.vars
 
 ## Generation
 
-1. `lib/fields.ts` computes 33 distinct fields, including exact-zero feature absence and independently shaped spatial patterns. `lib/world.ts` resolves topology, symmetric exits, regions, events, and protected-origin overrides. See the [field catalog and distribution audit](docs/world-fields.md).
+1. `lib/fields.ts` computes 74 fields (12 baselines and 62 features), including exact-zero feature absence and independently shaped spatial patterns. `lib/world.ts` resolves topology, symmetric exits, regions, events, and protected-origin overrides. See the [field catalog and distribution audit](docs/world-fields.md).
 2. Missing shared regional entities are named once and persisted.
 3. Pass 1 translates two baseline fields and up to four present features into short concrete details.
-4. Pass 2 writes a usually 25–55-word scene (80-word maximum), plus exactly one short description for each exit. Connected neighbors provide continuity context only; their titles, contents, inhabitants, and events must not appear in the current scene or its exits. The UI lists every exit below the paragraph.
-5. A future image-input package is stored. No image API is called.
+4. Pass 2 writes a usually 25–55-word scene (80-word maximum), plus exactly one short description for each exit. The app appends only a broad terrain glimpse: forest, coast, ocean, cave, etc. Neighboring names, inhabitants, traps, treasure, and events stay private. Every blocked direction gets a physical explanation.
+5. Pass 3 generates a landscape illustration using GPT Image 2 (1536×1024, low quality, WebP). Its prompt contains the approved current scene, exits, broad terrain glimpses, and blocked boundaries. R2 stores the bytes; D1 stores metadata and the exact prompt. The UI requests only the logged-in character's current cell and shows a separate image loading state. A failed image can retry without regenerating text.
 
 Each stage uses a durable lease and saves its validated output independently. A failed scene pass reuses completed descriptive and regional stages. Generated cells are never rerolled on a normal revisit. Ordinary cells can have no special feature, event, or badge. The Dev view separates present features, baseline conditions, and absent features and explains each derivation.
 
@@ -81,4 +81,10 @@ Unit tests cover deterministic and bounded ratings, origin protection, reciproca
 - The model and prompts are configurable; schema checks do not prove perfect narrative consistency. Canonical outputs remain saved even when a future prompt version changes.
 - Optional WebMCP tools are registered when the browser supports them. No supported WebMCP validation context was available during this implementation; their live browser contract is not claimed as verified.
 
-Regional naming and both text passes use [GPT-5.6 Luna](https://developers.openai.com/api/docs/models/gpt-5.6-luna) through the Responses API with strict Structured Outputs, low reasoning effort, and low verbosity. The actual response model is recorded with each generation. Image API calls remain disabled; textual visual description is fully encouraged.
+Regional naming and both text passes use [GPT-5.6 Luna](https://developers.openai.com/api/docs/models/gpt-5.6-luna) through the Responses API with strict Structured Outputs, low reasoning effort, and low verbosity. Illustrations use [GPT Image 2](https://developers.openai.com/api/docs/models/gpt-image-2), separately configurable through OPENAI_IMAGE_MODEL.
+
+Images live in the IMAGES R2 binding (local files under .wrangler/state/v3/r2). Local world/all resets delete recorded image objects as well as generated records. The one-time 0003 migration performs the latest user-requested full database reset, including characters and sessions.
+
+Location records are explicitly labeled View only. Their GET requests never move a character, generate content, or record a visit. Profile badges precede stats, and history is collapsed by default. The map uses fixed 11×11 grid tracks and size-constrained markers.
+
+To test real image generation and persistence, set EXPLORER_TEST_IMAGE=1 when running npm run smoke:local. This creates one billable illustration and verifies repeat requests reuse it.

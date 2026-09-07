@@ -1,15 +1,29 @@
-import {deriveRatings} from './fields';
+import {deriveRatings,oceanStrength} from './fields';
 export {deriveRatings,recipes,type Rating} from './fields';
 import {hash,random,fbm,cellular,band,clamp,oi,mix} from './noise';
-export const VERSION='world-2';
+export const VERSION='world-3';
 export const LIMIT=1_000_000_000;
 export const directions={north:[0,-1],east:[1,0],south:[0,1],west:[-1,0]} as const;
 export type Direction=keyof typeof directions;
 export function checkCoordinate(x:number,y:number){if(!Number.isSafeInteger(x)||!Number.isSafeInteger(y)||Math.abs(x)>LIMIT||Math.abs(y)>LIMIT)throw Error('Coordinates must be integers within ±1,000,000,000.');}
 // Grid backbone guarantees origin connectivity; optional chambers create sprawl.
-export function exists(seed:string,x:number,y:number){checkCoordinate(x,y);return x%8===0||y%8===0||Math.abs(x)+Math.abs(y)<=2||fbm(seed,'topology',x,y,13,3)>.45;}
+export function exists(seed:string,x:number,y:number){checkCoordinate(x,y);return x%8===0||y%8===0||Math.abs(x)+Math.abs(y)<=2||(oceanStrength(seed,x,y)<.25&&fbm(seed,'topology',x,y,13,3)>.45);}
 export function connections(seed:string,x:number,y:number){return Object.fromEntries(Object.entries(directions).map(([d,[dx,dy]])=>[d,Math.abs(x+dx)<=LIMIT&&Math.abs(y+dy)<=LIMIT&&exists(seed,x,y)&&exists(seed,x+dx,y+dy)])) as Record<Direction,boolean>;}
 export type RegionRef={id:string;kind:string;anchorX:number;anchorY:number;influence:number;band:number};
+export function broadTerrain(v:Record<string,number>){
+ return v['water.archipelago']>0?'islands and open water':v['water.ocean']>.1?'open ocean':v['water.coast']>0?'coast':v['terrain.glacier']>0?'glacier':v['terrain.dunes']>0?'sand dunes':v['water.marsh']>0?'wetlands':v['terrain.chasm']>0?'chasm':v['geology.lava']>0?'lava field':v['water.river']>0?'river':v['water.lake']>0?'lake':v['vegetation.forest']>0?'forest':v['terrain.mesa']>0?'rocky plateau':v['terrain.enclosure']>.5?'cave':v['climate.temperature']<.28?'frozen ground':'open grassland';
+}
+export function terrainPreview(seed:string,x:number,y:number){return broadTerrain(Object.fromEntries(deriveRatings(seed,x,y).map(r=>[r.id,r.value])));}
+export function blockedReason(terrain:string){
+ if(/ocean|water|lake|coast/.test(terrain))return 'Open water has no crossing in this direction.';
+ if(/chasm|plateau/.test(terrain))return 'A sheer rock face and drop leave no crossing.';
+ if(terrain==='forest')return 'Roots and a solid bank of rock leave no passable gap.';
+ if(terrain==='glacier'||terrain==='frozen ground')return 'A wall of ice closes off this direction.';
+ if(terrain==='lava field')return 'An unbroken lava channel cuts off the route.';
+ if(terrain==='wetlands')return 'Deep mud and water leave no firm route.';
+ if(terrain==='sand dunes')return 'A steep sand face and buried rock block the route.';
+ return 'An unbroken rock face blocks the way.';
+}
 export function regionalRefs(seed:string,x:number,y:number):RegionRef[]{
  return ['kingdom','faction','religion'].map((kind,index)=>{
   const size=[96,64,160][index];const wx=x+24*(fbm(seed,kind+':warpX',x,y,180)-.5),wy=y+24*(fbm(seed,kind+':warpY',x,y,180)-.5);
@@ -23,6 +37,12 @@ export function regionalRefs(seed:string,x:number,y:number):RegionRef[]{
 export function contextFor(seed:string,x:number,y:number){
  checkCoordinate(x,y);const ratings=deriveRatings(seed,x,y),v=Object.fromEntries(ratings.map(r=>[r.id,r.value])),safe=Math.abs(x)+Math.abs(y)<=2;
  const open=connections(seed,x,y),refs=regionalRefs(seed,x,y);
+ const surroundings=Object.entries(directions).map(([direction,[dx,dy]])=>{
+  const nx=x+dx,ny=y+dy,inside=Math.abs(nx)<=LIMIT&&Math.abs(ny)<=LIMIT;
+  const neighbor=inside?deriveRatings(seed,nx,ny):[];
+  const values=Object.fromEntries(neighbor.map(r=>[r.id,r.value]));
+  return {direction,dx,dy,values,glimpse:inside?broadTerrain(values):'rock wall'};
+ });
  const pick=random(seed,'event-selection',x,y);
  const portal=!safe&&v['supernatural.portal']>0,treasure=!safe&&!portal&&v['encounters.treasure']>0,trap=!safe&&!portal&&!treasure&&v['hazards.trap']>0;
  const election=!safe&&!trap&&!treasure&&!portal&&v['civilization.settlement']>.5&&pick>.95;
@@ -33,9 +53,10 @@ export function contextFor(seed:string,x:number,y:number){
  const portalDestination=portal?{x:(Math.floor(random(seed,'portal-x',x,y)*1000)-500)*8,y:(Math.floor(random(seed,'portal-y',x,y)*1000)-500)*8}:null;
  return {version:VERSION,seed,x,y,exists:exists(seed,x,y),distance:Math.hypot(x,y),protectedOrigin:x===0&&y===0,safeApproach:safe,connections:open,ratings,regions:refs,
  hostilityPolicy:{enforcesForeignHonors:!safe&&v['encounters.patrol']>0&&hash(seed+':enforcement:'+refs[0].id)%3===0,condition:'honored by a faction other than the locally represented faction',originExempt:true},
- biome:v['geology.lava']>0?'lava fissure':v['water.river']>0?'river crossing':v['water.lake']>0?'lakeshore':v['civilization.settlement']>0?'small settlement':v['vegetation.forest']>0?'woodland':v['history.ruins']>0?'ruined site':v['terrain.enclosure']>.5?'plain cave or tunnel':v['climate.temperature']<.28?'cold open ground':'open scrub or grassland',
- features:{water:v['water.river']>0||v['water.lake']>0,built:v['civilization.settlement']>0||v['history.ruins']>0,trap,treasure,portal},
+ biome:broadTerrain(v),
+ features:{water:v['water.ocean']>0||v['water.river']>0||v['water.lake']>0,built:v['civilization.settlement']>0||v['history.ruins']>0,trap,treasure,portal},
+ blocked:surroundings.filter(n=>!open[n.direction as Direction]).map(n=>({direction:n.direction as Direction,reason:blockedReason(n.glimpse)})),
  presentFeatures:ratings.filter(r=>r.kind==='feature'&&r.value>0).map(r=>({id:r.id,name:r.name,strength:r.value})),event,portalDestination,
- edges:Object.entries(directions).filter(([d])=>open[d as Direction]).map(([direction,[dx,dy]])=>{const ends=[[x,y],[x+dx,y+dy]].sort((a,b)=>a[0]-b[0]||a[1]-b[1]);const id=JSON.stringify(ends);const neighborRoof=deriveRatings(seed,x+dx,y+dy).find(r=>r.id==='terrain.enclosure')!.value;const roof=Math.max(v['terrain.enclosure'],neighborRoof);const openings=roof>.5?['wide cleft','narrow rock passage','low stone opening','rough-cut doorway','sloping tunnel mouth']:['gravel track','gap between boulders','worn earth path','shallow rocky notch','open stone steps'];return {id,direction,material:['basalt','limestone','granite'][hash(seed+id)%3],opening:openings[hash(seed+':opening'+id)%openings.length]};})};
+ edges:surroundings.filter(n=>open[n.direction as Direction]).map(({direction,dx,dy,values,glimpse})=>{const ends=[[x,y],[x+dx,y+dy]].sort((a,b)=>a[0]-b[0]||a[1]-b[1]);const id=JSON.stringify(ends);const roof=Math.max(v['terrain.enclosure'],values['terrain.enclosure']);const water=Math.max(v['water.ocean'],values['water.ocean'])>.1;const openings=water?['raised stone causeway','narrow stone walkway above water','linked rocky shoals']:roof>.5?['wide cleft','narrow rock passage','low stone opening','rough-cut doorway','sloping tunnel mouth']:['gravel track','gap between boulders','worn earth path','shallow rocky notch','open stone steps'];return {id,direction,glimpse,material:['basalt','limestone','granite'][hash(seed+id)%3],opening:openings[hash(seed+':opening'+id)%openings.length]};})};
 }
 export type CellContext=ReturnType<typeof contextFor>;
