@@ -1,6 +1,6 @@
 import type {CellPackage} from './generation';
 export type Badge={id:string;title:string;description:string;entityId?:string;kind:'death'|'honor'|'treasure'|'distance'};
-export type Character={id:string;name:string;x:number;y:number;alive:boolean;deaths:number;furthest:number;badges:Badge[];consumed:string[]};
+export type Character={id:string;name:string;x:number;y:number;alive:boolean;deaths:number;furthest:number;badges:Badge[];consumed:string[];pendingTransport?:{token:string;destination:{x:number;y:number};narrative:string;mechanism:string}};
 
 type EventRecord={text:string;newBadge:string|null;kind:string};
 export const fill=(text:string,name:string)=>text.replaceAll('{character_name}',name);

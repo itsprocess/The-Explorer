@@ -4,7 +4,7 @@ export function feedbackFor(before:any,after:any){
  const ids=new Set((before?.badges??[]).map((b:any)=>b.id));
  const badges=(after?.badges??[]).filter((b:any)=>!ids.has(b.id));
  const event=after?.lastEvent;
- const notable=event&&!['arrival','return','revisit'].includes(event.kind);
+ const notable=event&&!['arrival','return','revisit','transport_pending'].includes(event.kind);
  return notable||badges.length?{id:after.history?.[0]?.id,event:notable?event:null,badges}:null;
 }
 export function useEventFeedback(){

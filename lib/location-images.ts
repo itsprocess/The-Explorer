@@ -19,7 +19,7 @@ export async function ensureImage(p:CellPackage):Promise<LocationImage>{
   return queuedProvider('image',{model,prompt,size:'1008x672',quality:'low'},async()=>{
   const response=await fetch('https://api.openai.com/v1/images/generations',{method:'POST',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify({model,prompt,n:1,size:'1008x672',quality:'low',output_format:'webp'}),signal:AbortSignal.timeout(180000)});
   const payload:any=await response.json();
-  if(!response.ok)throw new AppError(response.status===429?'Image generation is busy. Try again shortly.':'The illustration could not be generated (HTTP '+response.status+'). The location text is saved.',502);
+  if(!response.ok)throw new AppError(payload.error?.code==='credit_balance_exhausted'||payload.error?.type==='insufficient_quota'?'The OpenAI account needs API credit before this place can be illustrated.':response.status===429?'Image generation is busy. Try again shortly.':'The illustration could not be generated (HTTP '+response.status+'). The location text is saved.',502);
   const encoded=payload.data?.[0]?.b64_json;
   if(typeof encoded!=='string')throw new AppError('The image response was incomplete.',502);
   const bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));

@@ -14,7 +14,7 @@ test('layered terrain uses exit geometry without adding a route or event',()=>{
 });
 test('transport is frequent, deterministic, nonlethal and always lands on the connected map',()=>{
  let count=0;const forms=new Set();for(let x=10;x<6010;x++){
-  const v={'terrain.enclosure':0,'water.river':1};const t=transportFor('transport-test',x,9,v);if(!t)continue;count++;forms.add(t.mechanism);assert.deepEqual(t,transportFor('transport-test',x,9,v));assert.ok(exists('transport-test',t.destination.x,t.destination.y));assert.notDeepEqual(t.destination,{x,y:9});
+  const v={'terrain.enclosure':0,'water.river':1};const t=transportFor('transport-test'+x,20,9,v);if(!t)continue;count++;forms.add(t.mechanism);assert.deepEqual(t,transportFor('transport-test'+x,20,9,v));assert.ok(exists('transport-test',t.destination.x,t.destination.y));assert.notDeepEqual(t.destination,{x:20,y:9});
  }
  assert.ok(count/6000>.05&&count/6000<.075);assert.ok(forms.size>=8);
  assert.equal(transportFor('transport-test',0,0,{}),null);assert.equal(transportFor('transport-test',10,8,{'hazards.trap':1}),null);

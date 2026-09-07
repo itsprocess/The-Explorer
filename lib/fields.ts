@@ -1,8 +1,9 @@
+import {distanceIntensity,distanceMultiplier} from './intensity';
 import {perlin,fbm,random,cellular,band,clamp,oi} from './noise';
 type Sample={s:string;x:number;y:number;v:Record<string,number>};
 type Field={id:string;name:string;kind:'baseline'|'feature';low:string;high:string;recipe:string;derive:(p:Sample)=>number};
 const noise=(p:Sample,id:string,size:number,octaves=3)=>fbm(p.s,id,p.x,p.y,size,octaves);
-const roll=(p:Sample,id:string,chance:number)=>random(p.s,id,p.x,p.y)<chance?1:0;
+const roll=(p:Sample,id:string,chance:number)=>random(p.s,id,p.x,p.y)<Math.min(.8,chance*distanceMultiplier(p.x,p.y,id==='marvel'||id==='portal'?100:id==='treasure'?6:3))?1:0;
 const tail=(n:number,start:number)=>clamp((n-start)/(1-start));
 export function oceanStrength(s:string,x:number,y:number){
  const warp=70*(fbm(s,'ocean-warp',x,y,170)-.5);
@@ -13,7 +14,7 @@ export function oceanStrength(s:string,x:number,y:number){
 function centers(p:Sample,id:string,size:number,chance:number,radius:number){
  let value=0;const ax=Math.floor(p.x/size),ay=Math.floor(p.y/size);
  for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){
-  const a=ax+dx,b=ay+dy;if(random(p.s,id+':occupied',a,b)>=chance)continue;
+  const a=ax+dx,b=ay+dy;if(random(p.s,id+':occupied',a,b)>=chance*distanceMultiplier(p.x,p.y,1.8))continue;
   const x=(a+random(p.s,id+':x',a,b))*size,y=(b+random(p.s,id+':y',a,b))*size;
   value=Math.max(value,clamp(1-Math.hypot(p.x-x,p.y-y)/radius));
  }return value;
@@ -29,7 +30,7 @@ export const recipes:Field[]=[
  field('world.age','Visible age','baseline','recently formed or made','ancient and weathered','180-cell age provinces with squared antiquity tail',p=>noise(p,'age',180)**2),
  field('light.level','Light','baseline','dim','bright','roof-dependent daylight plus sparse subterranean glow',p=>clamp((1-p.v['terrain.enclosure'])*(.5+.5*noise(p,'daylight',200))+.08*noise(p,'glow',17))),
  field('climate.wind','Wind','baseline','still','strong wind','squared 65-cell gust field attenuated by enclosure',p=>noise(p,'wind',65)**2*(1-.9*p.v['terrain.enclosure'])),
- field('physics.gravity','Gravity','baseline','light pull','heavy pull','usually normal; rare broad gravity-distortion lobes',p=>.5+(noise(p,'gravity-region',300)>.69?(noise(p,'gravity-pull',40)-.5)*1.6:0)),
+ field('physics.gravity','Gravity','baseline','light pull','heavy pull','usually normal; rare broad gravity-distortion lobes',p=>.5+(noise(p,'gravity-region',300)>.69-.1*distanceIntensity(p.x,p.y)?(noise(p,'gravity-pull',40)-.5)*1.6:0)),
  field('culture.wildness','Human imprint','baseline','untouched','long-shaped by people','cubic 210-cell historical influence field',p=>noise(p,'human-imprint',210)**3),
  field('world.strangeness','Strangeness','baseline','ordinary','unfamiliar forms and materials','sixth-power 110-cell anomaly field, usually near zero',p=>noise(p,'strangeness',110)**6),
  field('water.ocean','Ocean','feature','absent','deep open ocean','warped 650-cell basins with 95-cell coastal roughness; dry origin buffer',p=>oceanStrength(p.s,p.x,p.y)),
@@ -99,7 +100,7 @@ export const recipes:Field[]=[
  field('terrain.glassland','Transformed surface','feature','absent','terrain visibly altered by an extreme past process','rare heat-scar provinces with subtractive erosion',p=>noise(p,'glass-province',150)>.68?tail(noise(p,'glass-scar',25)-.15*noise(p,'glass-erosion',6),.56)*4:0),
  field('geology.meteor','Sudden impact','feature','absent','a landscape scar left by a violent external collision','isolated 4-cell circular impact basins',p=>centers(p,'impact',170,.12,4)),
  field('supernatural.mirage','Optical anomaly','feature','absent','a persistent local distortion of visible appearance','dry district AND narrow heat-band AND rare local roll',p=>p.v['climate.humidity']<.42?band(noise(p,'heat-shimmer',35),.49,.51,.005)*roll(p,'mirage',.04):0),
- field('scenery.unique_features','Unique features','feature','absent','one modest distinctive detail','single 17-cell Perlin field, upper fifth only; scenery without events',p=>{const n=perlin(p.s,'unique-scenery',p.x/17+.371,p.y/17+.619);return n>.63?.35+.65*tail(n,.63):0;}),
+ field('scenery.unique_features','Unique features','feature','absent','one modest distinctive detail','single 17-cell Perlin field, upper fifth only; scenery without events',p=>{const n=perlin(p.s,'unique-scenery',p.x/17+.371,p.y/17+.619);const threshold=.63-.12*distanceIntensity(p.x,p.y);return n>threshold?.35+.65*tail(n,threshold):0;}),
  field('culture.monolith','Commemoration','feature','absent','a prominent work intended to preserve a memory','rare point monuments in ancient provinces',p=>p.v['world.age']>.25?roll(p,'monolith',1/1400):0),
 ];
 export type Rating={id:string;name:string;kind:Field['kind'];value:number;label:string;applicable:boolean;low:string;high:string;recipe:string};
@@ -107,6 +108,10 @@ export function deriveRatings(s:string,x:number,y:number):Rating[]{
  const v:Record<string,number>={};
  const marine=new Set(['scenery.unique_features','hazards.trap','water.ocean','water.coast','water.archipelago','water.reef','civilization.harbor','history.wreck','wildlife.megafauna','supernatural.portal','supernatural.marvel']);
  return recipes.map(r=>{let value=oi(r.derive({s,x,y,v}));
+  const intensity=distanceIntensity(x,y);
+  if(r.id==='world.strangeness')value=oi(value+.75*intensity*(.55+.45*fbm(s,'strangeness',x,y,110)));
+  else if(r.id==='climate.temperature'||r.id==='climate.humidity')value=oi(.5+(value-.5)*(1+.25*intensity));
+  else if(r.kind==='feature'&&value>0&&value<1)value=oi(value*(1+.5*intensity));
   if(r.kind==='feature'&&(v['water.ocean']??0)>.15&&!marine.has(r.id))value=0;
   v[r.id]=value;
   return {id:r.id,name:r.name,kind:r.kind,value,label:value===0?r.low:value===1?r.high:Math.round(value*100)+'%',applicable:r.kind==='baseline'||value>0,low:r.low,high:r.high,recipe:r.recipe};

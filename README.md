@@ -94,3 +94,5 @@ To test real image generation and persistence, set EXPLORER_TEST_IMAGE=1 when ru
 Latest: [loading, threat art, and the Thresholds reset](docs/thresholds.md).
 
 Latest: [Crosscurrents: shared generation queue, parallel frontier streams, broader categories](docs/crosscurrents.md).
+
+Latest: [Teleport confirmation, community panel, and distance escalation](docs/teleports-presence-distance.md).

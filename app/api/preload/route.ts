@@ -15,15 +15,15 @@ export async function POST(request:Request){try{
  let body:any;try{body=JSON.parse(raw);}catch{throw new AppError('Invalid JSON.');}
  const c=JSON.parse((await characterRow(session.owner,session.id)).value);
  if(!body||body.x!==c.x||body.y!==c.y||!c.alive)throw new AppError('The character has moved.',409);
- if(!Object.hasOwn(directions,body.direction)||!['text','image','all'].includes(body.stage))throw new AppError('Invalid preload.');
+ if((!Object.hasOwn(directions,body.direction)&&!(body.direction==='transport'&&c.pendingTransport))||!['text','image','all'].includes(body.stage))throw new AppError('Invalid preload.');
  const direction=body.direction as Direction;
- if(!connections(worldSeed(),c.x,c.y)[direction])throw new AppError('No passage.',403);
+ if(body.direction!=='transport'&&!connections(worldSeed(),c.x,c.y)[direction])throw new AppError('No passage.',403);
  if(!await readPackage(cellKey(c.x,c.y)))throw new AppError('Load the current location first.',409);
- const [dx,dy]=directions[direction],x=c.x+dx,y=c.y+dy;
+ const [dx,dy]=directions[direction]??[0,0],x=body.direction==='transport'?c.pendingTransport.destination.x:c.x+dx,y=body.direction==='transport'?c.pendingTransport.destination.y:c.y+dy;
  // Generation writes packages only. No movement, visit, global claim, or badge is resolved here.
  return generationStream(send=>withGenerationScope(cellKey(x,y),async()=>{
   const p=await awaitGenerated(()=>ensureCell(x,y));send({type:'stage',stage:'text',x,y});
   if(body.stage!=='text'){await awaitGenerated(()=>ensureImage(p));send({type:'stage',stage:'image',x,y});}
   return {ready:true};
- },1),request);
+ },body.direction==='transport'||body.priority==='next'?10:1),request);
  }catch(e){return errorResponse(e);}}

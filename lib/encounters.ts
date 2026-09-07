@@ -1,3 +1,4 @@
+import {distanceMultiplier} from './intensity';
 import {random} from './noise';
 
 // Broad situations, not scripts: the author supplies participants, form and history.
@@ -6,7 +7,7 @@ export const interactionCategories = ['reciprocity', 'recognition', 'miscommunic
 export function interactionFor(seed:string,x:number,y:number,v:Record<string,number>){
  const social=['encounters.traveler','encounters.patrol','encounters.caravan','civilization.camp','economy.market','civilization.settlement'].some(id=>v[id]>0);
  const active=['wildlife.herd','wildlife.nest','infrastructure.machine','culture.shrine','supernatural.haunting','culture.arena'].some(id=>v[id]>0);
- if(Math.abs(x)+Math.abs(y)<=2||random(seed,'interaction-occurrence',x,y)> (social?.38:active?.30:.25))return null;
+ if(Math.abs(x)+Math.abs(y)<=2||random(seed,'interaction-occurrence',x,y)> Math.min(.65,(social?.38:active?.30:.25)*distanceMultiplier(x,y,2)))return null;
  const category=interactionCategories[Math.floor(random(seed,'interaction-category',x,y)*interactionCategories.length)];
  const modeRoll=random(seed,'interaction-repeat',x,y);
  return {id:'interaction',kind:'interaction',mode:modeRoll<.08?'once_ever':modeRoll<.65?'once_per_character':'every_visit',cause:null,deathId:null,entityId:null,category,

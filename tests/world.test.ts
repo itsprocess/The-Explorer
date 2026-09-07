@@ -101,8 +101,8 @@ test('oceans have regional continuity and a dry connected origin',()=>{
 test('unique scenery is sparse and always gets a descriptive slot without selecting an event',()=>{
  let present=0;
  for(let i=0;i<1800;i++){
-  const x=i*23-18000,y=i*53-25000,rs=deriveRatings(seed,x,y),r=rs.find(r=>r.id==='scenery.unique_features')!;
-  if(r.value>0){present++;if(present<5){const c=contextFor(seed,x,y);assert.ok(descriptiveIds(c).includes(r.id));assert.notEqual(c.event?.id,r.id);}}
+  const x=i%41-20,y=Math.floor(i/41)%41-20,sampleSeed=seed+i,rs=deriveRatings(sampleSeed,x,y),r=rs.find(r=>r.id==='scenery.unique_features')!;
+  if(r.value>0){present++;if(present<5){const c=contextFor(sampleSeed,x,y);assert.ok(descriptiveIds(c).includes(r.id));assert.notEqual(c.event?.id,r.id);}}
  }
  assert.ok(present/1800>.16&&present/1800<.25);
 });

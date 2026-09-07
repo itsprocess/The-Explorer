@@ -6,8 +6,8 @@ import {prominentFeatures} from '../lib/visibility';
 test('interactions remain sparse, favor occupied sites and span categories and repeat modes',()=>{
  let ordinary=0,occupied=0;const categories=new Set(),modes=new Set();
  for(let x=10;x<10010;x++){
-  const a=interactionFor('test',x,6,{}),b=interactionFor('test',x,6,{'civilization.settlement':1});
-  if(a){ordinary++;categories.add(a.category);modes.add(a.mode);assert.deepEqual(a,interactionFor('test',x,6,{}));}
+  const a=interactionFor('test'+x,20,6,{}),b=interactionFor('test'+x,20,6,{'civilization.settlement':1});
+  if(a){ordinary++;categories.add(a.category);modes.add(a.mode);assert.deepEqual(a,interactionFor('test'+x,20,6,{}));}
   if(b)occupied++;
  }
  assert.ok(ordinary>2300&&ordinary<2700);assert.ok(occupied>3500&&occupied<4100);
