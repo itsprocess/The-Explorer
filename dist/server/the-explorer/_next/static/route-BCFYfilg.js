@@ -1,0 +1,1 @@
+import{i as e,r as t}from"./auth-BMjJcZX1.js";import{i as n}from"./generation-BdGx4Q2H.js";async function r(r){try{await e();let t=new URL(r.url);return Response.json(await n(Number(t.searchParams.get(`x`)??0),Number(t.searchParams.get(`y`)??0)))}catch(e){return t(e)}}export{r as GET};
