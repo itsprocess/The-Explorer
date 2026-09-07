@@ -5,9 +5,11 @@ export function accessGuard(config, env=process.env) {
   const originVariable=host.publicOriginEnv||'EXPLORER_PUBLIC_ORIGIN';
   const originValue=env[originVariable]||host.publicOrigin;
   if(!originValue)throw Error('Set '+originVariable+' to this deployment\'s HTTPS origin (no path).');
-  const origin=new URL(originValue);
-  if(origin.username||origin.password||origin.pathname!=='/'||origin.search||origin.hash)
-    throw Error(originVariable+' must be an origin only, such as https://your-generated-domain.example (no path or credentials).');
+  const suppliedUrl=new URL(originValue.trim());
+  if(suppliedUrl.username||suppliedUrl.password)
+    throw Error(originVariable+' must not contain embedded credentials.');
+  // Hosting dashboards copy full preview links. Only the trusted origin is needed.
+  const origin=new URL(suppliedUrl.origin);
   if(!/^(?:\/[a-zA-Z0-9_-]+)*$/.test(host.basePath||''))throw Error('basePath must be empty or a slash-prefixed folder path.');
   const friend=env[host.accessPasswordEnv], admin=env[host.adminPasswordEnv];
   if(!friend || friend.length<24 || !admin || admin.length<24 || friend===admin)
