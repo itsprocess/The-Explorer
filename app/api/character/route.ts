@@ -28,6 +28,8 @@ export async function POST(request:Request){try{
   account={id:credential.character,owner:credential.owner};
  }
  const cookie=await newSession(account.id,request);
+ // Finish authentication immediately. The game request streams generation separately.
+ if(request.headers.get('accept')?.includes('application/x-ndjson'))return Response.json({code:'generation_pending'},{status:202,headers:{'Set-Cookie':cookie,'Cache-Control':'no-store'}});
  try{return Response.json(await snapshot(account.owner,account.id),{headers:{'Set-Cookie':cookie,'Cache-Control':'no-store'}});}
  catch(e){const response=errorResponse(e);response.headers.set('Set-Cookie',cookie);return response;}
  }catch(e){return errorResponse(e);}}

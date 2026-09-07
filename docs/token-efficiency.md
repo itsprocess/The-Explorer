@@ -14,7 +14,7 @@ The output schema includes only applicable event, badge and trait fields; the ap
 
 An offline 60-cell comparison with saved-neighbor context reduced mean text prompt+schema characters from about 131,325 to 6,500 (~95%). This compares both previous text passes against the combined pass. It is a reproducible character measurement (`scripts/audit-prompt-budget.ts`), not a tokenizer measurement, billing forecast or live prose-quality evaluation. It excludes image and shared-region requests.
 
-All immediate neighbors still generate concurrently and remain undiscovered. Speculative images still cost tokens even if never visited; reducing those calls would trade away the requested preloaded artwork. No additional image calls, quality changes or frontier breadth changes were introduced.
+Speculative generation is disabled: no neighbor, hover, focus or pending-teleport preloads. The old preload endpoint returns a cheap no-op for stale clients. Only an actual visit requests new text/art. Existing cached neighboring packages still provide continuity. Multiple active players still share the provider queue; cached packages and images are preserved. Image quality and style are unchanged.
 
 ## Failure and recovery
 
@@ -35,3 +35,11 @@ The local reset command also clears presence and usage and removes stored illust
 Unit tests cover missing/zero usage, subtotal arithmetic, quotas, compact context, endless streams and reset completeness. `scripts/smoke-efficiency.ts` exercises real local HTTP/auth/D1 for cached data, parallel quota failures, the Dev ledger and manual resume without making an OpenAI request. Live AI evaluation is deliberately deferred until credit is restored.
 
 Usage fields follow the [OpenAI Responses API reference](https://developers.openai.com/api/reference/cli/resources/responses/methods/create).
+
+## Foreground reliability update
+
+The response schema requires an object with exactly the available cardinal exit keys. Event fields are short subjectless past-tense clauses; the app inserts character and conditional trait placeholders before validation/storage. This avoids rejecting a whole location because a model omitted a placeholder. Cached packages remain untouched. Remaining validation failures receive one bounded repair; raw internal errors stay out of both JSON and streamed player responses. Final scene diagnostics are available only through authenticated Dev.
+
+Authentication completes before location generation; the authenticated game request then streams generation. A failed movement retry reuses its original action and idempotency key, instead of merely reloading the old tile. There is no reset, schema migration, seed change, model change or image setting change in this update.
+
+Validation for foreground update: 53 tests passed. One actual Luna once-only encounter response passed the new schema/compiler/validator in 5.7 seconds, using 1,840 total tokens. No image was generated for this check. This single text-call timing is not an end-to-end exploration latency guarantee.

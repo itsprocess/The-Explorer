@@ -14,8 +14,8 @@ const c=contextFor(seed,0,0),scope=seed+':'+c.version+':cell:0:0';
 const value=JSON.stringify({context:c,scene:{title:'Cached Test Ground',description:'An ordinary clearing.',exits:c.edges.map(e=>({direction:e.direction,description:'A firm path leads onward.'}))},regions:[],created:Date.now()}).replaceAll("'","''");
 sql("INSERT INTO packages(key,kind,value,updated) VALUES('"+scope+"','cell','"+value+"',1)");
 assert.equal((await call('/api/game')).d.cell.scene.title,'Cached Test Ground');
-const results=await Promise.all(['north','east','south','west'].map(direction=>call('/api/preload',{x:0,y:0,direction,stage:'all'},503)));
-assert.ok(results.every(r=>r.d.code==='provider_credit'));
+const results=await Promise.all(['north','east','south','west'].map(direction=>call('/api/preload',{x:0,y:0,direction,stage:'all'})));
+assert.ok(results.every(r=>r.d.disabled===true));
 assert.equal((await call('/api/image',{x:0,y:0},503)).d.code,'provider_credit');
 assert.equal(sql('SELECT count(*) n FROM generation_usage')[0].n,0,'No provider requests during quota pause');
 const usage=JSON.stringify({input_tokens:100,output_tokens:20,total_tokens:120,input_tokens_details:{cached_tokens:40}});
@@ -25,4 +25,4 @@ const dev=(await call('/api/workshop?x=0&y=0')).d;assert.equal(dev.usage.cell.to
 await call('/api/generation/retry',{});assert.equal(sql("SELECT count(*) n FROM server_settings WHERE key='provider_pause'")[0].n,0);
 sql("INSERT INTO server_settings(key,value) VALUES('provider_pause','"+pause.value.replaceAll("'","''")+"')");
 assert.equal((await call('/api/image',{x:0,y:0},503)).d.code,'provider_credit');
-console.log('Passed real HTTP/auth/D1: exhausted-credit login, cached cell access, four parallel preload failures, image failure, Dev token totals, explicit resume. No OpenAI requests.');
+console.log('Passed real HTTP/auth/D1: exhausted-credit login, cached cell access, four disabled preload requests, image failure, Dev token totals, explicit resume. No OpenAI requests.');

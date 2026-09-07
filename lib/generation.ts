@@ -3,10 +3,10 @@ import {usageForCell} from './usage';
 import {promoteGeneration} from './provider-queue';
 import {withGenerationScope} from './generation-scope';
 import {contextFor,directions,type CellContext} from './world';
-import {remember,readPackage,namespace,worldSeed} from './server';
+import {db,remember,readPackage,namespace,worldSeed} from './server';
 import {complete} from './openai';
 import {savedImage} from './location-images';
-import {entitySchema,sceneSchemaFor,normalizeScene,detailPrompt,scenePrompt,assertScene,preparedDetails,PROMPT_VERSION,type Scene,type Region} from './prompts';
+import {entitySchema,sceneSchemaFor,compileScene,detailPrompt,scenePrompt,assertScene,preparedDetails,PROMPT_VERSION,type Scene,type Region} from './prompts';
 export type CellPackage={context:CellContext;regions:Region[];scene:Scene;created:number;pass2Prompt:unknown;pass2Result:unknown;imagePackage:unknown};
 export const cellKey=(x:number,y:number)=>namespace()+'cell:'+x+':'+y;
 export const stageKey=(x:number,y:number)=>namespace()+'details:'+x+':'+y;
@@ -36,10 +36,10 @@ export async function ensureCell(x:number,y:number):Promise<CellPackage>{
    if(saved)neighbors.push({direction,description:saved.scene.description,continuity_facts:saved.scene.continuity_facts,shared_exit:saved.scene.exits.find(e=>e.direction===({north:'south',south:'north',east:'west',west:'east'} as Record<string,string>)[direction])?.description});
   }
   const prompt=scenePrompt(context,regions,stage.result,neighbors);let response=await complete<Scene>('canonical_scene',sceneSchemaFor(context),prompt);
-  response.result=normalizeScene(response.result);
-  try{assertScene(response.result,context);}catch(e){prompt.instructions+=' Correction required: '+(e as Error).message+' Regenerate the complete scene satisfying the schema and every narrative constraint.';response=await complete<Scene>('canonical_scene',sceneSchemaFor(context),prompt);response.result=normalizeScene(response.result);assertScene(response.result,context);}
+  response.result=compileScene(response.result);
+  try{assertScene(response.result,context);}catch(e){prompt.instructions+=' Correction required: '+(e as Error).message+' Regenerate the complete scene satisfying the schema and every narrative constraint.';response=await complete<Scene>('canonical_scene',sceneSchemaFor(context),prompt);response.result=compileScene(response.result);try{assertScene(response.result,context);}catch(finalError){await db().prepare("INSERT INTO server_settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").bind(cellKey(x,y)+':diagnostic',JSON.stringify({at:Date.now(),message:(finalError as Error).message})).run();throw finalError;}}
   return {context,regions,scene:response.result,created:Date.now(),pass2Prompt:prompt,pass2Result:{...response,version:PROMPT_VERSION},imagePackage:{enabled:true}};
  }));
 }
-export async function workshopData(x:number,y:number){const derived=contextFor(worldSeed(),x,y),saved=await readPackage<CellPackage>(cellKey(x,y)),context=saved?.context??derived,stage=await readPackage(stageKey(x,y));return {providerPause:await providerPause(),usage:await usageForCell(cellKey(x,y),context.regions.map(r=>namespace()+'entity:'+r.id)),ratings:context.ratings,context,pass1Prompt:stage?.prompt??detailPrompt(context,[]),pass1Result:stage?.result??null,pass2Prompt:saved?.pass2Prompt??null,pass2Result:saved?.pass2Result??null,imagePackage:await savedImage(x,y)??saved?.imagePackage??{enabled:true}};}
+export async function workshopData(x:number,y:number){const derived=contextFor(worldSeed(),x,y),saved=await readPackage<CellPackage>(cellKey(x,y)),context=saved?.context??derived,stage=await readPackage(stageKey(x,y));return {diagnostic:await db().prepare('SELECT value FROM server_settings WHERE key=?').bind(cellKey(x,y)+':diagnostic').first(),providerPause:await providerPause(),usage:await usageForCell(cellKey(x,y),context.regions.map(r=>namespace()+'entity:'+r.id)),ratings:context.ratings,context,pass1Prompt:stage?.prompt??detailPrompt(context,[]),pass1Result:stage?.result??null,pass2Prompt:saved?.pass2Prompt??null,pass2Result:saved?.pass2Result??null,imagePackage:await savedImage(x,y)??saved?.imagePackage??{enabled:true}};}
 export const publicCell=(p:CellPackage|null,imageUrl?:string)=>p?{scene:{title:p.scene.title,description:p.scene.description,exits:p.scene.exits.map(e=>({...e,glimpse:p.context.edges.find(n=>n.direction===e.direction)?.glimpse})),blocked:p.context.blocked},imageUrl,regions:p.regions.map(r=>({id:r.id,name:r.name,kind:r.kind})),x:p.context.x,y:p.context.y}:null;

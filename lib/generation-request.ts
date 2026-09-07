@@ -20,7 +20,7 @@ export async function generationRequest(url:string,init?:RequestInit,afterPendin
   options.signal?.throwIfAborted();
   if(data.code!=='generation_pending'){if(response.ok&&!data.error)return data;throw Object.assign(Error(data.error||'Request failed.'),{code:data.code});}
   if(Date.now()>=deadline)throw Error('This location is taking too long. Retry to continue from its saved progress.');
-  if(afterPending){target=afterPending;request=undefined;}
+  if(afterPending&&target!==afterPending){target=afterPending;request=undefined;continue;}
   await pause(Math.min(10000,3000+attempt++*1000),options.signal);
  }
 }

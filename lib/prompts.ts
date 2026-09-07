@@ -1,5 +1,5 @@
 import type {CellContext,Direction} from './world';
-export const PROMPT_VERSION='compact-scene-9';
+export const PROMPT_VERSION='foreground-scene-10';
 export type Region={id:string;kind:string;name:string;lore:string};
 const object=(properties:Record<string,any>)=>({type:'object',properties,required:Object.keys(properties),additionalProperties:false});
 const str={type:'string'};
@@ -15,9 +15,23 @@ export function sceneSchemaFor(c:CellContext){
  if(c.event?.kind==='honor')names.push('honor_badge_title');
  if(c.stateRule?.kind==='grant')names.push('trait_name','trait_description');
  if(c.stateRule?.kind==='check')names.push('conditional_narrative');
- return object(Object.fromEntries(names.map(n=>[n,sceneSchema.properties[n]])));
+ const properties=Object.fromEntries(names.map(n=>[n,sceneSchema.properties[n]]));
+ properties.exits=object(Object.fromEntries(c.edges.map(e=>[e.direction,{type:'string',description:'10–24 words describing this exit and its permitted outward view.'}])));
+ for(const key of ['event_narrative','consumed_narrative','hostility_narrative','conditional_narrative'])if(properties[key])properties[key]={type:'string',description:'A past-tense verb phrase, 5–22 words. Omit the subject: the app prepends the visitor name. No placeholders, you, or your. Example: found the crossing deserted after the procession.'};
+ return object(properties);
 }
 export function normalizeScene(s:Scene):Scene{return Object.assign({event_narrative:'',consumed_narrative:'',hostility_narrative:'',death_badge_title:'',death_badge_description:'',honor_badge_title:'',trait_name:'',trait_description:'',conditional_narrative:''},s);}
+export function compileScene(raw:any):Scene{
+ const s=normalizeScene({...raw,exits:Array.isArray(raw.exits)?raw.exits:Object.entries(raw.exits??{}).map(([direction,description])=>({direction,description}))});
+ for(const key of ['event_narrative','consumed_narrative','hostility_narrative','conditional_narrative'] as const){
+  const value=s[key]?.trim();if(!value)continue;
+  // Existing fully assembled records remain accepted; never rewrite saved packages.
+  if(value.includes('{character_name}'))continue;
+  const clause=value.charAt(0).toLowerCase()+value.slice(1);
+  s[key]=(key==='conditional_narrative'?'With {trait_name}, {character_name} ':'{character_name} ')+clause;
+ }
+ return s;
+}
 export type Details={details:{rating_id:string;description:string}[];regional_texture:string};
 export type Scene={title:string;description:string;exits:{direction:Direction;description:string}[];visual_brief:string;continuity_facts:string[];event_narrative:string;consumed_narrative:string;hostility_narrative:string;death_badge_title:string;death_badge_description:string;honor_badge_title:string;trait_name?:string;trait_description?:string;conditional_narrative?:string};
 export type Prompt={instructions:string;input:string};
@@ -43,11 +57,11 @@ export function detailPrompt(c:CellContext,regions:Region[]):Prompt{
 export function scenePrompt(c:CellContext,regions:Region[],details:Details,neighbors:unknown[]):Prompt{
  const event=c.event;
  return {instructions:common+` Write one canonical scene. Title: 2–5 plain physical words; proper names only for origin or exceptional sites. Description: one paragraph, 25–55 words (80 maximum), 1–3 concrete observations. Relevant activity/history is welcome; ordinary ground needs no mystery. No player outcomes in permanent scenery.
-EXITS: exactly one entry per supplied edge, 10–24 words each; none in main paragraph. Match opening/material, footing/clearance and a small outward view of listed terrain or prominent subjects. Saved neighbor shared_exit describes the SAME passage from the opposite side: preserve geometry/details, reverse viewpoint. Other neighbor facts are continuity context only. Reveal no neighboring names, occupants, interiors, events, traps, treasure or small surprises. Do not hint at secrecy. Blocked directions stay blocked for supplied reasons. Ocean crossings require supplied firm footing.
-visual_brief: one sentence for imagery. continuity_facts: up to 3 short physical facts. Omitted schema fields are unused; never add them. Event prose is separate from scenery, third-person PAST tense with literal {character_name}, never you/your; maximum 25 words per branch. Do not repeat scenery. App chooses outcomes; never add choices or mechanics.`+
- (event?` Event kind/mode/cause/outcome are binding. Interpret broad interaction categories eclectically (social, animal, natural or mechanical), without inventing absent major features. Keep benign incidents small. event_narrative records the supplied outcome. consumed_narrative gives settled aftermath for once-only modes; every_visit may recur. Death badges describe the supplied death; honors only for honor events.`:' No event: no encounter, death, reward or badge.')+
+EXITS: fill every required direction key in the exits object, 10–24 words each; none in main paragraph. Match opening/material, footing/clearance and a small outward view of listed terrain or prominent subjects. Saved neighbor shared_exit describes the SAME passage from the opposite side: preserve geometry/details, reverse viewpoint. Other neighbor facts are continuity context only. Reveal no neighboring names, occupants, interiors, events, traps, treasure or small surprises. Do not hint at secrecy. Blocked directions stay blocked for supplied reasons. Ocean crossings require supplied firm footing.
+visual_brief: one sentence for imagery. continuity_facts: up to 3 short physical facts. Omitted schema fields are unused; never add them. Event fields are subjectless PAST-tense verb phrases, 5–22 words. The app prepends the visitor name. Example: "found the old well empty after the gathering." Do not write a subject, placeholder, you/your, or a standalone scene sentence. Do not repeat scenery. App chooses outcomes; never add choices or mechanics.`+
+ (event?` Event kind/mode/cause/outcome are binding. Interpret broad interaction categories eclectically (social, animal, natural or mechanical), without inventing absent major features. Keep benign incidents small. event_narrative records the supplied outcome. consumed_narrative records what the returning visitor found after a once-only event, beginning with "found", "saw" or "noticed"; every_visit may recur. Death badges describe the supplied death; honors only for honor events.`:' No event: no encounter, death, reward or badge.')+
  (event?.kind==='portal'?' Transport mechanism authorizes its carrier. Record completed automatic travel, no invitation/choice or destination description. App handles confirmation and appends arrival.':'')+
- (c.stateRule?.kind==='grant'?' Controlled grant overrides benign no-reward rule: trait_name 2–6 words; trait_description ≤20 words, matching exact spec/lifetime. Record acquisition. No effects beyond properties. Social rank changes regard, not regional ownership.':c.stateRule?.kind==='check'?' Write both branches once. Write conditional_narrative with {character_name} and {trait_name} for exact condition: avoid_death escapes the supplied danger without death/badge; alternate gives a different benign incident without grant/travel/death. Base event assumes no match. App selects branch/consumes traits.':'')+
+ (c.stateRule?.kind==='grant'?' Controlled grant overrides benign no-reward rule: trait_name 2–6 words; trait_description ≤20 words, matching exact spec/lifetime. Record acquisition. No effects beyond properties. Social rank changes regard, not regional ownership.':c.stateRule?.kind==='check'?' Write both branches once. conditional_narrative follows the same subjectless past-tense format; the app supplies both character and trait names. For the exact condition: avoid_death escapes the supplied danger without death/badge; alternate gives a different benign incident without grant/travel/death. Base event assumes no match. App selects branch/consumes traits.':'')+
  (c.hostilityPolicy.enforcesForeignHonors?' Supply separate hostile-patrol death narration and death badge for foreign honors.':'')+
  (c.protectedOrigin?originBrief:c.safeApproach?' Safe approach: no death or hostility.':''),
  input:JSON.stringify({context:compactContext(c),regions:regions.map(({kind,name,lore})=>({kind,name,lore})),...(details.details.length?{ingredients:details}:{}),connected_cells:neighbors})};

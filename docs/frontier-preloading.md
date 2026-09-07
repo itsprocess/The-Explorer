@@ -1,3 +1,5 @@
+> Superseded: speculative preloading is now disabled. See [current generation behavior](token-efficiency.md#foreground-reliability-update). The design below documents the earlier implementation.
+
 # Frontier preloading
 
 This update retains `world-5`, all existing packages, images, characters, visits and claims. No reset migration runs. Changed prompts and encounter selection apply only when a cell is first generated; saved cells keep their canonical outcomes.

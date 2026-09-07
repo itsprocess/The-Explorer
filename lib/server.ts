@@ -4,7 +4,8 @@ export type Bindings={DB:D1Database;IMAGES:R2Bucket;OPENAI_API_KEY?:string;OPENA
 export const bindings=()=>env as unknown as Bindings;
 export const db=()=>bindings().DB;
 export const worldSeed=()=>bindings().WORLD_SEED||'the-explorer-crosscurrents-20260907';
-export class AppError extends Error{constructor(message:string,public status=400,public code?:string){super(message);}}
+import {AppError} from './app-error';
+export {AppError} from './app-error';
 // Deployment migration queues retired images. Idempotent deletion survives interrupted requests.
 export async function removeRetiredImages(){
  const rows=await db().prepare("SELECT key,value FROM server_settings WHERE key LIKE 'retired-image:%' LIMIT 1000").all<{key:string;value:string}>();
