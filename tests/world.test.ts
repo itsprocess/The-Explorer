@@ -12,8 +12,8 @@ function fixture(x=8,y=4):CellPackage{
  const scene:Scene={title:'Test location',description:'A fixture scene for rule verification.',exits:context.edges.map(e=>({direction:e.direction as keyof typeof directions,description:e.material+' '+e.opening+' with a flat threshold.'})),visual_brief:'',continuity_facts:[],event_narrative:'{character_name} was pressed into a footnote.',consumed_narrative:'The ceremony is over.',hostility_narrative:'The kingdom remembered your rival honor.',death_badge_title:'Footnoted',death_badge_description:'Killed by an archival press.',honor_badge_title:'Honorary archivist'};
  return {context,scene,regions:context.regions.map(r=>({id:r.id,kind:r.kind,name:r.kind,lore:''})),created:0,pass2Prompt:null,pass2Result:null,imagePackage:{enabled:false}};
 }
-test('all 75 fields are deterministic, finite, and separately addressed',()=>{
- const a=deriveRatings(seed,-891,1702),b=deriveRatings(seed,-891,1702);assert.deepEqual(a,b);assert.equal(a.length,75);assert.equal(new Set(a.map(r=>r.recipe)).size,75);assert.equal(new Set(recipes.map(r=>r.recipe)).size,75);a.forEach(r=>assert.ok(r.value>=0&&r.value<=1));assert.notDeepEqual(a,deriveRatings(seed+'2',-891,1702));assert.throws(()=>oi(NaN));
+test('all registered fields are deterministic, finite, and separately addressed',()=>{
+ const a=deriveRatings(seed,-891,1702),b=deriveRatings(seed,-891,1702);assert.deepEqual(a,b);assert.equal(a.length,recipes.length);assert.equal(new Set(a.map(r=>r.recipe)).size,recipes.length);assert.equal(new Set(recipes.map(r=>r.recipe)).size,recipes.length);a.forEach(r=>assert.ok(r.value>=0&&r.value<=1));assert.notDeepEqual(a,deriveRatings(seed+'2',-891,1702));assert.throws(()=>oi(NaN));
 });
 test('backbone, origin, and approaches survive any tested seed',()=>{
  for(let s=0;s<20;s++){const key='seed-'+s;for(let i=-64;i<=64;i++){assert.ok(exists(key,i,0));assert.ok(exists(key,0,i));}for(const [x,y] of [[0,0],[1,0],[0,-1],[2,0]]){const c=contextFor(key,x,y);assert.ok(c.exists);assert.ok(c.safeApproach);assert.equal(c.event,null);assert.equal(c.features.trap,false);assert.equal(c.features.portal,false);}}
@@ -26,7 +26,7 @@ test('nearby climate is coherent while entity IDs persist across cells',()=>{
  const a=deriveRatings(seed,20,20),b=deriveRatings(seed,21,20);for(const id of ['climate.temperature','climate.humidity'])assert.ok(Math.abs(a.find(r=>r.id===id)!.value-b.find(r=>r.id===id)!.value)<.1);assert.deepEqual(regionalRefs(seed,0,0).map(r=>r.id),regionalRefs(seed,1,0).map(r=>r.id));assert.notEqual(random(seed,'chest',0,0),random(seed,'portal',0,0));
 });
 test('local preparation keeps relevant ratings and legacy details remain valid',()=>{
- const c=contextFor(seed,0,0),prompt=detailPrompt(c,[]),data=JSON.parse(prompt.input);assert.ok(data.context.ratings.length<75);assert.equal(data.context.protectedOrigin,true);assert.ok(prompt.instructions.includes('no model call'));
+ const c=contextFor(seed,0,0),prompt=detailPrompt(c,[]),data=JSON.parse(prompt.input);assert.ok(data.context.ratings.length<recipes.length);assert.equal(data.context.protectedOrigin,true);assert.ok(prompt.instructions.includes('no model call'));
  const valid={details:descriptiveIds(c).map(id=>({rating_id:id,description:'A grounded detail.'})),regional_texture:''};assert.doesNotThrow(()=>assertDetails(valid,c));assert.throws(()=>assertDetails({...valid,details:valid.details.slice(1)},c));const second=JSON.parse(scenePrompt(c,[],valid,[{package:{title:'Neighbor'}}]).input);assert.equal(second.connected_cells[0].package.title,'Neighbor');
 });
 test('a repeated death adds to the count but awards only one death badge',()=>{

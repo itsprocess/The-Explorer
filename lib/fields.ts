@@ -21,23 +21,23 @@ function centers(p:Sample,id:string,size:number,chance:number,radius:number){
 }
 const field=(id:string,name:string,kind:Field['kind'],low:string,high:string,recipe:string,derive:Field['derive']):Field=>({id,name,kind,low,high,recipe,derive});
 export const recipes:Field[]=[
- field('terrain.elevation','Elevation','baseline','low basin','high ridge','expanded continental fBm, 300-cell wavelength',p=>clamp(.5+3*(noise(p,'elevation',300)-.5))),
- field('climate.temperature','Temperature','baseline','freezing','hot','expanded 160-cell thermal gradient minus elevation lapse',p=>clamp(.5+3.4*(noise(p,'temperature',160)-.5)-.22*(p.v['terrain.elevation']-.5))),
- field('climate.humidity','Moisture','baseline','dry','wet','expanded warped 120-cell moisture field',p=>clamp(.5+3.5*(fbm(p.s,'moisture',p.x+45*(noise(p,'moisture-warp',90)-.5),p.y,120)-.5))),
+ field('terrain.elevation','Elevation','baseline','low basin','high ridge','expanded continental fBm, 72-cell wavelength',p=>clamp(.5+3*(noise(p,'elevation',72)-.5))),
+ field('climate.temperature','Temperature','baseline','freezing','hot','expanded 32-cell thermal gradient minus elevation lapse',p=>clamp(.5+3.4*(noise(p,'temperature',32)-.5)-.22*(p.v['terrain.elevation']-.5))),
+ field('climate.humidity','Moisture','baseline','dry','wet','expanded warped 27-cell moisture field',p=>clamp(.5+3.5*(fbm(p.s,'moisture',p.x+9*(noise(p,'moisture-warp',23)-.5),p.y,27)-.5))),
  field('terrain.space_extent','Space','baseline','tight passage','wide clearing or hall','squared local fBm, mostly modest spaces',p=>noise(p,'space',15)**2),
- field('terrain.enclosure','Enclosure','baseline','open sky','underground','thresholded 90-cell rock roof with eroded margins',p=>oceanStrength(p.s,p.x,p.y)>.1?0:clamp((noise(p,'roof',90)-.34)*4)),
+ field('terrain.enclosure','Enclosure','baseline','open sky','underground','thresholded 20-cell rock roof with eroded margins',p=>oceanStrength(p.s,p.x,p.y)>.1?0:clamp((noise(p,'roof',20)-.34)*4)),
  field('architecture.structural_integrity','Stability','baseline','broken ground or masonry','sound ground or masonry','inverse fourth-power fracture field, usually high',p=>1-noise(p,'fracture',19)**4),
  field('world.age','Visible age','baseline','recently formed or made','ancient and weathered','180-cell age provinces with squared antiquity tail',p=>noise(p,'age',180)**2),
  field('light.level','Light','baseline','dim','bright','roof-dependent daylight plus sparse subterranean glow',p=>clamp((1-p.v['terrain.enclosure'])*(.5+.5*noise(p,'daylight',200))+.08*noise(p,'glow',17))),
  field('climate.wind','Wind','baseline','still','strong wind','squared 65-cell gust field attenuated by enclosure',p=>noise(p,'wind',65)**2*(1-.9*p.v['terrain.enclosure'])),
  field('physics.gravity','Gravity','baseline','light pull','heavy pull','usually normal; rare broad gravity-distortion lobes',p=>.5+(noise(p,'gravity-region',300)>.69-.1*distanceIntensity(p.x,p.y)?(noise(p,'gravity-pull',40)-.5)*1.6:0)),
  field('culture.wildness','Human imprint','baseline','untouched','long-shaped by people','cubic 210-cell historical influence field',p=>noise(p,'human-imprint',210)**3),
- field('world.strangeness','Strangeness','baseline','ordinary','unfamiliar forms and materials','sixth-power 110-cell anomaly field, usually near zero',p=>noise(p,'strangeness',110)**6),
+ field('world.strangeness','Strangeness','baseline','ordinary','unfamiliar forms and materials','thresholded 23-cell oddity patches, usually quiet',p=>tail(noise(p,'strangeness',23),.48)*1.4),
  field('water.ocean','Ocean','feature','absent','deep open ocean','warped 650-cell basins with 95-cell coastal roughness; dry origin buffer',p=>oceanStrength(p.s,p.x,p.y)),
  field('water.coast','Shoreline','feature','absent','a transition between land and open water','narrow shoreline band around the ocean threshold',p=>band(p.v['water.ocean'],.01,.1,.01)),
  field('vegetation.forest','Forest','feature','absent','dense trees','warped threshold islands minus cellular clearings; temperature gate',p=>{
-  const warped={...p,x:p.x+18*(noise(p,'forest-warp',31)-.5)};
-  const t=p.v['climate.temperature'],h=p.v['climate.humidity'],n=noise(warped,'forest',42);
+  const warped={...p,x:p.x+6*(noise(p,'forest-warp',11)-.5)};
+  const t=p.v['climate.temperature'],h=p.v['climate.humidity'],n=noise(warped,'forest',14);
   if(t<.12||h<.2)return 0;
   const canopy=t>.62&&h>.65&&n>.43?.65+.35*tail(n,.43):tail(n,.55)*4;
   return canopy*(cellular(p.s,'clearings',p.x,p.y,9)>.19?1:0);
@@ -102,11 +102,24 @@ export const recipes:Field[]=[
  field('supernatural.mirage','Optical anomaly','feature','absent','a persistent local distortion of visible appearance','dry district AND narrow heat-band AND rare local roll',p=>p.v['climate.humidity']<.42?band(noise(p,'heat-shimmer',35),.49,.51,.005)*roll(p,'mirage',.04):0),
  field('scenery.unique_features','Unique features','feature','absent','one modest distinctive detail','single 17-cell Perlin field, upper fifth only; scenery without events',p=>{const n=perlin(p.s,'unique-scenery',p.x/17+.371,p.y/17+.619);const threshold=.63-.12*distanceIntensity(p.x,p.y);return n>threshold?.35+.65*tail(n,threshold):0;}),
  field('culture.monolith','Commemoration','feature','absent','a prominent work intended to preserve a memory','rare point monuments in ancient provinces',p=>p.v['world.age']>.25?roll(p,'monolith',1/1400):0),
+ field('scenery.color_burst','Unexpected color','feature','absent','a localized vivid color accent whose source fits the place','3-cell pigment islands cut by local noise',p=>centers(p,'color-burst',15,.65,3)*(noise(p,'pigment-cut',4)>.4?1:0)),
+ field('scenery.resonance','Resonant landscape','feature','absent','a physical place shaped by vibration, rhythm or sound','thin acoustic contour broken by an independent occupancy mask',p=>band(noise(p,'resonance',13),.48,.52,.01)*roll(p,'resonance-on',.2)),
+ field('scenery.interlacing','Interlaced forms','feature','absent','distinct materials or living forms visibly woven together','small braided patches with cellular gaps',p=>tail(noise(p,'interlace',9),.61)*4*(cellular(p.s,'interlace-gap',p.x,p.y,4)>.2?1:0)),
+ field('scenery.inversion','Reversed expectation','feature','absent','one small, playful reversal of an everyday physical expectation; no mechanical reward','isolated oddities increasingly common in the far lands',p=>roll(p,'inversion',.012)),
+ field('scenery.repurposing','Unexpected reuse','feature','absent','something used in a strikingly different way from its original purpose','small occupied reuse sites near historical influence',p=>centers(p,'repurpose',19,.35,2)),
+ field('scenery.symbiosis','Unlikely partnership','feature','absent','two visibly different forms of life or matter supporting one another','moisture-gated clusters with a separate occupancy roll',p=>p.v['climate.humidity']>.3?centers(p,'symbiosis',16,.4,2):0),
+ field('scenery.miniature','Worlds within worlds','feature','absent','a small intricate habitat or constructed environment within the larger scene','independent intimate-scale points',p=>roll(p,'miniature',.025)),
+ field('scenery.process','Visible transformation','feature','absent','an unusual material visibly changing state or taking form','short reaction fronts within active districts',p=>noise(p,'process-district',33)>.54?band(noise(p,'process-front',7),.47,.53,.01):0),
+ field('scenery.play','Signs of play','feature','absent','physical evidence of inventive play by local beings, with no required encounter','scattered play sites with a broken two-cell footprint',p=>centers(p,'play-sites',17,.45,2)*(noise(p,'play-wear',3)>.3?1:0)),
+ field('scenery.improbable_balance','Precarious harmony','feature','absent','a surprising arrangement that appears delicately balanced; no implied trap','sparse ridged outcrops in exposed terrain',p=>p.v['terrain.enclosure']<.6?tail(noise(p,'balance',8),.67)*5:0),
+ field('scenery.echoes','Traces of another setting','feature','absent','one small remnant whose origin contrasts with its present surroundings','independent displaced fragments, stronger with distance',p=>roll(p,'echo-fragment',.022)),
+ field('scenery.light_behavior','Strange light','feature','absent','a localized unusual reflection, glow or shadow appropriate to the setting','thresholded luminous pockets eroded by fine noise',p=>tail(noise(p,'light-pocket',12)-.1*noise(p,'light-cut',3),.59)*4),
+
 ];
 export type Rating={id:string;name:string;kind:Field['kind'];value:number;label:string;applicable:boolean;low:string;high:string;recipe:string};
 export function deriveRatings(s:string,x:number,y:number):Rating[]{
  const v:Record<string,number>={};
- const marine=new Set(['scenery.unique_features','hazards.trap','water.ocean','water.coast','water.archipelago','water.reef','civilization.harbor','history.wreck','wildlife.megafauna','supernatural.portal','supernatural.marvel']);
+ const marine=new Set(['scenery.unique_features','hazards.trap','water.ocean','water.coast','water.archipelago','water.reef','civilization.harbor','history.wreck','wildlife.megafauna','supernatural.portal','supernatural.marvel','scenery.color_burst','scenery.resonance','scenery.inversion','scenery.symbiosis','scenery.miniature','scenery.process','scenery.play','scenery.echoes','scenery.light_behavior']);
  return recipes.map(r=>{let value=oi(r.derive({s,x,y,v}));
   const intensity=distanceIntensity(x,y);
   if(r.id==='world.strangeness')value=oi(value+.75*intensity*(.55+.45*fbm(s,'strangeness',x,y,110)));
