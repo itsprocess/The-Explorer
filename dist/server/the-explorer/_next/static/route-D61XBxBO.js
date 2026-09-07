@@ -1,0 +1,1 @@
+import{i as e,n as t,r as n}from"./auth-BaXvusoK.js";import{a as r}from"./provider-health-Bp49q94h.js";async function i(i){try{return t(i),await e(),await r(),Response.json({ready:!0},{headers:{"Cache-Control":`no-store`}})}catch(e){return n(e)}}export{i as POST};
