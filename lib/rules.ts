@@ -1,12 +1,13 @@
+import {findTrait,grantTrait,useTrait,deathTraits,type Trait,type StateChange} from './traits';
 import type {CellPackage} from './generation';
 export type Badge={id:string;title:string;description:string;entityId?:string;kind:'death'|'honor'|'treasure'|'distance'};
-export type Character={id:string;name:string;x:number;y:number;alive:boolean;deaths:number;furthest:number;badges:Badge[];consumed:string[];pendingTransport?:{token:string;destination:{x:number;y:number};narrative:string;mechanism:string}};
+export type Character={id:string;name:string;x:number;y:number;alive:boolean;deaths:number;furthest:number;badges:Badge[];consumed:string[];traits?:Trait[];pendingTransport?:{token:string;destination:{x:number;y:number};narrative:string;mechanism:string}};
 
-type EventRecord={text:string;newBadge:string|null;kind:string};
+type EventRecord={text:string;newBadge:string|null;kind:string;stateChanges?:StateChange[]};
 export const fill=(text:string,name:string)=>text.replaceAll('{character_name}',name);
 export function awardDistanceBadges(c:Character){for(const mark of [10,50,100,500,1000,10000])if(c.furthest>=mark&&!c.badges.some(b=>b.id==='distance:'+mark))c.badges.push({id:'distance:'+mark,title:mark+' from the origin',description:'Reached a distance of '+mark+' cells.',kind:'distance'});}
-export function resolveArrival(original:Character,p:CellPackage,globalConsumed=false){
- const c:Character=structuredClone(original);c.x=p.context.x;c.y=p.context.y;c.furthest=Math.max(c.furthest,p.context.distance);
+export function resolveArrival(original:Character,p:CellPackage,globalConsumed=false,visitId=''){
+ const c:Character=structuredClone(original);c.traits??=[];c.x=p.context.x;c.y=p.context.y;c.furthest=Math.max(c.furthest,p.context.distance);
  let event:EventRecord={text:c.name+' arrived at '+p.scene.title+'.',newBadge:null,kind:'arrival'};
  const award=(b:Badge)=>{if(!c.badges.some(old=>old.id===b.id)){c.badges.push(b);event.newBadge=b.title;}};
  const region=p.regions.find(r=>r.kind==='kingdom'),faction=p.regions.find(r=>r.kind==='faction');
@@ -18,12 +19,24 @@ export function resolveArrival(original:Character,p:CellPackage,globalConsumed=f
   if(consumed)event={text:fill(p.scene.consumed_narrative||'Only the memory of that event remains.',c.name),newBadge:null,kind:'revisit'};
   else{
    event={text:fill(p.scene.event_narrative,c.name),newBadge:null,kind:e.kind};
-   if(e.kind==='death'){c.alive=false;c.deaths++;award({id:e.deathId!,title:p.scene.death_badge_title,description:p.scene.death_badge_description,kind:'death'});}
+   const rule=p.context.stateRule,matched=rule?.kind==='check'?findTrait(c.traits,rule.condition):undefined;
+   if(matched&&p.scene.conditional_narrative){
+    event={text:fill(p.scene.conditional_narrative,c.name).replaceAll('{trait_name}',matched.name),newBadge:null,kind:rule?.kind==='check'&&rule.onMatch==='avoid_death'?'escape':'interaction'};
+    const used=useTrait(c.traits,matched);c.traits=used.traits;event.stateChanges=used.changes;
+   }
+   if(e.kind==='death'&&event.kind!=='escape'){c.alive=false;c.deaths++;award({id:e.deathId!,title:p.scene.death_badge_title,description:p.scene.death_badge_description,kind:'death'});}
    if(e.kind==='honor')award({id:'honor:'+consumption,title:p.scene.honor_badge_title||'A stranger honored',description:'Recognized at '+p.scene.title+'.',kind:'honor',entityId:e.entityId??undefined});
    if(e.kind==='treasure')award({id:'treasure:'+consumption,title:'A fortune at '+p.scene.title,description:'Encountered an extraordinary windfall.',kind:'treasure'});
+   if(rule?.kind==='grant'&&p.scene.trait_name&&p.scene.trait_description){
+    const trait:Trait={...rule.spec,id:consumption+':trait',name:p.scene.trait_name,description:p.scene.trait_description,source:{world:p.context.seed+':'+p.context.version,x:c.x,y:c.y,title:p.scene.title,visitId}};
+    const granted=grantTrait(c.traits,trait);c.traits=granted.traits;event.stateChanges=granted.changes;
+    if(granted.changes.length)event.kind='acquisition';
+    else event={kind:'revisit',text:c.name+' returned to '+p.scene.title+', still carrying '+trait.name+'.',newBadge:null,stateChanges:[]};
+   }
    if(e.mode==='once_per_character')c.consumed.push(consumption);
   }
  }
+ if(!c.alive){const lost=deathTraits(c.traits);c.traits=lost.traits;event.stateChanges=[...(event.stateChanges??[]),...lost.changes];}
  // Death and arrival records persist; distance milestones do not change player power.
  awardDistanceBadges(c);
  return {character:c,event};

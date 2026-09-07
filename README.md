@@ -96,3 +96,5 @@ Latest: [loading, threat art, and the Thresholds reset](docs/thresholds.md).
 Latest: [Crosscurrents: shared generation queue, parallel frontier streams, broader categories](docs/crosscurrents.md).
 
 Latest: [Teleport confirmation, community panel, and distance escalation](docs/teleports-presence-distance.md).
+
+Latest: [Possessions, status, conditional encounters, and searchable history](docs/traits-and-history.md).

@@ -9,13 +9,13 @@ async function complete<T>(name:string,schema:unknown,prompt:Prompt):Promise<T>{
  const d:any=await r.json();assert.equal(r.status,200,'OpenAI HTTP '+r.status);assert.equal(d.status,'completed');assert.equal(d.model,'gpt-5.6-luna');
  return JSON.parse(d.output.flatMap((o:any)=>o.content??[]).filter((c:any)=>c.type==='output_text').map((c:any)=>c.text).join(''));
 }
-const cases=[{name:'ordinary',id:null},{name:'forest',id:'vegetation.forest'},{name:'settlement',id:'civilization.settlement'},{name:'treasure',id:'encounters.treasure'},{name:'interaction',id:null},{name:'unique scenery',id:'scenery.unique_features'}];
+const cases=[{name:'ordinary',id:null},{name:'forest',id:'vegetation.forest'},{name:'settlement',id:'civilization.settlement'},{name:'treasure',id:'encounters.treasure'},{name:'interaction',id:null},{name:'unique scenery',id:'scenery.unique_features'},{name:'state grant',id:null},{name:'state check',id:null}];
 const results=[];
 for(const sample of cases.filter(c=>!process.env.SCENE_CASE||c.name===process.env.SCENE_CASE)){
  let found:{x:number;y:number}|undefined;
  for(let i=1;i<100000;i++){
   const x=i*8,y=i%179-89,rs=deriveRatings('scene-evaluation',x,y);
-  if(sample.name==='interaction'?contextFor('scene-evaluation',x,y).event?.kind==='interaction':sample.id?rs.find(r=>r.id===sample.id)!.value>0:!rs.some(r=>r.kind==='feature'&&r.value>0)){found={x,y};break;}
+  if(sample.name==='state grant'?contextFor('scene-evaluation',x,y).stateRule?.kind==='grant':sample.name==='state check'?contextFor('scene-evaluation',x,y).stateRule?.kind==='check':sample.name==='interaction'?contextFor('scene-evaluation',x,y).event?.kind==='interaction':sample.id?rs.find(r=>r.id===sample.id)!.value>0:!rs.some(r=>r.kind==='feature'&&r.value>0)){found={x,y};break;}
  }
  assert.ok(found,'Sample not found: '+sample.name);
  const c=contextFor('scene-evaluation',found.x,found.y);

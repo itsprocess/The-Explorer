@@ -1,3 +1,4 @@
+import {StateChanges} from '../../../trait-display';
 import Passages from '../../../passages';
 import PlayerMark from '../../../player-mark';
 import {readPackage,db} from '../../../../lib/server';
@@ -16,5 +17,5 @@ export default async function CellPage({params}:{params:Promise<{x:string;y:stri
  return <main className="public-page"><a href="/">Return to game</a><p className="view-only">Location record · View only. Viewing this page does not move your character.</p><h1>{cell.scene.title}</h1><div className="coordinates">{x}, {y}</div>
  {image&&<img className="location-image" src={image.url} alt={cell.scene.title}/>}
  <p>{cell.scene.description}</p><Passages exits={cell.scene.exits.map(e=>({...e,glimpse:cell.context.edges.find(n=>n.direction===e.direction)?.glimpse}))} blocked={cell.context.blocked}/>
- <details><summary>Visits</summary>{marks.map((m,i)=><article className="encounter player-record" key={i}><PlayerMark/><a href={'/profile/'+m.character}>{JSON.parse(m.character_value).name}</a><p>{JSON.parse(m.value).event.text}</p></article>)}</details></main>;
+ <details><summary>Visits</summary>{marks.map((m,i)=><article className="encounter player-record" key={i}><PlayerMark/><a href={'/profile/'+m.character}>{JSON.parse(m.character_value).name}</a><p>{JSON.parse(m.value).event.text}</p><StateChanges changes={JSON.parse(m.value).event.stateChanges}/></article>)}</details></main>;
 }

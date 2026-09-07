@@ -8,6 +8,6 @@ export default function CommunityPanel({x,y}:{x:number;y:number}){
   void update();return()=>{live=false;control.abort();clearTimeout(timer);};
  },[x,y]);
  const number=(v:number|undefined)=>v==null?'—':v.toLocaleString(undefined,{maximumFractionDigits:1});
- return <aside className="community-panel"><section className="community-card"><h2>Players here</h2>{data?data.nearby.length?<ul>{data.nearby.map((p:any)=><li key={p.id}><PlayerMark/><a href={'/profile/'+p.id}>{p.name}</a></li>)}</ul>:<p className="muted">No other players here.</p>:<p className="muted">—</p>}</section>
- <section className="community-card"><h2>World</h2><dl>{[['Locations visited',data?.stats.locations],['Total deaths',data?.stats.deaths],['Furthest distance',data?.stats.furthest],['Explorers',data?.stats.explorers??(data?0:undefined)]].map(([label,value])=><div key={label}><dt>{label}</dt><dd>{number(value)}</dd></div>)}</dl></section></aside>;
+ return <aside className="community-panel"><section className="community-card"><h2>Players Here</h2>{data?data.nearby.length?<ul>{data.nearby.map((p:any)=><li key={p.id}><PlayerMark/><a href={'/profile/'+p.id}>{p.name}</a></li>)}</ul>:<p className="muted">No other players here.</p>:<p className="muted">—</p>}</section>
+ <section className="community-card"><h2>World</h2><dl>{[['Locations Visited',data?.stats.locations],['Total Deaths',data?.stats.deaths],['Furthest Distance',data?.stats.furthest],['Explorers',data?.stats.explorers??(data?0:undefined)]].map(([label,value])=><div key={label}><dt>{label}</dt><dd>{number(value)}</dd></div>)}</dl></section></aside>;
 }

@@ -1,3 +1,4 @@
+import {stateRuleFor} from './traits';
 import {deriveRatings,oceanStrength} from './fields';
 export {deriveRatings,recipes,type Rating} from './fields';
 import {hash,random,fbm,cellular,band,clamp,oi,mix} from './noise';
@@ -55,10 +56,12 @@ export function contextFor(seed:string,x:number,y:number){
  const causes=v['supernatural.haunting']>0||v['supernatural.marvel']>0?['hungry staircase','bell of unmaking','glass spores']:['concealed pit','falling slab','poison needle','spear trap','snapping deadfall','rockfall','crushing counterweight','rotten footbridge'];
  const cause=causes[hash(seed+':cause:'+x+':'+y)%causes.length];
  const event=trap?{id:'trap',kind:'death',mode:'every_visit',cause,deathId:'death:'+cause,entityId:null}:portal?{id:'transport',kind:'portal',mode:'every_visit',cause:transport!.mechanism,deathId:null,entityId:null}:treasure?{id:'treasure',kind:'treasure',mode:'once_per_character',cause:null,deathId:null,entityId:null}:election?{id:'election',kind:'honor',mode:'once_ever',cause:null,deathId:null,entityId:refs[0].id}:honor?{id:'faction-honor',kind:'honor',mode:'once_per_character',cause:null,deathId:null,entityId:refs[1].id}:interactionFor(seed,x,y,v);
+ const stateRule=stateRuleFor(seed,x,y,event,v);
+ if(stateRule?.kind==='grant'&&event){event.mode='every_visit';if('outcome' in event)event.outcome='Grant exactly context.stateRule.spec, with its app-owned lifetime. No other reward, death, travel or choice.';}
  const portalDestination=transport?.destination??null;
  return {version:VERSION,seed,x,y,exists:exists(seed,x,y),distance:Math.hypot(x,y),protectedOrigin:x===0&&y===0,safeApproach:safe,connections:open,ratings,regions:refs,
  hostilityPolicy:{enforcesForeignHonors:!safe&&v['encounters.patrol']>0&&hash(seed+':enforcement:'+refs[0].id)%3===0,condition:'honored by a faction other than the locally represented faction',originExempt:true},
- biome:broadTerrain(v),environment:environmentFor(v),situations:deriveSituations(v,open),transport,
+ biome:broadTerrain(v),environment:environmentFor(v),situations:deriveSituations(v,open),transport,stateRule,
  features:{water:v['water.ocean']>0||v['water.river']>0||v['water.lake']>0,built:v['civilization.settlement']>0||v['history.ruins']>0,trap,treasure,portal:v['supernatural.portal']>0,transport:!!transport},
  blocked:surroundings.filter(n=>!open[n.direction as Direction]).map(n=>({direction:n.direction as Direction,reason:blockedReason(broadTerrain(n.values))})),
  presentFeatures:ratings.filter(r=>r.kind==='feature'&&r.value>0).map(r=>({id:r.id,name:r.name,strength:r.value})),event,portalDestination,
