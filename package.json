@@ -33,6 +33,7 @@
     "@vitejs/plugin-rsc": "0.5.34"
   },
   "scripts": {
+    "dev": "node runtime/start.mjs",
     "start": "node runtime/start.mjs",
     "build": "node --check runtime/start.mjs"
   }
