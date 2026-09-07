@@ -41,6 +41,12 @@ test('per-character consumption persists, global consumption uses supplied commi
 test('hostile badges affect only their character and never override safe origin',()=>{
  const p=fixture();p.context.event=null;p.context.hostilityPolicy.enforcesForeignHonors=true;const c=character();c.badges=[{id:'foreign',title:'Foreign honor',description:'',kind:'honor',entityId:'faction:elsewhere'}];assert.equal(resolveArrival(c,p).character.alive,false);assert.equal(resolveArrival(character(),p).character.alive,true);const origin=fixture(0,0);origin.context.hostilityPolicy.enforcesForeignHonors=true;assert.equal(resolveArrival(c,origin).character.alive,true);
 });
+test('automatic interactions record experience without inventing rewards or deaths',()=>{
+ const p=fixture();p.context.event={id:'interaction',kind:'interaction',mode:'once_per_character',entityId:null,cause:null,deathId:null};
+ p.scene.event_narrative='{character_name} helped a wind-driven cart clear a rut.';
+ const first=resolveArrival(character(),p);assert.equal(first.event.kind,'interaction');assert.equal(first.event.newBadge,null);assert.equal(first.character.deaths,0);assert.ok(first.character.alive);
+ assert.equal(resolveArrival(first.character,p).event.kind,'revisit');
+});
 test('scenes must describe exactly the available exits and stay brief',()=>{
  const p=fixture(0,0);p.context.event=null;p.scene.description='A low stone shelter surrounds a worn bench. Its floor is swept clean.';
  assert.doesNotThrow(()=>assertScene(p.scene,p.context));

@@ -1,0 +1,11 @@
+# Interactions and neighboring views
+
+World 4 keeps the 74 independently derived fields. Camps, travelers, caravans, and patrols receive small frequency increases. Trap, treasure, portal, and marvel rates remain unchanged.
+
+After higher-priority outcomes, an independent deterministic roll selects an automatic interaction: 4.5% in ordinary cells, 20% near active natural/mechanical features, or 38% near people and settlements. These are conditional rates, not world-wide event percentages. The safe origin approach stays exempt. Twenty-four broad categories guide the AI without prescribing participants or scripts. The environment constrains the interpretation. These interactions record a brief experience without granting an unimplemented reward, choice, inventory change, or world mutation. Repeat scope is deterministic: 8% once ever, 57% once per character, 35% every visit.
+
+Exit previews include terrain plus up to four prominent physical features, selected by an explicit visibility registry and a minimum presence strength. Buildings, large terrain formations, vegetation, machinery, and large wildlife may be visible. Traps, treasure, portals, marvel surprises, individual travelers, and small finds are excluded. A saved neighbor's appearance can inform the description of permitted visible subjects, but its events, interiors, titles, and secrets must remain out of the preview. This is a generation contract rather than a formal guarantee about free-form model prose.
+
+New scene prompts include each saved neighbor's full exit list and the exact reciprocal shared exit. They must preserve that passage's physical details while reversing perspective. Exit prose targets 10–24 words with a hard maximum of 30; the main description still targets 25–55 words. Regional names are labeled Kingdom, Faction, and Religion.
+
+The deployment migration clears generated packages, visits, claims, and character progress while retaining names, password hashes, and sessions. Characters return alive to the origin. Old image object keys become deletion receipts; the first subsequent package access deletes those objects from R2 and removes the receipts, retrying safely after interruption. Newly generated world-4 images are protected from that cleanup.

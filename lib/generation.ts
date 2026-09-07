@@ -27,7 +27,7 @@ export async function ensureCell(x:number,y:number):Promise<CellPackage>{
   for(const [direction,[dx,dy]] of Object.entries(directions)){if(!context.connections[direction as keyof typeof directions])continue;
    const saved=await readPackage<CellPackage>(cellKey(x+dx,y+dy));
    const neighbor=contextFor(worldSeed(),x+dx,y+dy);
-   neighbors.push({direction,x:x+dx,y:y+dy,numerical_context:{biome:neighbor.biome,ratings:neighbor.ratings},package:saved?{title:saved.scene.title,description:saved.scene.description,continuity_facts:saved.scene.continuity_facts,regions:saved.regions,edges:saved.context.edges}:null});
+   neighbors.push({direction,x:x+dx,y:y+dy,numerical_context:{biome:neighbor.biome,ratings:neighbor.ratings},package:saved?{title:saved.scene.title,description:saved.scene.description,continuity_facts:saved.scene.continuity_facts,regions:saved.regions,edges:saved.context.edges,exits:saved.scene.exits,shared_exit:saved.scene.exits.find(e=>e.direction===({north:"south",south:"north",east:"west",west:"east"} as Record<string,string>)[direction])}:null});
   }
   const prompt=scenePrompt(context,regions,stage.result,neighbors),response=await complete<Scene>('canonical_scene',sceneSchema,prompt);assertScene(response.result,context);
   return {context,regions,scene:response.result,created:Date.now(),pass2Prompt:prompt,pass2Result:{...response,version:PROMPT_VERSION},imagePackage:{enabled:true,instructions:'Render this canonical scene using its approved visual brief and connected-place context. No player identity, interface, or invented exits.',context,descriptivePackage:stage.result,scene:response.result,connectedCells:neighbors}};

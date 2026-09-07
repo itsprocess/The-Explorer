@@ -1,7 +1,9 @@
 import {deriveRatings,oceanStrength} from './fields';
 export {deriveRatings,recipes,type Rating} from './fields';
 import {hash,random,fbm,cellular,band,clamp,oi,mix} from './noise';
-export const VERSION='world-3';
+import {interactionFor} from './encounters';
+import {prominentFeatures} from './visibility';
+export const VERSION='world-4';
 export const LIMIT=1_000_000_000;
 export const directions={north:[0,-1],east:[1,0],south:[0,1],west:[-1,0]} as const;
 export type Direction=keyof typeof directions;
@@ -41,7 +43,7 @@ export function contextFor(seed:string,x:number,y:number){
   const nx=x+dx,ny=y+dy,inside=Math.abs(nx)<=LIMIT&&Math.abs(ny)<=LIMIT;
   const neighbor=inside?deriveRatings(seed,nx,ny):[];
   const values=Object.fromEntries(neighbor.map(r=>[r.id,r.value]));
-  return {direction,dx,dy,values,glimpse:inside?broadTerrain(values):'rock wall'};
+  return {direction,dx,dy,values,glimpse:inside?[broadTerrain(values),...prominentFeatures(neighbor).map(r=>r.name.toLowerCase())].filter((v,i,a)=>a.indexOf(v)===i).join('; '):'rock wall',visibleFeatures:prominentFeatures(neighbor)};
  });
  const pick=random(seed,'event-selection',x,y);
  const portal=!safe&&v['supernatural.portal']>0,treasure=!safe&&!portal&&v['encounters.treasure']>0,trap=!safe&&!portal&&!treasure&&v['hazards.trap']>0;
@@ -49,14 +51,14 @@ export function contextFor(seed:string,x:number,y:number){
  const honor=!safe&&!trap&&!treasure&&!portal&&!election&&v['encounters.patrol']>0&&pick>.9;
  const causes=v['supernatural.haunting']>0||v['supernatural.marvel']>0?['hungry staircase','bell of unmaking','glass spores']:['concealed pit','falling slab','poison needle','spear trap','snapping deadfall','rockfall','crushing counterweight','rotten footbridge'];
  const cause=causes[hash(seed+':cause:'+x+':'+y)%causes.length];
- const event=trap?{id:'trap',kind:'death',mode:'every_visit',cause,deathId:'death:'+cause,entityId:null}:portal?{id:'portal',kind:'portal',mode:'every_visit',cause:null,deathId:null,entityId:null}:treasure?{id:'treasure',kind:'treasure',mode:'once_per_character',cause:null,deathId:null,entityId:null}:election?{id:'election',kind:'honor',mode:'once_ever',cause:null,deathId:null,entityId:refs[0].id}:honor?{id:'faction-honor',kind:'honor',mode:'once_per_character',cause:null,deathId:null,entityId:refs[1].id}:null;
+ const event=trap?{id:'trap',kind:'death',mode:'every_visit',cause,deathId:'death:'+cause,entityId:null}:portal?{id:'portal',kind:'portal',mode:'every_visit',cause:null,deathId:null,entityId:null}:treasure?{id:'treasure',kind:'treasure',mode:'once_per_character',cause:null,deathId:null,entityId:null}:election?{id:'election',kind:'honor',mode:'once_ever',cause:null,deathId:null,entityId:refs[0].id}:honor?{id:'faction-honor',kind:'honor',mode:'once_per_character',cause:null,deathId:null,entityId:refs[1].id}:interactionFor(seed,x,y,v);
  const portalDestination=portal?{x:(Math.floor(random(seed,'portal-x',x,y)*1000)-500)*8,y:(Math.floor(random(seed,'portal-y',x,y)*1000)-500)*8}:null;
  return {version:VERSION,seed,x,y,exists:exists(seed,x,y),distance:Math.hypot(x,y),protectedOrigin:x===0&&y===0,safeApproach:safe,connections:open,ratings,regions:refs,
  hostilityPolicy:{enforcesForeignHonors:!safe&&v['encounters.patrol']>0&&hash(seed+':enforcement:'+refs[0].id)%3===0,condition:'honored by a faction other than the locally represented faction',originExempt:true},
  biome:broadTerrain(v),
  features:{water:v['water.ocean']>0||v['water.river']>0||v['water.lake']>0,built:v['civilization.settlement']>0||v['history.ruins']>0,trap,treasure,portal},
- blocked:surroundings.filter(n=>!open[n.direction as Direction]).map(n=>({direction:n.direction as Direction,reason:blockedReason(n.glimpse)})),
+ blocked:surroundings.filter(n=>!open[n.direction as Direction]).map(n=>({direction:n.direction as Direction,reason:blockedReason(broadTerrain(n.values))})),
  presentFeatures:ratings.filter(r=>r.kind==='feature'&&r.value>0).map(r=>({id:r.id,name:r.name,strength:r.value})),event,portalDestination,
- edges:surroundings.filter(n=>open[n.direction as Direction]).map(({direction,dx,dy,values,glimpse})=>{const ends=[[x,y],[x+dx,y+dy]].sort((a,b)=>a[0]-b[0]||a[1]-b[1]);const id=JSON.stringify(ends);const roof=Math.max(v['terrain.enclosure'],values['terrain.enclosure']);const water=Math.max(v['water.ocean'],values['water.ocean'])>.1;const openings=water?['raised stone causeway','narrow stone walkway above water','linked rocky shoals']:roof>.5?['wide cleft','narrow rock passage','low stone opening','rough-cut doorway','sloping tunnel mouth']:['gravel track','gap between boulders','worn earth path','shallow rocky notch','open stone steps'];return {id,direction,glimpse,material:['basalt','limestone','granite'][hash(seed+id)%3],opening:openings[hash(seed+':opening'+id)%openings.length]};})};
+ edges:surroundings.filter(n=>open[n.direction as Direction]).map(({direction,dx,dy,values,glimpse,visibleFeatures})=>{const ends=[[x,y],[x+dx,y+dy]].sort((a,b)=>a[0]-b[0]||a[1]-b[1]);const id=JSON.stringify(ends);const roof=Math.max(v['terrain.enclosure'],values['terrain.enclosure']);const water=Math.max(v['water.ocean'],values['water.ocean'])>.1;const openings=water?['raised stone causeway','narrow stone walkway above water','linked rocky shoals']:roof>.5?['wide cleft','narrow rock passage','low stone opening','rough-cut doorway','sloping tunnel mouth']:['gravel track','gap between boulders','worn earth path','shallow rocky notch','open stone steps'];return {id,direction,glimpse,visibleFeatures,material:['basalt','limestone','granite'][hash(seed+id)%3],opening:openings[hash(seed+':opening'+id)%openings.length]};})};
 }
 export type CellContext=ReturnType<typeof contextFor>;

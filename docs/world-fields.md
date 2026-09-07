@@ -2,7 +2,7 @@
 
 The app computes 74 fields: twelve baseline conditions and 62 independently shaped features. Features can be exactly zero. Zero means absent, not an atmospheric hint. One means full strength, not a guarantee that a reward is available. Events and repeat rules remain app-owned. Each feature has its own recipe; sharing a noise primitive does not mean sharing a spatial distribution.
 
-The deterministic audit samples 12000 widely spaced coordinates across three seeds. **41.5% have no special features.** Observed presence is a sample statistic, not a gameplay promise; very rare rolls can be absent from this sample. Roads and contour rivers are procedural shapes, not physical drainage or a road network solver.
+The deterministic audit samples 12000 widely spaced coordinates across three seeds. **41.4% have no special features.** Observed presence is a sample statistic, not a gameplay promise; very rare rolls can be absent from this sample. Roads and contour rivers are procedural shapes, not physical drainage or a road network solver.
 
 | Field | Kind | Meaning, low → high | Observed presence | Derivation |
 | --- | --- | --- | --- | --- |
@@ -30,7 +30,7 @@ The deterministic audit samples 12000 widely spaced coordinates across three see
 | Nest | feature | absent → large occupied nest | 1.13% | isolated 1-in-90 sites, amplified by tree cover |
 | Settlement | feature | absent → compact town | 0.44% | isolated 1-in-400 outposts plus rare 3-cell settlement centers |
 | Road | feature | absent → paved route | 3.23% | broken contour routes across inhabited districts |
-| Camp | feature | absent → occupied camp | 0.65% | 1-in-150 single-cell camps, biased toward roads |
+| Camp | feature | absent → occupied camp | 0.8% | 1-in-130 single-cell camps, biased toward roads |
 | Farm | feature | absent → cultivated plot | 0.31% | small agricultural halo around settlement centers, broken into plots |
 | Shrine | feature | absent → maintained shrine | 0.34% | isolated shrines with extra sites along roads |
 | Mine | feature | absent → working mine | 0.4% | single entrances gated by regional ore veins |
@@ -40,7 +40,7 @@ The deterministic audit samples 12000 widely spaced coordinates across three see
 | Battlefield | feature | absent → visible battlefield remains | 0.07% | rare elongated scar with finite length |
 | Burial site | feature | absent → cemetery | 0.15% | isolated graves plus sparse ruin-associated burials |
 | Machinery | feature | absent → large functional machine | 0.2% | 1-in-600 points, independent of weather |
-| Traveler | feature | absent → traveling group | 0.58% | rare single-cell encounter boosted by roads |
+| Traveler | feature | absent → traveling group | 0.69% | rare single-cell encounter boosted by roads |
 | Patrol | feature | absent → armed patrol | 0.1% | settlement or road gate AND independent patrol roll |
 | Lethal trap | feature | absent → active trap | 5.35% | independent roll, 2% nearby rising toward 6% far away; safe-origin override |
 | Treasure chest | feature | absent → rare treasure chest | 0.07% | independent 1-in-2000 point, safe-origin override |
@@ -71,7 +71,7 @@ The deterministic audit samples 12000 widely spaced coordinates across three see
 | Designed garden | feature | absent → formal or abandoned garden | 0.07% | rare courtyard-scale oases with irregular edges |
 | Arena | feature | absent → gathering or contest ground | 0.03% | rare human-imprint point, independent of weather |
 | Confinement site | feature | absent → old or active confinement structure | 0% | fortification-associated sites plus exceptionally isolated cells |
-| Caravan | feature | absent → traveling convoy | 0.06% | road-only 1-in-55 procession sites |
+| Caravan | feature | absent → traveling convoy | 0.08% | road-only 1-in-48 procession sites |
 | Wreckage | feature | absent → substantial wreckage | 0.13% | coastal/deep-water rare points, smaller land chance |
 | Fossil bed | feature | absent → exposed ancient remains | 0.03% | old terrain gate AND small sedimentary clusters |
 | Great creature | feature | absent → very large creature | 0.07% | independent 1-in-2500 sighting, form left to the setting |

@@ -5,7 +5,18 @@ export const bindings=()=>env as unknown as Bindings;
 export const db=()=>bindings().DB;
 export const worldSeed=()=>bindings().WORLD_SEED||'the-explorer-first-world';
 export class AppError extends Error{constructor(message:string,public status=400){super(message);}}
+// Deployment migration queues retired images. Idempotent deletion survives interrupted requests.
+export async function removeRetiredImages(){
+ const rows=await db().prepare("SELECT key,value FROM server_settings WHERE key LIKE 'retired-image:%' LIMIT 1000").all<{key:string;value:string}>();
+ if(!rows.results.length)return;
+ const retired=rows.results.filter(r=>r.value.startsWith(worldSeed()+':world-')&&r.value.includes(':illustrations/')&&!r.value.startsWith(namespace()));
+ if(retired.length!==rows.results.length)throw Error('Invalid retired image reference.');
+ await bindings().IMAGES.delete(retired.map(r=>r.value));
+ await db().batch(retired.map(r=>db().prepare('DELETE FROM server_settings WHERE key=? AND value=?').bind(r.key,r.value)));
+ if(rows.results.length===1000)await removeRetiredImages();
+}
 export async function readPackage<T=any>(key:string):Promise<T|null>{
+ await removeRetiredImages();
  const row=await db().prepare('SELECT value FROM packages WHERE key=?').bind(key).first<{value:string|null}>();if(row?.value)return JSON.parse(row.value);
  return null;
 }

@@ -29,6 +29,13 @@
       "when": 1788754548591,
       "tag": "0003_reset_world_v3",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788756299655,
+      "tag": "0004_reset_world_v4",
+      "breakpoints": true
     }
   ]
 }
