@@ -20,7 +20,7 @@ export function resolveArrival(original:Character,p:CellPackage,globalConsumed=f
    event={text:fill(p.scene.event_narrative,c.name),newBadge:null,kind:e.kind};
    if(e.kind==='death'){c.alive=false;c.deaths++;award({id:e.deathId!,title:p.scene.death_badge_title,description:p.scene.death_badge_description,kind:'death'});}
    if(e.kind==='honor')award({id:'honor:'+consumption,title:p.scene.honor_badge_title||'A stranger honored',description:'Recognized at '+p.scene.title+'.',kind:'honor',entityId:e.entityId??undefined});
-   if(e.kind==='treasure')award({id:'treasure:'+consumption,title:'A fortune at '+p.scene.title,description:'Found a rare treasure chest.',kind:'treasure'});
+   if(e.kind==='treasure')award({id:'treasure:'+consumption,title:'A fortune at '+p.scene.title,description:'Encountered an extraordinary windfall.',kind:'treasure'});
    if(e.mode==='once_per_character')c.consumed.push(consumption);
   }
  }

@@ -92,3 +92,5 @@ Location records are explicitly labeled View only. Their GET requests never move
 To test real image generation and persistence, set EXPLORER_TEST_IMAGE=1 when running npm run smoke:local. This creates one billable illustration and verifies repeat requests reuse it.
 
 Latest: [loading, threat art, and the Thresholds reset](docs/thresholds.md).
+
+Latest: [Crosscurrents: shared generation queue, parallel frontier streams, broader categories](docs/crosscurrents.md).

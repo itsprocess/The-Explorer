@@ -34,9 +34,9 @@ if(command==='migrate'){
    if(removed.status!==0)throw Error('Could not clear a local image: '+removed.stderr);
   }
  }
- if(scope==='all')tables.push('packages');
+ if(scope==='all')tables.push('packages','generation_jobs');
  const queries=tables.map(t=>'DELETE FROM '+t+';').join('\n')+(scope==='all'?"\nINSERT INTO server_settings(key,value) VALUES ('bootstrap_disabled','1') ON CONFLICT(key) DO UPDATE SET value='1';":'');
- sql(scope==='world'?readFileSync('drizzle/0002_reset_world_v2.sql','utf8'):queries);
+ sql(scope==='world'?readFileSync('drizzle/0002_reset_world_v2.sql','utf8')+'\nDELETE FROM generation_jobs;':queries);
  console.log('Cleared '+scope+' in '+storage+'. API keys and schema preserved.');
 }else if(command!=='status')throw Error('Unknown command.');
 if(command!=='migrate'){

@@ -1,3 +1,4 @@
+import {generationStream,awaitGenerated} from '../../../lib/generation-stream';
 import {checkOrigin,errorResponse} from '../../../lib/auth';
 import {characterSession,requireCharacter} from '../../../lib/character-auth';
 import {AppError} from '../../../lib/server';
@@ -7,7 +8,7 @@ export async function GET(request:Request){try{
  const session=await characterSession(request),url=new URL(request.url),offset=Number(url.searchParams.get('offset')||0);
  if(!Number.isInteger(offset)||offset<0)throw new AppError('Invalid history offset.');
  if(url.searchParams.has('character')&&url.searchParams.get('character')!==session?.id)throw new AppError('Log in to that character.',403);
- return Response.json(await snapshot(session?.owner??'__guest__',session?.id,offset),{headers:{'Cache-Control':'no-store'}});
+ return generationStream(()=>awaitGenerated(()=>snapshot(session?.owner??'__guest__',session?.id,offset)),request);
  }catch(e){return errorResponse(e);}}
 export async function POST(request:Request){try{
  checkOrigin(request);const session=await requireCharacter(request);
@@ -18,5 +19,5 @@ export async function POST(request:Request){try{
  if(body.character&&body.character!==session.id)throw new AppError('Log in to that character.',403);
  const direction=body.action==='return'?'return':body.action==='move'&&Object.hasOwn(directions,body.direction)?body.direction as Direction:null;
  if(!direction)throw new AppError('Unknown action.');
- return Response.json(await moveCharacter(session.owner,session.id,body.requestId,direction),{headers:{'Cache-Control':'no-store'}});
+ return generationStream(()=>awaitGenerated(()=>moveCharacter(session.owner,session.id,body.requestId,direction)),request);
  }catch(e){return errorResponse(e);}}

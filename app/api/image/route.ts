@@ -1,3 +1,4 @@
+import {generationStream,awaitGenerated} from '../../../lib/generation-stream';
 import {checkOrigin,errorResponse} from '../../../lib/auth';
 import {requireCharacter} from '../../../lib/character-auth';
 import {characterRow} from '../../../lib/game';
@@ -12,6 +13,5 @@ export async function POST(request:Request){try{
  const c=JSON.parse((await characterRow(session.owner,session.id)).value);
  if(!body||body.x!==c.x||body.y!==c.y)throw new AppError('Only your current location can request an illustration.',403);
  const p=await readPackage<CellPackage>(cellKey(c.x,c.y));if(!p)throw new AppError('Load the location first.',409);
- const image=await ensureImage(p);
- return Response.json({url:image.url},{headers:{'Cache-Control':'no-store'}});
+ return generationStream(async()=>({url:(await awaitGenerated(()=>ensureImage(p))).url}),request);
  }catch(e){return errorResponse(e);}}

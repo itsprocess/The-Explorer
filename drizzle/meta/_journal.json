@@ -64,6 +64,20 @@
       "when": 1788789797070,
       "tag": "0008_reset_thresholds",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1788791540949,
+      "tag": "0009_generation_queue",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1788791814564,
+      "tag": "0010_reset_crosscurrents",
+      "breakpoints": true
     }
   ]
 }

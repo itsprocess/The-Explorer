@@ -1,3 +1,4 @@
+import {readGenerationPackets} from './generation-packets';
 type RetryOptions={signal?:AbortSignal;maxWaitMs?:number};
 function pause(ms:number,signal?:AbortSignal){return new Promise<void>((resolve,reject)=>{
  const stop=()=>{clearTimeout(timer);signal?.removeEventListener('abort',stop);reject(new DOMException('Canceled','AbortError'));};
@@ -9,9 +10,10 @@ export async function generationRequest(url:string,init?:RequestInit,afterPendin
  const deadline=Date.now()+(options.maxWaitMs??240000);let target=url,request=init,attempt=0;
  for(;;){
   options.signal?.throwIfAborted();
-  const response=await fetch(target,request),data:any=await response.json();
+  const headers=new Headers(request?.headers);headers.set("Accept","application/x-ndjson");
+  const response=await fetch(target,{...request,headers}),data:any=await readGenerationPackets(response);
   options.signal?.throwIfAborted();
-  if(data.code!=='generation_pending'){if(response.ok)return data;throw Error(data.error||'Request failed.');}
+  if(data.code!=='generation_pending'){if(response.ok&&!data.error)return data;throw Error(data.error||'Request failed.');}
   if(Date.now()>=deadline)throw Error('This location is taking too long. Retry to continue from its saved progress.');
   if(afterPending){target=afterPending;request=undefined;}
   await pause(Math.min(10000,3000+attempt++*1000),options.signal);

@@ -1,3 +1,5 @@
+import {queuedProvider,promoteGeneration} from './provider-queue';
+import {withGenerationScope} from './generation-scope';
 import {imageThreat} from './image-threat';
 import {bindings,remember,readPackage,namespace,AppError,db} from './server';
 import type {CellPackage} from './generation';
@@ -8,11 +10,13 @@ export function imagePrompt(p:CellPackage,recordedDeath?:string|null){
 }
 export async function ensureImage(p:CellPackage):Promise<LocationImage>{
  const {x,y}=p.context;
- return remember(imageKey(x,y),'image',async()=>{
+ await promoteGeneration(imageKey(x,y));
+ return withGenerationScope(imageKey(x,y),()=>remember(imageKey(x,y),'image',async()=>{
   const {OPENAI_API_KEY:key,OPENAI_IMAGE_MODEL:model='gpt-image-2',IMAGES:bucket}=bindings();
   if(!key||!bucket)throw new AppError('Image generation is not configured.',503);
   const death=await db().prepare("SELECT json_extract(value,'$.event.text') AS text FROM visits WHERE x=? AND y=? AND json_extract(value,'$.event.kind')='death' ORDER BY at ASC LIMIT 1").bind(x,y).first<{text:string}>();
   const prompt=imagePrompt(p,death?.text);
+  return queuedProvider('image',{model,prompt,size:'1008x672',quality:'low'},async()=>{
   const response=await fetch('https://api.openai.com/v1/images/generations',{method:'POST',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify({model,prompt,n:1,size:'1008x672',quality:'low',output_format:'webp'}),signal:AbortSignal.timeout(180000)});
   const payload:any=await response.json();
   if(!response.ok)throw new AppError(response.status===429?'Image generation is busy. Try again shortly.':'The illustration could not be generated (HTTP '+response.status+'). The location text is saved.',502);
@@ -22,6 +26,7 @@ export async function ensureImage(p:CellPackage):Promise<LocationImage>{
   const created=Date.now(),objectKey=namespace()+'illustrations/'+x+'/'+y+'/'+crypto.randomUUID()+'.webp';
   await bucket.put(objectKey,bytes,{httpMetadata:{contentType:'image/webp'}});
   return {objectKey,url:'/api/image/'+x+'/'+y+'?v='+created,model,prompt,created};
- });
+  });
+ }));
 }
 export const savedImage=(x:number,y:number)=>readPackage<LocationImage>(imageKey(x,y));

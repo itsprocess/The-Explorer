@@ -5,7 +5,7 @@ import {interactionFor} from './encounters';
 import {prominentFeatures} from './visibility';
 import {environmentFor,deriveSituations} from './situations';
 import {transportFor} from './transport';
-export const VERSION='world-6';
+export const VERSION='world-7';
 export const LIMIT=1_000_000_000;
 export const directions={north:[0,-1],east:[1,0],south:[0,1],west:[-1,0]} as const;
 export type Direction=keyof typeof directions;

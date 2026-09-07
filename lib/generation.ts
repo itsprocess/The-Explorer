@@ -1,3 +1,5 @@
+import {promoteGeneration} from './provider-queue';
+import {withGenerationScope} from './generation-scope';
 import {contextFor,regionalRefs,directions,type CellContext} from './world';
 import {db,remember,readPackage,namespace,worldSeed} from './server';
 import {complete} from './openai';
@@ -21,7 +23,8 @@ async function ensureRegions(c:CellContext):Promise<Region[]>{
 }
 export async function ensureCell(x:number,y:number):Promise<CellPackage>{
  const context=contextFor(worldSeed(),x,y);if(!context.exists)throw Error('There is no cell at those coordinates.');
- return remember(cellKey(x,y),'cell',async()=>{
+ await promoteGeneration(cellKey(x,y));
+ return withGenerationScope(cellKey(x,y),()=>remember(cellKey(x,y),'cell',async()=>{
   const regions=await ensureRegions(context);
   const stage=await remember(stageKey(x,y),'details',async()=>{const prompt=detailPrompt(context,regions),response=await complete<Details>('descriptive_ratings',detailsSchema,prompt);assertDetails(response.result,context);return {prompt,...response,created:Date.now()};});
   const neighbors=[];
@@ -33,7 +36,7 @@ export async function ensureCell(x:number,y:number):Promise<CellPackage>{
   const prompt=scenePrompt(context,regions,stage.result,neighbors);let response=await complete<Scene>('canonical_scene',sceneSchema,prompt);
   try{assertScene(response.result,context);}catch(e){prompt.instructions+=' Correction required: '+(e as Error).message+' Regenerate the complete scene satisfying the schema and every narrative constraint.';response=await complete<Scene>('canonical_scene',sceneSchema,prompt);assertScene(response.result,context);}
   return {context,regions,scene:response.result,created:Date.now(),pass2Prompt:prompt,pass2Result:{...response,version:PROMPT_VERSION},imagePackage:{enabled:true,instructions:'Render this canonical scene using its approved visual brief and connected-place context. No player identity, interface, or invented exits.',context,descriptivePackage:stage.result,scene:response.result,connectedCells:neighbors}};
- });
+ }));
 }
 export async function workshopData(x:number,y:number){const context=contextFor(worldSeed(),x,y),saved=await readPackage<CellPackage>(cellKey(x,y)),stage=await readPackage(stageKey(x,y));return {ratings:context.ratings,context,pass1Prompt:stage?.prompt??detailPrompt(context,[]),pass1Result:stage?.result??null,pass2Prompt:saved?.pass2Prompt??null,pass2Result:saved?.pass2Result??null,imagePackage:await savedImage(x,y)??saved?.imagePackage??{enabled:true}};}
 export const publicCell=(p:CellPackage|null,imageUrl?:string)=>p?{scene:{title:p.scene.title,description:p.scene.description,exits:p.scene.exits.map(e=>({...e,glimpse:p.context.edges.find(n=>n.direction===e.direction)?.glimpse})),blocked:p.context.blocked},imageUrl,regions:p.regions.map(r=>({id:r.id,name:r.name,kind:r.kind})),x:p.context.x,y:p.context.y}:null;

@@ -26,3 +26,10 @@ export const authAttempts=sqliteTable('auth_attempts',{
 export const settings=sqliteTable('server_settings',{
  key:text('key').primaryKey(),value:text('value').notNull(),
 });
+
+export const generationJobs=sqliteTable('generation_jobs',{
+ id:text('id').primaryKey(),lane:text('lane').notNull(),scope:text('scope').notNull(),request:text('request').notNull(),
+ status:text('status').notNull(),priority:integer('priority').notNull().default(1),result:text('result'),error:text('error'),token:text('token'),
+ lease:integer('lease').notNull().default(0),available:integer('available').notNull().default(0),attempts:integer('attempts').notNull().default(0),
+ created:integer('created').notNull(),touched:integer('touched').notNull(),
+},t=>[index('generation_jobs_lane_status').on(t.lane,t.status,t.lease),index('generation_jobs_scope').on(t.scope)]);

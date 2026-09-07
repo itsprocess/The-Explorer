@@ -26,3 +26,17 @@
 .reading-pane>.encounter{margin:16px 0}.reading-pane>.death{border-color:#865464}
 .location-image{margin:16px 0}.region-line{font-size:13px}.reading-pane>a{display:inline-block;margin:6px 0 16px}
 @media(max-width:700px){.workspace-content{flex-direction:column;gap:20px}.atlas{position:static;width:100%;padding:14px;grid-template-columns:120px 1fr}.atlas .coordinates{margin:0;padding:6px}.atlas .character-link{margin:0;padding:8px 0 0}.location-heading,.scene,.passages-card,.reading-pane>.encounter{padding:16px}}
+
+.passage-list{list-style:none;margin:0;padding:0}
+.passage-list>li{display:grid;grid-template-columns:64px minmax(0,1fr);gap:18px;padding:17px 0;border-bottom:1px solid #30343c;align-items:baseline}
+.passage-list>li:first-child{padding-top:0}.passage-list>li:last-child{border-bottom:0;padding-bottom:0}
+.passage-list strong{text-transform:capitalize;font-size:14px;color:#dce4f5}
+.passage-list p{margin:0;font-size:16px;line-height:1.6;color:#d5d8e0}
+.terrain-hint{display:block;margin-top:7px;color:#9aa7be;font-size:13px;line-height:1.4}
+.closed-passage p,.closed-passage strong{color:#9197a3}
+.player-record{position:relative;padding-left:52px!important}.player-mark{color:#9cadd0;display:inline-flex}
+.player-record>.player-mark{position:absolute;left:20px;top:26px}.player-record>p:first-of-type{margin-top:0}
+.about-dialog{max-width:480px;width:calc(100vw - 32px);margin:auto;border:1px solid #444b5b;border-radius:14px;background:#20232a;color:#e6e7eb;padding:0;max-height:85vh;overflow:auto;box-shadow:0 20px 70px #0008}
+.about-dialog::backdrop{background:#080a10bb}.about-content{padding:26px}.about-content p{font-size:16px;line-height:1.6;color:#c4c9d3}
+.dialog-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}.dialog-heading h2{margin:0;font-size:22px}.dialog-heading button{border:0;background:transparent;font-size:25px;padding:0 7px}
+@media(max-width:500px){.passage-list>li{grid-template-columns:1fr;gap:6px}.passage-list p{font-size:15px}.terrain-hint{font-size:13px}.masthead{gap:8px}.masthead nav{order:2;flex-basis:100%}}
