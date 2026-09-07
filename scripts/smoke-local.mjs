@@ -46,7 +46,7 @@ if(process.env.EXPLORER_TEST_IMAGE==='1'){
  console.log('Verified generated image, persistent recall, and read-only image serving.');
 }
 const workshop=(await call('/api/workshop?x=1&y=0')).d;
-assert.equal(workshop.ratings.length,74);assert.ok(workshop.pass1Result.details.length>0);assert.ok(workshop.pass2Result.result.description.length>20);assert.ok(workshop.imagePackage.enabled||workshop.imagePackage.model==='gpt-image-2');
+assert.equal(workshop.ratings.length,75);assert.ok(workshop.pass1Result.details.length>0);assert.ok(workshop.pass2Result.result.description.length>20);assert.ok(workshop.imagePackage.enabled||workshop.imagePackage.model==='gpt-image-2');
 assert.equal(workshop.pass2Result.model,'gpt-5.6-luna');
 assert.equal(workshop.pass2Result.result.exits.length,Object.values(state.connections).filter(Boolean).length);
 assert.ok(workshop.pass2Result.result.description.split(/\s+/).length<=80);

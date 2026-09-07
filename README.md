@@ -48,7 +48,7 @@ The root key file is read only by `setup:local`, which writes ignored `.dev.vars
 
 ## Generation
 
-1. `lib/fields.ts` computes 74 fields (12 baselines and 62 features), including exact-zero feature absence and independently shaped spatial patterns. `lib/world.ts` resolves topology, symmetric exits, regions, events, and protected-origin overrides. See the [field catalog and distribution audit](docs/world-fields.md).
+1. `lib/fields.ts` computes 75 fields (12 baselines and 63 features), including exact-zero feature absence and independently shaped spatial patterns. `lib/world.ts` resolves topology, symmetric exits, regions, events, and protected-origin overrides. See the [field catalog and distribution audit](docs/world-fields.md).
 2. Missing shared regional entities are named once and persisted.
 3. Pass 1 translates two baseline fields and up to four present features into short concrete details.
 4. Pass 2 writes a usually 25–55-word scene (80-word maximum), plus one 10–24-word description per exit. Previews show terrain and prominent physical features; saved neighboring descriptions and reciprocal exits preserve continuity. Names, individual inhabitants, interiors, traps, treasure, and events stay private. Every blocked direction gets a physical explanation. See [world-4 interactions and visibility](docs/world-v4.md).

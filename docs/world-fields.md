@@ -1,8 +1,8 @@
 # World fields, version 3
 
-The app computes 74 fields: twelve baseline conditions and 62 independently shaped features. Features can be exactly zero. Zero means absent, not an atmospheric hint. One means full strength, not a guarantee that a reward is available. Events and repeat rules remain app-owned. Each feature has its own recipe; sharing a noise primitive does not mean sharing a spatial distribution.
+The app computes 75 fields: twelve baseline conditions and 63 independently shaped features. Features can be exactly zero. Zero means absent, not an atmospheric hint. One means full strength, not a guarantee that a reward is available. Events and repeat rules remain app-owned. Each feature has its own recipe; sharing a noise primitive does not mean sharing a spatial distribution.
 
-The deterministic audit samples 12000 widely spaced coordinates across three seeds. **41.4% have no special features.** Observed presence is a sample statistic, not a gameplay promise; very rare rolls can be absent from this sample. Roads and contour rivers are procedural shapes, not physical drainage or a road network solver.
+The deterministic audit samples 12000 widely spaced coordinates across three seeds. **33.9% have no special features.** Observed presence is a sample statistic, not a gameplay promise; very rare rolls can be absent from this sample. Roads and contour rivers are procedural shapes, not physical drainage or a road network solver.
 
 | Field | Kind | Meaning, low → high | Observed presence | Derivation |
 | --- | --- | --- | --- | --- |
@@ -42,7 +42,7 @@ The deterministic audit samples 12000 widely spaced coordinates across three see
 | Machinery | feature | absent → large functional machine | 0.2% | 1-in-600 points, independent of weather |
 | Traveler | feature | absent → traveling group | 0.69% | rare single-cell encounter boosted by roads |
 | Patrol | feature | absent → armed patrol | 0.1% | settlement or road gate AND independent patrol roll |
-| Lethal trap | feature | absent → active trap | 5.35% | independent roll, 2% nearby rising toward 6% far away; safe-origin override |
+| Lethal trap | feature | absent → active trap | 4.96% | independent roll, 5% independent lethal cells at every distance; safe-origin override |
 | Treasure chest | feature | absent → rare treasure chest | 0.07% | independent 1-in-2000 point, safe-origin override |
 | Haunting | feature | absent → visible haunting | 0.03% | burial/ruin gate AND 1-in-80 spectral roll |
 | Portal | feature | absent → active portal | 0% | independent 1-in-a-million point, safe-origin override |
@@ -79,6 +79,7 @@ The deterministic audit samples 12000 widely spaced coordinates across three see
 | Vitrified ground | feature | absent → glasslike landscape | 0.25% | rare heat-scar provinces with subtractive erosion |
 | Impact site | feature | absent → impact crater | 0.02% | isolated 4-cell circular impact basins |
 | Persistent mirage | feature | absent → unusual visual phenomenon | 0.04% | dry district AND narrow heat-band AND rare local roll |
+| Unique features | feature | absent → one modest distinctive detail | 19.68% | single 17-cell Perlin field, upper fifth only; scenery without events |
 | Standing monument | feature | absent → large standing monument | 0.03% | rare point monuments in ancient provinces |
 
 The Dev view shows actual present features first, baseline conditions separately, and absent features collapsed. Percentages indicate feature strength or position between the stated baseline meanings. They are not probabilities.

@@ -1,4 +1,4 @@
-import {fbm,random,cellular,band,clamp,oi} from './noise';
+import {perlin,fbm,random,cellular,band,clamp,oi} from './noise';
 type Sample={s:string;x:number;y:number;v:Record<string,number>};
 type Field={id:string;name:string;kind:'baseline'|'feature';low:string;high:string;recipe:string;derive:(p:Sample)=>number};
 const noise=(p:Sample,id:string,size:number,octaves=3)=>fbm(p.s,id,p.x,p.y,size,octaves);
@@ -59,7 +59,7 @@ export const recipes:Field[]=[
  field('infrastructure.machine','Machinery','feature','absent','large functional machine','1-in-600 points, independent of weather',p=>roll(p,'machine',1/600)),
  field('encounters.traveler','Traveler','feature','absent','traveling group','rare single-cell encounter boosted by roads',p=>roll(p,'traveler',.006+p.v['civilization.road']*.07)),
  field('encounters.patrol','Patrol','feature','absent','armed patrol','settlement or road gate AND independent patrol roll',p=>Math.max(p.v['civilization.settlement'],p.v['civilization.road'])>0?roll(p,'patrol',.045):0),
- field('hazards.trap','Lethal trap','feature','absent','active trap','independent roll, 2% nearby rising toward 6% far away; safe-origin override',p=>Math.abs(p.x)+Math.abs(p.y)<=2?0:roll(p,'trap',.02+.04*Math.hypot(p.x,p.y)/(Math.hypot(p.x,p.y)+1500))),
+ field('hazards.trap','Lethal trap','feature','absent','active trap','independent roll, 5% independent lethal cells at every distance; safe-origin override',p=>Math.abs(p.x)+Math.abs(p.y)<=2?0:roll(p,'trap',.05)),
  field('encounters.treasure','Treasure chest','feature','absent','rare treasure chest','independent 1-in-2000 point, safe-origin override',p=>Math.abs(p.x)+Math.abs(p.y)<=2?0:roll(p,'treasure',1/2000)),
  field('supernatural.haunting','Haunting','feature','absent','visible haunting','burial/ruin gate AND 1-in-80 spectral roll',p=>Math.max(p.v['history.ruins'],p.v['history.burial'])>0?roll(p,'haunting',1/80):0),
  field('supernatural.portal','Portal','feature','absent','active portal','independent 1-in-a-million point, safe-origin override',p=>Math.abs(p.x)+Math.abs(p.y)<=2?0:roll(p,'portal',1/1_000_000)),
@@ -96,12 +96,13 @@ export const recipes:Field[]=[
  field('terrain.glassland','Vitrified ground','feature','absent','glasslike landscape','rare heat-scar provinces with subtractive erosion',p=>noise(p,'glass-province',150)>.68?tail(noise(p,'glass-scar',25)-.15*noise(p,'glass-erosion',6),.56)*4:0),
  field('geology.meteor','Impact site','feature','absent','impact crater','isolated 4-cell circular impact basins',p=>centers(p,'impact',170,.12,4)),
  field('supernatural.mirage','Persistent mirage','feature','absent','unusual visual phenomenon','dry district AND narrow heat-band AND rare local roll',p=>p.v['climate.humidity']<.42?band(noise(p,'heat-shimmer',35),.49,.51,.005)*roll(p,'mirage',.04):0),
+ field('scenery.unique_features','Unique features','feature','absent','one modest distinctive detail','single 17-cell Perlin field, upper fifth only; scenery without events',p=>{const n=perlin(p.s,'unique-scenery',p.x/17+.371,p.y/17+.619);return n>.63?.35+.65*tail(n,.63):0;}),
  field('culture.monolith','Standing monument','feature','absent','large standing monument','rare point monuments in ancient provinces',p=>p.v['world.age']>.25?roll(p,'monolith',1/1400):0),
 ];
 export type Rating={id:string;name:string;kind:Field['kind'];value:number;label:string;applicable:boolean;low:string;high:string;recipe:string};
 export function deriveRatings(s:string,x:number,y:number):Rating[]{
  const v:Record<string,number>={};
- const marine=new Set(['water.ocean','water.coast','water.archipelago','water.reef','civilization.harbor','history.wreck','wildlife.megafauna','supernatural.portal','supernatural.marvel']);
+ const marine=new Set(['scenery.unique_features','hazards.trap','water.ocean','water.coast','water.archipelago','water.reef','civilization.harbor','history.wreck','wildlife.megafauna','supernatural.portal','supernatural.marvel']);
  return recipes.map(r=>{let value=oi(r.derive({s,x,y,v}));
   if(r.kind==='feature'&&(v['water.ocean']??0)>.15&&!marine.has(r.id))value=0;
   v[r.id]=value;

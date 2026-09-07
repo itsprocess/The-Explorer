@@ -1,16 +1,19 @@
 "use client";
 import {useEffect,useState,useRef} from 'react';
 import {generationRequest} from '../lib/generation-request';
+import {useEventFeedback} from './event-feedback';
 import LocationImage from './location-image';
 import {registerExplorerTools} from '../lib/webmcp';
 
 export default function Explorer(){
+ const feedback=useEventFeedback();
  const [state,setState]=useState<any>(null),[busy,setBusy]=useState(false),[error,setError]=useState(''),[tab,setTab]=useState('explore'),[name,setName]=useState(''),[password,setPassword]=useState(''),[inspect,setInspect]=useState<any>(null);
  async function load(){const d:any=await generationRequest('/api/game');setState(d);return d;}
  useEffect(()=>{setBusy(true);load().catch(e=>setError(e.message)).finally(()=>setBusy(false));},[]);
  async function act(action:string,extra:Record<string,unknown>={}){
+  feedback.unlock();
   setBusy(true);setError('');
-  try{const d:any=await generationRequest('/api/game',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,requestId:crypto.randomUUID(),...extra})});setState(d);setInspect(null);return d;}
+  try{const d:any=await generationRequest('/api/game',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,requestId:crypto.randomUUID(),...extra})});feedback.show(state,d);setState(d);setInspect(null);return d;}
   catch(e:any){setError(e.message);}finally{setBusy(false);}
  }
  async function auth(action:string){
@@ -23,8 +26,8 @@ export default function Explorer(){
  useEffect(()=>registerExplorerTools(async()=>{const s=await actions.current.load();return {character:s.character,location:s.cell?.scene,connections:s.connections};},async direction=>{const s=await actions.current.act('move',{direction});if(!s)throw Error('Move failed.');return {character:s.character,location:s.cell?.scene,event:s.lastEvent};}),[]);
  async function historyPage(offset:number){try{const r=await fetch('/api/game?offset='+offset);const d:any=await r.json();if(!r.ok)throw Error(d.error);setState(d);}catch(e:any){setError(e.message);}}
  const c=state?.character,cell=state?.cell,scene=cell?.scene;
- return <main>
-  <header className="masthead"><a className="brand" href="/">The Explorer</a><nav aria-label="Main"><button className={tab==='explore'?'active':''} onClick={()=>setTab('explore')}>Explore</button>{c&&<button className={tab==='profile'?'active':''} onClick={()=>setTab('profile')}>Profile</button>}<button className={tab==='dev'?'active':''} onClick={workshop}>Dev</button></nav>{c&&<button disabled={busy} onClick={()=>auth('logout')}>Log out</button>}</header>
+ return <main>{feedback.popup}
+  <header className="masthead"><a className="brand" href="/">The Explorer</a><nav aria-label="Main"><button className={tab==='explore'?'active':''} onClick={()=>setTab('explore')}>Explore</button>{c&&<button className={tab==='profile'?'active':''} onClick={()=>setTab('profile')}>Profile</button>}<button className={tab==='dev'?'active':''} onClick={workshop}>Dev</button></nav>{feedback.soundButton}{c&&<button disabled={busy} onClick={()=>auth('logout')}>Log out</button>}</header>
   {error&&<div className="error" role="alert">{error}{error.includes("Sign in with ChatGPT")&&<> <a href="/signin-with-chatgpt?return_to=/">Sign in</a></>}</div>}
   {busy&&<div className="working" role="status"><span className="spinner" aria-hidden="true"/>Loading…</div>}
   {!state&&!error?<p className="loading">Loading…</p>:!c&&tab!=='dev'?<form className="auth" onSubmit={e=>{e.preventDefault();auth('login');}}>

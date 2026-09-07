@@ -13,7 +13,7 @@ mkdirSync('outputs',{recursive:true});writeFileSync('outputs/world-distribution.
 mkdirSync('docs',{recursive:true});
 writeFileSync('docs/world-fields.md',[
  '# World fields, version 3','',
- 'The app computes 74 fields: twelve baseline conditions and 62 independently shaped features. Features can be exactly zero. Zero means absent, not an atmospheric hint. One means full strength, not a guarantee that a reward is available. Events and repeat rules remain app-owned. Each feature has its own recipe; sharing a noise primitive does not mean sharing a spatial distribution.','',
+ 'The app computes 75 fields: twelve baseline conditions and 63 independently shaped features. Features can be exactly zero. Zero means absent, not an atmospheric hint. One means full strength, not a guarantee that a reward is available. Events and repeat rules remain app-owned. Each feature has its own recipe; sharing a noise primitive does not mean sharing a spatial distribution.','',
  'The deterministic audit samples '+count+' widely spaced coordinates across three seeds. **'+report.ordinaryPercent+'% have no special features.** Observed presence is a sample statistic, not a gameplay promise; very rare rolls can be absent from this sample. Roads and contour rivers are procedural shapes, not physical drainage or a road network solver.','',
  '| Field | Kind | Meaning, low → high | Observed presence | Derivation |',
  '| --- | --- | --- | --- | --- |',

@@ -9,7 +9,7 @@ async function complete<T>(name:string,schema:unknown,prompt:Prompt):Promise<T>{
  const d:any=await r.json();assert.equal(r.status,200,'OpenAI HTTP '+r.status);assert.equal(d.status,'completed');assert.equal(d.model,'gpt-5.6-luna');
  return JSON.parse(d.output.flatMap((o:any)=>o.content??[]).filter((c:any)=>c.type==='output_text').map((c:any)=>c.text).join(''));
 }
-const cases=[{name:'ordinary',id:null},{name:'forest',id:'vegetation.forest'},{name:'settlement',id:'civilization.settlement'},{name:'treasure',id:'encounters.treasure'},{name:'interaction',id:null}];
+const cases=[{name:'ordinary',id:null},{name:'forest',id:'vegetation.forest'},{name:'settlement',id:'civilization.settlement'},{name:'treasure',id:'encounters.treasure'},{name:'interaction',id:null},{name:'unique scenery',id:'scenery.unique_features'}];
 const results=[];
 for(const sample of cases){
  let found:{x:number;y:number}|undefined;

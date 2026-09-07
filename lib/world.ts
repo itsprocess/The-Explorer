@@ -3,13 +3,13 @@ export {deriveRatings,recipes,type Rating} from './fields';
 import {hash,random,fbm,cellular,band,clamp,oi,mix} from './noise';
 import {interactionFor} from './encounters';
 import {prominentFeatures} from './visibility';
-export const VERSION='world-4';
+export const VERSION='world-5';
 export const LIMIT=1_000_000_000;
 export const directions={north:[0,-1],east:[1,0],south:[0,1],west:[-1,0]} as const;
 export type Direction=keyof typeof directions;
 export function checkCoordinate(x:number,y:number){if(!Number.isSafeInteger(x)||!Number.isSafeInteger(y)||Math.abs(x)>LIMIT||Math.abs(y)>LIMIT)throw Error('Coordinates must be integers within ±1,000,000,000.');}
 // Grid backbone guarantees origin connectivity; optional chambers create sprawl.
-export function exists(seed:string,x:number,y:number){checkCoordinate(x,y);return x%8===0||y%8===0||Math.abs(x)+Math.abs(y)<=2||(oceanStrength(seed,x,y)<.25&&fbm(seed,'topology',x,y,13,3)>.45);}
+export function exists(seed:string,x:number,y:number){checkCoordinate(x,y);return x%8===0||y%8===0||Math.abs(x)+Math.abs(y)<=2||(oceanStrength(seed,x,y)<.25&&fbm(seed,'topology',x,y,13,3)>.49);}
 export function connections(seed:string,x:number,y:number){return Object.fromEntries(Object.entries(directions).map(([d,[dx,dy]])=>[d,Math.abs(x+dx)<=LIMIT&&Math.abs(y+dy)<=LIMIT&&exists(seed,x,y)&&exists(seed,x+dx,y+dy)])) as Record<Direction,boolean>;}
 export type RegionRef={id:string;kind:string;anchorX:number;anchorY:number;influence:number;band:number};
 export function broadTerrain(v:Record<string,number>){
