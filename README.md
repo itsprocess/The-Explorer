@@ -90,3 +90,5 @@ Images live in the IMAGES R2 binding (local files under .wrangler/state/v3/r2). 
 Location records are explicitly labeled View only. Their GET requests never move a character, generate content, or record a visit. Profile badges precede stats, and history is collapsed by default. The map uses fixed 11×11 grid tracks and size-constrained markers.
 
 To test real image generation and persistence, set EXPLORER_TEST_IMAGE=1 when running npm run smoke:local. This creates one billable illustration and verifies repeat requests reuse it.
+
+Latest: [loading, threat art, and the Thresholds reset](docs/thresholds.md).
