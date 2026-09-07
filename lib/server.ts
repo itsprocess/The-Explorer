@@ -1,5 +1,5 @@
 import {env} from 'cloudflare:workers';
-import initialPackages from './bootstrap.json';
+import {VERSION} from './world';
 export type Bindings={DB:D1Database;OPENAI_API_KEY?:string;OPENAI_MODEL?:string;WORLD_SEED?:string};
 export const bindings=()=>env as unknown as Bindings;
 export const db=()=>bindings().DB;
@@ -7,11 +7,7 @@ export const worldSeed=()=>bindings().WORLD_SEED||'the-explorer-first-world';
 export class AppError extends Error{constructor(message:string,public status=400){super(message);}}
 export async function readPackage<T=any>(key:string):Promise<T|null>{
  const row=await db().prepare('SELECT value FROM packages WHERE key=?').bind(key).first<{value:string|null}>();if(row?.value)return JSON.parse(row.value);
- const initial=(initialPackages as Record<string,{kind:string;value:unknown}>)[key];if(!initial)return null;
- const disabled=await db().prepare('SELECT value FROM server_settings WHERE key=?').bind('bootstrap_disabled').first<{value:string}>();if(disabled?.value==='1')return null;
- // Carry the first canonical generations into a new deployment; never overwrite live canon.
- await db().prepare('INSERT INTO packages(key,kind,value,lease,updated) VALUES(?,?,?,0,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,token=NULL,lease=0 WHERE packages.value IS NULL').bind(key,initial.kind,JSON.stringify(initial.value),Date.now()).run();
- const saved=await db().prepare('SELECT value FROM packages WHERE key=?').bind(key).first<{value:string}>();return saved?JSON.parse(saved.value):null;
+ return null;
 }
 // Cross-isolate lease and compare-and-swap publication. A crashed stage can be retried.
 export async function remember<T>(key:string,kind:string,make:()=>Promise<T>):Promise<T>{
@@ -24,4 +20,4 @@ export async function remember<T>(key:string,kind:string,make:()=>Promise<T>):Pr
  try{const value=await make();const result=await db().prepare('UPDATE packages SET value=?,token=NULL,lease=0,updated=? WHERE key=? AND token=? AND value IS NULL').bind(JSON.stringify(value),Date.now(),key,token).run();if(!result.meta.changes){const winner=await readPackage<T>(key);if(winner)return winner;throw new AppError('Generation ownership changed. Please retry.',409);}return value;}
  catch(e){await db().prepare('UPDATE packages SET token=NULL,lease=0 WHERE key=? AND token=?').bind(key,token).run();throw e;}
 }
-export const namespace=()=>worldSeed()+':world-1:';
+export const namespace=()=>worldSeed()+':'+VERSION+':';

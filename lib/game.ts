@@ -21,7 +21,7 @@ export async function snapshot(owner:string,id?:string,offset=0){
  const rows=(await db().prepare('SELECT id,value FROM characters WHERE owner=? ORDER BY updated DESC').bind(owner).all<{id:string;value:string}>()).results;
  const row=id?await characterRow(owner,id):rows[0];const c:Character|null=row?JSON.parse(row.value):null;
  const x=c?.x??0,y=c?.y??0;
- const saved=await readPackage<CellPackage>(cellKey(x,y));
+ const saved=c?await ensureCell(x,y):await readPackage<CellPackage>(cellKey(x,y));
  const known=(await db().prepare('SELECT key FROM packages WHERE kind=? AND value IS NOT NULL AND key LIKE ?').bind('cell',namespace()+'cell:%').all<{key:string}>()).results;
  const knownSet=new Set(known.map(r=>r.key));const map=[];
  for(let dy=-5;dy<=5;dy++)for(let dx=-5;dx<=5;dx++){const a=x+dx,b=y+dy;map.push({x:a,y:b,exists:Math.abs(a)<=1e9&&Math.abs(b)<=1e9&&exists(worldSeed(),a,b),generated:knownSet.has(cellKey(a,b))});}

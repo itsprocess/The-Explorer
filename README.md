@@ -38,21 +38,23 @@ The hosted Site remains owner-private behind Sites sign-in. Character login is s
 npm run data:reset -- --scope characters --confirm RESET
 # Clear both world and characters for a new development run.
 npm run data:reset -- --scope all --confirm RESET
+# Clear world and progress, keeping character names and password logins.
+npm run data:reset -- --scope world --confirm RESET
 ```
 
-These commands are strictly local; they have no remote mode. They preserve schema and API-key files. A full reset disables bundled bootstrap packages so old locations cannot silently reappear; the next character creation generates a fresh origin using the API. The same seed still produces the same numerical world. Resetting characters also frees their names and resets once-ever event claims. Resetting the world includes characters to avoid histories pointing to erased canon.
+These commands are strictly local; they have no remote mode. They preserve schema and API-key files. Bundled world descriptions have been removed. After a world reset, logging in generates a fresh origin using the API. The same seed and world version still produce the same numerical world. A world reset clears regional/cell packages, visits, claims, badges and progress, returns existing characters to origin, and preserves their names/passwords. An all reset also removes those identities and sessions. The one-time 0002 migration performs the user-requested world reset on existing installations.
 
 The root key file is read only by `setup:local`, which writes ignored `.dev.vars`. Never commit either file. Production secrets are configured through Sites, not the browser or hosting manifest.
 
 ## Generation
 
-1. `lib/world.ts` computes the 160-rating context, topology, edges, regions, features, and protected-origin overrides.
+1. `lib/fields.ts` computes 33 distinct fields, including exact-zero feature absence and independently shaped spatial patterns. `lib/world.ts` resolves topology, symmetric exits, regions, events, and protected-origin overrides. See the [field catalog and distribution audit](docs/world-fields.md).
 2. Missing shared regional entities are named once and persisted.
-3. Pass 1 describes a selected set of applicable ratings, with all 160 supplied as context.
-4. Pass 2 writes the scene using pass 1 plus the saved packages and numerical context of connected neighbors.
+3. Pass 1 translates two baseline fields and up to four present features into short concrete details.
+4. Pass 2 writes a usually 25–55-word scene (80-word maximum), plus exactly one short description for each exit. Connected neighbors provide continuity context only; their titles, contents, inhabitants, and events must not appear in the current scene or its exits. The UI lists every exit below the paragraph.
 5. A future image-input package is stored. No image API is called.
 
-Each stage uses a durable lease and saves its validated output independently. A failed scene pass reuses completed descriptive and regional stages. Generated cells are never rerolled on a normal revisit. The initial origin and eastern neighbor are included as server-only bootstrap packages so deployment preserves the real API-generated canon from the first local run.
+Each stage uses a durable lease and saves its validated output independently. A failed scene pass reuses completed descriptive and regional stages. Generated cells are never rerolled on a normal revisit. Ordinary cells can have no special feature, event, or badge. The Dev view separates present features, baseline conditions, and absent features and explains each derivation.
 
 The Dev tab shows exact prompts, results, and internal ratings. Normal exploration and shareable cell/profile pages receive curated public data. Cardinal controls appear only for connected cells and disappear on death; the server enforces these same movement rules. The initial Site is owner-private; before opening it to a wider audience, add an owner-specific workshop permission and production generation spending/rate limits.
 
@@ -73,10 +75,10 @@ Unit tests cover deterministic and bounded ratings, origin protection, reciproca
 - Coordinates are supported to ±1 billion on each axis, rather than claiming arbitrary-precision infinity.
 - The connected backbone is a regular corridor lattice; optional rooms use noise. Recipes are an initial calibration, not a completed landscape simulation.
 - Weather is static. Rivers are shaped bands, not a physical drainage simulation.
-- The initial event catalog has quiet cells, five recurring death methods, honors, elections, rare treasure, and portals. The origin and Manhattan radius 2 are safe.
+- The event catalog has quiet cells, ordinary physical traps, rarer supernatural deaths, honors, elections, rare treasure, and portals. The origin and Manhattan radius 2 are safe.
 - Portals make one transfer; destination encounter effects wait for a later entry, preventing automatic portal chains.
 - Character history is paginated in groups of 25. Each character has a separate name/password login.
 - The model and prompts are configurable; schema checks do not prove perfect narrative consistency. Canonical outputs remain saved even when a future prompt version changes.
 - Optional WebMCP tools are registered when the browser supports them. No supported WebMCP validation context was available during this implementation; their live browser contract is not claimed as verified.
 
-OpenAI text requests use the [Responses API with Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs). The initial configurable model is [GPT-4.1 mini](https://developers.openai.com/api/docs/models/gpt-4.1-mini).
+Regional naming and both text passes use [GPT-5.6 Luna](https://developers.openai.com/api/docs/models/gpt-5.6-luna) through the Responses API with strict Structured Outputs, low reasoning effort, and low verbosity. The actual response model is recorded with each generation. Image API calls remain disabled; textual visual description is fully encouraged.

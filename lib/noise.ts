@@ -6,7 +6,7 @@ export function hash(text: string): number {
 }
 export const random = (seed: string, channel: string, x: number, y: number) => (hash(JSON.stringify([seed, channel, x, y])) + 0.5) / 4294967296;
 export const clamp = (v: number, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, v));
-export const oi = (v: number) => {if (!Number.isFinite(v)) throw Error('Non-finite rating');return Math.round(clamp(v, 0.000001, 0.999999) * 1e6) / 1e6;};
+export const oi = (v: number) => {if (!Number.isFinite(v)) throw Error('Non-finite rating');return Math.round(clamp(v) * 1e6) / 1e6;};
 export const mix = (a: number, b: number, w: number) => a * (1 - w) + b * w;
 const fade = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
 export function perlin(seed: string, channel: string, x: number, y: number): number {

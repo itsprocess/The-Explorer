@@ -2,18 +2,18 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {contextFor,deriveRatings,exists,connections,directions,recipes,regionalRefs} from '../lib/world';
 import {random,oi} from '../lib/noise';
-import {detailPrompt,descriptiveIds,assertDetails,scenePrompt,type Scene} from '../lib/prompts';
+import {detailPrompt,descriptiveIds,assertDetails,scenePrompt,assertScene,type Scene} from '../lib/prompts';
 import {resolveArrival,type Character} from '../lib/rules';
 import type {CellPackage} from '../lib/generation';
 const seed='test-world';
 const character=():Character=>({id:'test',name:'Tester',x:0,y:0,alive:true,deaths:0,furthest:0,badges:[],consumed:[]});
 function fixture(x=8,y=4):CellPackage{
  const context=contextFor(seed,x,y);context.event={id:'trap',kind:'death',mode:'every_visit',cause:'archival press',deathId:'death:archival press',entityId:null};context.hostilityPolicy.enforcesForeignHonors=false;
- const scene:Scene={title:'Test location',description:'A fixture scene for rule verification.',visual_brief:'',continuity_facts:[],event_narrative:'{character_name} was pressed into a footnote.',consumed_narrative:'The ceremony is over.',hostility_narrative:'The kingdom remembered your rival honor.',death_badge_title:'Footnoted',death_badge_description:'Killed by an archival press.',honor_badge_title:'Honorary archivist'};
+ const scene:Scene={title:'Test location',description:'A fixture scene for rule verification.',exits:context.edges.map(e=>({direction:e.direction as keyof typeof directions,description:e.material+' '+e.opening+' with a flat threshold.'})),visual_brief:'',continuity_facts:[],event_narrative:'{character_name} was pressed into a footnote.',consumed_narrative:'The ceremony is over.',hostility_narrative:'The kingdom remembered your rival honor.',death_badge_title:'Footnoted',death_badge_description:'Killed by an archival press.',honor_badge_title:'Honorary archivist'};
  return {context,scene,regions:context.regions.map(r=>({id:r.id,kind:r.kind,name:r.kind,lore:''})),created:0,pass2Prompt:null,pass2Result:null,imagePackage:{enabled:false}};
 }
-test('all 160 ratings are deterministic, finite, and separately addressed',()=>{
- const a=deriveRatings(seed,-891,1702),b=deriveRatings(seed,-891,1702);assert.deepEqual(a,b);assert.equal(a.length,160);assert.equal(new Set(a.map(r=>r.recipe)).size,160);assert.ok(new Set(recipes.map(r=>r.algo)).size>=6);a.forEach(r=>assert.ok(r.value>0&&r.value<1));assert.notDeepEqual(a,deriveRatings(seed+'2',-891,1702));assert.throws(()=>oi(NaN));
+test('all 33 fields are deterministic, finite, and separately addressed',()=>{
+ const a=deriveRatings(seed,-891,1702),b=deriveRatings(seed,-891,1702);assert.deepEqual(a,b);assert.equal(a.length,33);assert.equal(new Set(a.map(r=>r.recipe)).size,33);assert.equal(new Set(recipes.map(r=>r.recipe)).size,33);a.forEach(r=>assert.ok(r.value>=0&&r.value<=1));assert.notDeepEqual(a,deriveRatings(seed+'2',-891,1702));assert.throws(()=>oi(NaN));
 });
 test('backbone, origin, and approaches survive any tested seed',()=>{
  for(let s=0;s<20;s++){const key='seed-'+s;for(let i=-64;i<=64;i++){assert.ok(exists(key,i,0));assert.ok(exists(key,0,i));}for(const [x,y] of [[0,0],[1,0],[0,-1],[2,0]]){const c=contextFor(key,x,y);assert.ok(c.exists);assert.ok(c.safeApproach);assert.equal(c.event,null);assert.equal(c.features.trap,false);assert.equal(c.features.portal,false);}}
@@ -26,7 +26,7 @@ test('nearby climate is coherent while entity IDs persist across cells',()=>{
  const a=deriveRatings(seed,20,20),b=deriveRatings(seed,21,20);for(const id of ['climate.temperature','climate.humidity'])assert.ok(Math.abs(a.find(r=>r.id===id)!.value-b.find(r=>r.id===id)!.value)<.1);assert.deepEqual(regionalRefs(seed,0,0).map(r=>r.id),regionalRefs(seed,1,0).map(r=>r.id));assert.notEqual(random(seed,'chest',0,0),random(seed,'portal',0,0));
 });
 test('first prompt carries all ratings but requests a bounded descriptive selection',()=>{
- const c=contextFor(seed,0,0),prompt=detailPrompt(c,[]),data=JSON.parse(prompt.input);assert.equal(data.ratings.length,160);assert.ok(data.selected_rating_ids.length<=16);assert.ok(prompt.instructions.includes('unique origin'));
+ const c=contextFor(seed,0,0),prompt=detailPrompt(c,[]),data=JSON.parse(prompt.input);assert.equal(data.ratings.length,33);assert.ok(data.selected_rating_ids.length<=6);assert.ok(prompt.instructions.includes('unique origin'));
  const valid={details:descriptiveIds(c).map(id=>({rating_id:id,description:'A grounded detail.'})),regional_texture:''};assert.doesNotThrow(()=>assertDetails(valid,c));assert.throws(()=>assertDetails({...valid,details:valid.details.slice(1)},c));const second=JSON.parse(scenePrompt(c,[],valid,[{package:{title:'Neighbor'}}]).input);assert.equal(second.connected_cells[0].package.title,'Neighbor');
 });
 test('a repeated death adds to the count but awards only one death badge',()=>{
@@ -40,4 +40,33 @@ test('per-character consumption persists, global consumption uses supplied commi
 });
 test('hostile badges affect only their character and never override safe origin',()=>{
  const p=fixture();p.context.event=null;p.context.hostilityPolicy.enforcesForeignHonors=true;const c=character();c.badges=[{id:'foreign',title:'Foreign honor',description:'',kind:'honor',entityId:'faction:elsewhere'}];assert.equal(resolveArrival(c,p).character.alive,false);assert.equal(resolveArrival(character(),p).character.alive,true);const origin=fixture(0,0);origin.context.hostilityPolicy.enforcesForeignHonors=true;assert.equal(resolveArrival(c,origin).character.alive,true);
+});
+test('scenes must describe exactly the available exits and stay brief',()=>{
+ const p=fixture(0,0);p.context.event=null;p.scene.description='A low stone shelter surrounds a worn bench. Its floor is swept clean.';
+ assert.doesNotThrow(()=>assertScene(p.scene,p.context));
+ assert.throws(()=>assertScene({...p.scene,exits:p.scene.exits.slice(1)},p.context));
+ assert.throws(()=>assertScene({...p.scene,exits:[p.scene.exits[0],...p.scene.exits.slice(1).map(()=>p.scene.exits[0])]},p.context));
+ assert.throws(()=>assertScene({...p.scene,description:'word '.repeat(81)},p.context));
+ const prompt=scenePrompt(p.context,[],{details:[],regional_texture:''},[]);
+ assert.ok(prompt.instructions.includes('CONTINUITY CONTEXT ONLY'));
+ assert.ok(!prompt.instructions.includes('No imagery'));
+});
+test('features are sparse, stability is usually high, and forests form patches',()=>{
+ const counts:Record<string,number>={};let quiet=0,stability=0,forest=0,forestNext=0;
+ const n=4000;
+ for(let i=0;i<n;i++){
+  const x=Math.floor(random(seed,'sample-x',i,0)*20000)-10000,y=Math.floor(random(seed,'sample-y',i,0)*20000)-10000;
+  const rs=deriveRatings(seed,x,y),v=Object.fromEntries(rs.map(r=>[r.id,r.value]));
+  for(const r of rs)if(r.kind==='feature'&&r.value>0)counts[r.id]=(counts[r.id]||0)+1;
+  if(rs.filter(r=>r.kind==='feature'&&r.value>0).length===0)quiet++;
+  if(v['architecture.structural_integrity']>.8)stability++;
+  if(v['vegetation.forest']>0){forest++;if(deriveRatings(seed,x+1,y).find(r=>r.id==='vegetation.forest')!.value>0)forestNext++;}
+ }
+ assert.ok(quiet/n>.4,'At least 40% should have no special features');
+ assert.ok(stability/n>.85,'Sound structure should be the ordinary baseline');
+ assert.ok((counts['civilization.settlement']||0)/n<.03);
+ assert.ok((counts['encounters.treasure']||0)/n<.004);
+ assert.ok(forest/n>.03&&forest/n<.4);
+ assert.ok(forestNext/forest>.65,'Forests must persist across adjacent cells');
+ for(const count of Object.values(counts))assert.ok(count/n<.4,'No special feature should dominate the world');
 });

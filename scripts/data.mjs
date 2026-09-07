@@ -5,6 +5,7 @@ const args=process.argv.slice(2),command=args[0]||'status';
 const test=args.includes('--test');
 const storage=resolve(test?'outputs/reset-test-db':'.wrangler/state');
 function sql(query){
+ query=query.replace(/^\s*--[^\n]*$/gm,'').trim();
  const run=spawnSync(process.execPath,['node_modules/wrangler/bin/wrangler.js','d1','execute','DB','--local','--config','wrangler.local.json','--persist-to',storage,'--json','--command',query],{encoding:'utf8',maxBuffer:16*1024*1024});
  if(run.status!==0)throw Error(run.stderr||run.stdout);
  return JSON.parse(run.stdout)[0]?.results??[];
@@ -24,11 +25,11 @@ if(command==='migrate'){
  console.log('Local schema ready.');
 }else if(command==='reset'){
  const scope=args.includes('--scope')?args[args.indexOf('--scope')+1]:'all';
- if(!args.includes('--confirm')||args[args.indexOf('--confirm')+1]!=='RESET'||!['all','characters'].includes(scope))throw Error('Use: npm run data:reset -- --scope all|characters --confirm RESET. Stop the dev server first.');
+ if(!args.includes('--confirm')||args[args.indexOf('--confirm')+1]!=='RESET'||!['all','characters','world'].includes(scope))throw Error('Use: npm run data:reset -- --scope all|characters|world --confirm RESET. Stop the dev server first.');
  const tables=['character_sessions','character_credentials','visits','claims','characters','auth_attempts'];
  if(scope==='all')tables.push('packages');
  const queries=tables.map(t=>'DELETE FROM '+t+';').join('\n')+(scope==='all'?"\nINSERT INTO server_settings(key,value) VALUES ('bootstrap_disabled','1') ON CONFLICT(key) DO UPDATE SET value='1';":'');
- sql(queries);
+ sql(scope==='world'?readFileSync('drizzle/0002_reset_world_v2.sql','utf8'):queries);
  console.log('Cleared '+scope+' in '+storage+'. API keys and schema preserved.');
 }else if(command!=='status')throw Error('Unknown command.');
 if(command!=='migrate'){

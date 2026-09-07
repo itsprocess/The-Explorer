@@ -15,6 +15,13 @@
       "when": 1788751732062,
       "tag": "0001_flowery_mockingbird",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788753011118,
+      "tag": "0002_reset_world_v2",
+      "breakpoints": true
     }
   ]
 }
