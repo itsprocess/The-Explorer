@@ -25,8 +25,8 @@ test('cardinal edges are reciprocal at negative and far coordinates',()=>{
 test('nearby climate is coherent while entity IDs persist across cells',()=>{
  const a=deriveRatings(seed,20,20),b=deriveRatings(seed,21,20);for(const id of ['climate.temperature','climate.humidity'])assert.ok(Math.abs(a.find(r=>r.id===id)!.value-b.find(r=>r.id===id)!.value)<.1);assert.deepEqual(regionalRefs(seed,0,0).map(r=>r.id),regionalRefs(seed,1,0).map(r=>r.id));assert.notEqual(random(seed,'chest',0,0),random(seed,'portal',0,0));
 });
-test('first prompt carries all ratings but requests a bounded descriptive selection',()=>{
- const c=contextFor(seed,0,0),prompt=detailPrompt(c,[]),data=JSON.parse(prompt.input);assert.equal(data.ratings.length,75);assert.ok(data.selected_rating_ids.length<=6);assert.ok(prompt.instructions.includes('unique origin'));
+test('local preparation keeps relevant ratings and legacy details remain valid',()=>{
+ const c=contextFor(seed,0,0),prompt=detailPrompt(c,[]),data=JSON.parse(prompt.input);assert.ok(data.context.ratings.length<75);assert.equal(data.context.protectedOrigin,true);assert.ok(prompt.instructions.includes('no model call'));
  const valid={details:descriptiveIds(c).map(id=>({rating_id:id,description:'A grounded detail.'})),regional_texture:''};assert.doesNotThrow(()=>assertDetails(valid,c));assert.throws(()=>assertDetails({...valid,details:valid.details.slice(1)},c));const second=JSON.parse(scenePrompt(c,[],valid,[{package:{title:'Neighbor'}}]).input);assert.equal(second.connected_cells[0].package.title,'Neighbor');
 });
 test('a repeated death adds to the count but awards only one death badge',()=>{
@@ -54,7 +54,7 @@ test('scenes must describe exactly the available exits and stay brief',()=>{
  assert.throws(()=>assertScene({...p.scene,exits:[p.scene.exits[0],...p.scene.exits.slice(1).map(()=>p.scene.exits[0])]},p.context));
  assert.throws(()=>assertScene({...p.scene,description:'word '.repeat(81)},p.context));
  const prompt=scenePrompt(p.context,[],{details:[],regional_texture:''},[]);
- assert.ok(prompt.instructions.includes('CONTINUITY CONTEXT ONLY'));
+ assert.ok(prompt.instructions.includes('continuity context only'));
  assert.ok(!prompt.instructions.includes('No imagery'));
 });
 test('features are sparse, stability is usually high, and forests form patches',()=>{

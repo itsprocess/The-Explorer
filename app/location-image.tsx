@@ -8,6 +8,7 @@ export default function LocationImage({x,y,title,savedUrl,pending,onReady,onFail
   if(!savedUrl||attempt||retry)void generationRequest('/api/image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({x,y})},undefined,{signal:control.signal}).then(d=>{if(!control.signal.aborted)setUrl(d.url+(d.url.includes('?')?'&':'?')+'delivery='+attempt+'-'+retry);}).catch(e=>{if(!control.signal.aborted)setError(e.message);});
   return()=>control.abort();
  },[x,y,savedUrl,attempt,retry]);
+ useEffect(()=>{if(!url||loaded||error)return;const timer=setTimeout(()=>setError('The image download is taking too long. Retry to load the saved image.'),45000);return()=>clearTimeout(timer);},[url,loaded,error]);
  useEffect(()=>{if(error)onFailure?.(error);},[error,onFailure]);
  useEffect(()=>{if(loaded&&!error)onReady?.();},[loaded,error,onReady]);
  return <div className="image-frame">

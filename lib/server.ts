@@ -9,7 +9,7 @@ export class AppError extends Error{constructor(message:string,public status=400
 export async function removeRetiredImages(){
  const rows=await db().prepare("SELECT key,value FROM server_settings WHERE key LIKE 'retired-image:%' LIMIT 1000").all<{key:string;value:string}>();
  if(!rows.results.length)return;
- const retired=rows.results.filter(r=>r.value.startsWith(r.key.slice('retired-image:'.length).replace(/image:-?\d+:-?\d+$/, 'illustrations/'))&&r.value.includes(':illustrations/')&&!r.value.startsWith(namespace()));
+ const retired=rows.results.filter(r=>r.value.startsWith(r.key.slice('retired-image:'.length).replace(/image:-?\d+:-?\d+$/, 'illustrations/'))&&r.value.includes(':illustrations/'));
  if(retired.length!==rows.results.length)throw Error('Invalid retired image reference.');
  await bindings().IMAGES.delete(retired.map(r=>r.value));
  await db().batch(retired.map(r=>db().prepare('DELETE FROM server_settings WHERE key=? AND value=?').bind(r.key,r.value)));

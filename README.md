@@ -98,3 +98,5 @@ Latest: [Crosscurrents: shared generation queue, parallel frontier streams, broa
 Latest: [Teleport confirmation, community panel, and distance escalation](docs/teleports-presence-distance.md).
 
 Latest: [Possessions, status, conditional encounters, and searchable history](docs/traits-and-history.md).
+
+See [token accounting and efficiency](docs/token-efficiency.md) for the current generation pipeline, cost measurements, failure recovery and full reset.

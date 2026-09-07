@@ -58,3 +58,5 @@
 .trait-card small{font-size:12px;color:#aebbd4}.lifetime{font-size:12px;color:#c0c9de;background:#2c3341;padding:5px 8px;border-radius:4px;display:inline-block}
 .trait-source{display:flex;flex-direction:column;gap:8px;font-size:13px;margin-top:14px}.state-changes{padding:0;list-style:none;font-size:14px;color:#c4d2ee;line-height:1.5}.state-changes li{margin:6px 0}.state-changes span{color:#a1aabb}
 @media(max-width:500px){.history-controls{flex-direction:column}.history-controls label:last-child{flex:auto}}
+
+.token-usage{margin-bottom:1.5rem}.usage-scroll{overflow-x:auto}.token-usage table{width:100%;border-collapse:collapse;text-align:left;font-variant-numeric:tabular-nums}.token-usage th,.token-usage td{padding:.65rem;border-bottom:1px solid var(--border,#34363e)}.token-usage td small{display:block;color:#b7bdcc}.token-usage .muted{font-size:.875rem}

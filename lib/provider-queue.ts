@@ -1,3 +1,4 @@
+import {assertProviderReady} from './provider-health';
 import {db,namespace,AppError} from './server';
 import {generationScope} from './generation-scope';
 import {claimJobSQL,queueCapacity} from './queue-store';
@@ -17,12 +18,14 @@ export async function queuedProvider<T>(lane:'text'|'image',request:unknown,make
   const row=await db().prepare('SELECT status,result,lease,available,attempts,error,priority FROM generation_jobs WHERE id=?').bind(id).first<Job>();
   if(!row)throw new AppError('The world changed. Refresh to continue.',409);
   if(row.status==='complete')return JSON.parse(row.result!);
+  await assertProviderReady();
   if(row.status==='failed'&&row.available>now)throw new AppError(row.error||'Generation will retry shortly.',502);
   await db().prepare("UPDATE generation_jobs SET status='queued',touched=? WHERE id=? AND status!='complete' AND lease<?").bind(now,id,now).run();
   const claim=await db().prepare(claimJobSQL).bind(token,now+90000,now,id,now,now,lane,now,queueCapacity(lane,row.priority),now,now-10000).run();
   if(!claim.meta.changes){await pause(800+Math.random()*400);continue;}
   const heartbeat=setInterval(()=>{void db().prepare("UPDATE generation_jobs SET lease=?,touched=? WHERE id=? AND token=? AND status='running'").bind(Date.now()+90000,Date.now(),id,token).run().catch(()=>{});},20000);
   try{
+   await assertProviderReady();
    const result=await make();
    const saved=await db().prepare("UPDATE generation_jobs SET result=?,status='complete',token=NULL,lease=0,error=NULL,touched=? WHERE id=? AND token=?").bind(JSON.stringify(result),Date.now(),id,token).run();
    if(saved.meta.changes)return result;

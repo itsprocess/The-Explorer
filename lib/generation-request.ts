@@ -11,9 +11,14 @@ export async function generationRequest(url:string,init?:RequestInit,afterPendin
  for(;;){
   options.signal?.throwIfAborted();
   const headers=new Headers(request?.headers);headers.set("Accept","application/x-ndjson");
-  const response=await fetch(target,{...request,headers}),data:any=await readGenerationPackets(response);
+  let response:Response,data:any;
+  const controller=new AbortController(),abort=()=>controller.abort(options.signal?.reason);
+  options.signal?.addEventListener('abort',abort,{once:true});
+  const timer=setTimeout(()=>controller.abort(new Error('This location is taking too long. Retry to continue from its saved progress.')),Math.max(1,deadline-Date.now()));
+  try{response=await fetch(target,{...request,headers,signal:controller.signal});data=await readGenerationPackets(response,undefined,controller.signal);}
+  finally{clearTimeout(timer);options.signal?.removeEventListener('abort',abort);}
   options.signal?.throwIfAborted();
-  if(data.code!=='generation_pending'){if(response.ok&&!data.error)return data;throw Error(data.error||'Request failed.');}
+  if(data.code!=='generation_pending'){if(response.ok&&!data.error)return data;throw Object.assign(Error(data.error||'Request failed.'),{code:data.code});}
   if(Date.now()>=deadline)throw Error('This location is taking too long. Retry to continue from its saved progress.');
   if(afterPending){target=afterPending;request=undefined;}
   await pause(Math.min(10000,3000+attempt++*1000),options.signal);

@@ -1,0 +1,5 @@
+export type TokenUsage={input:number|null;output:number|null;cached:number|null;reasoning:number|null;total:number|null};
+const count=(n:unknown)=>typeof n==='number'&&Number.isFinite(n)&&n>=0?n:null;
+export function tokenUsage(raw:any):TokenUsage{return {input:count(raw?.input_tokens),output:count(raw?.output_tokens),cached:count(raw?.input_tokens_details?.cached_tokens),reasoning:count(raw?.output_tokens_details?.reasoning_tokens),total:count(raw?.total_tokens)??(count(raw?.input_tokens)!==null&&count(raw?.output_tokens)!==null?raw.input_tokens+raw.output_tokens:null)};}
+export function usageTotals(rows:{usage:TokenUsage}[]){return {requests:rows.length,reported:rows.filter(r=>r.usage.total!==null).length,input:rows.reduce((s,r)=>s+(r.usage.input??0),0),output:rows.reduce((s,r)=>s+(r.usage.output??0),0),cached:rows.reduce((s,r)=>s+(r.usage.cached??0),0),reasoning:rows.reduce((s,r)=>s+(r.usage.reasoning??0),0),total:rows.reduce((s,r)=>s+(r.usage.total??0),0)};}
+export const exhausted=(payload:any)=>['insufficient_quota','credit_balance_exhausted'].includes(payload?.error?.code)||payload?.error?.type==='insufficient_quota';

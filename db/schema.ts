@@ -37,3 +37,7 @@ export const generationJobs=sqliteTable('generation_jobs',{
 export const presence=sqliteTable('character_presence',{
  character:text('character').primaryKey(),seen:integer('seen').notNull(),
 },t=>[index('character_presence_seen').on(t.seen)]);
+
+export const generationUsage = sqliteTable('generation_usage', {
+ id: text('id').primaryKey(), scope: text('scope').notNull(), lane: text('lane').notNull(), stage: text('stage').notNull(), model: text('model').notNull(), status: text('status').notNull(), usage: text('usage'), duration: integer('duration'), responseId: text('response_id'), created: integer('created').notNull()
+},t=>[index('generation_usage_scope').on(t.scope)]);
