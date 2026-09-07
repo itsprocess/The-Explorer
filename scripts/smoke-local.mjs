@@ -32,6 +32,25 @@ assert.match(view,/View only/);assert.match(view,/does not move your character/)
 const afterView=(await call('/api/game')).d;
 assert.deepEqual(afterView.character,beforeView.character);assert.deepEqual(afterView.history,beforeView.history);
 assert.equal(state.cell.scene.exits.length+state.cell.scene.blocked.length,4);
+// Warm the next frontier without a visit, event, badge, public record or map discovery.
+const beforePreload=(await call('/api/game')).d;
+const hidden=beforePreload.map.find(p=>p.x===2&&p.y===0);assert.equal(hidden.generated,false);
+await call('/api/preload',{x:1,y:0,direction:'east',stage:'text'});
+await call('/api/preload',{x:1,y:0,direction:'east',stage:'text'});
+const afterPreload=(await call('/api/game')).d;
+assert.deepEqual(afterPreload,beforePreload);
+const hiddenPage=await (await fetch(base+'/cell/2/0',{headers:{cookie:platform}})).text();assert.match(hiddenPage,/Undiscovered/);
+assert.equal((await fetch(base+'/api/image/2/0',{headers:{cookie:platform}})).status,404);
+await call('/api/preload',{x:100,y:100,direction:'east',stage:'text'},409);
+await call('/api/preload',{x:1,y:0,direction:'east',stage:'text'},401,platform);
+const hiddenPackage=(await call('/api/workshop?x=2&y=0')).d;assert.ok(hiddenPackage.pass2Result.result.title);
+const cachedArrival=(await call('/api/game',{action:'move',direction:'east',requestId:crypto.randomUUID()})).d;
+assert.equal(cachedArrival.cell.scene.title,hiddenPackage.pass2Result.result.title);
+assert.equal(cachedArrival.map.find(p=>p.x===2&&p.y===0).generated,true);
+const recalled=(await call('/api/workshop?x=2&y=0')).d;
+assert.deepEqual(recalled.pass2Result,hiddenPackage.pass2Result);
+await call('/api/game',{action:'move',direction:'west',requestId:crypto.randomUUID()});
+console.log('Verified neighbor cache without discovery, player changes, or public spoilers.');
 assert.ok(state.cell.scene.exits.every(e=>typeof e.glimpse==='string'));
 await call('/api/image',{x:99,y:99},403);
 await call('/api/image',{x:1,y:0},401,platform);

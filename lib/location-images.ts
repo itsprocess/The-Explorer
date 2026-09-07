@@ -11,7 +11,7 @@ export async function ensureImage(p:CellPackage):Promise<LocationImage>{
   const {OPENAI_API_KEY:key,OPENAI_IMAGE_MODEL:model='gpt-image-2',IMAGES:bucket}=bindings();
   if(!key||!bucket)throw new AppError('Image generation is not configured.',503);
   const prompt=imagePrompt(p);
-  const response=await fetch('https://api.openai.com/v1/images/generations',{method:'POST',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify({model,prompt,n:1,size:'1152x768',quality:'medium',output_format:'webp'}),signal:AbortSignal.timeout(180000)});
+  const response=await fetch('https://api.openai.com/v1/images/generations',{method:'POST',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify({model,prompt,n:1,size:'1008x672',quality:'low',output_format:'webp'}),signal:AbortSignal.timeout(180000)});
   const payload:any=await response.json();
   if(!response.ok)throw new AppError(response.status===429?'Image generation is busy. Try again shortly.':'The illustration could not be generated (HTTP '+response.status+'). The location text is saved.',502);
   const encoded=payload.data?.[0]?.b64_json;

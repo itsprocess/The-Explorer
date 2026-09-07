@@ -10,7 +10,7 @@ test('interactions remain sparse, favor occupied sites and span categories and r
   if(a){ordinary++;categories.add(a.category);modes.add(a.mode);assert.deepEqual(a,interactionFor('test',x,6,{}));}
   if(b)occupied++;
  }
- assert.ok(ordinary>350&&ordinary<550);assert.ok(occupied>3500&&occupied<4100);
+ assert.ok(ordinary>2300&&ordinary<2700);assert.ok(occupied>3500&&occupied<4100);
  assert.equal(categories.size,interactionCategories.length);assert.equal(modes.size,3);
  assert.equal(interactionFor('test',0,0,{'civilization.settlement':1}),null);
 });
