@@ -1,3 +1,4 @@
+import {hosting as configHosting} from '../explorer.config.json';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
@@ -14,6 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'The Explorer',
+  robots: configHosting.noIndex ? {index:false,follow:false} : undefined,
   description: 'An infinite dungeon, written as you explore. Keep your discoveries and misadventures.',
 };
 

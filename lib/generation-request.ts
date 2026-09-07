@@ -1,3 +1,4 @@
+import {timing as configTiming} from '../explorer.config.json';
 import {readGenerationPackets} from './generation-packets';
 type RetryOptions={signal?:AbortSignal;maxWaitMs?:number};
 function pause(ms:number,signal?:AbortSignal){return new Promise<void>((resolve,reject)=>{
@@ -7,7 +8,7 @@ function pause(ms:number,signal?:AbortSignal){return new Promise<void>((resolve,
 });}
 // Reuse the movement body/id. Cancel retry loops when their view is gone, while an active request may finish caching.
 export async function generationRequest(url:string,init?:RequestInit,afterPending?:string,options:RetryOptions={}){
- const deadline=Date.now()+(options.maxWaitMs??240000);let target=url,request=init,attempt=0;
+ const deadline=Date.now()+(options.maxWaitMs??configTiming.clientDeadlineMs);let target=url,request=init,attempt=0;
  for(;;){
   options.signal?.throwIfAborted();
   const headers=new Headers(request?.headers);headers.set("Accept","application/x-ndjson");

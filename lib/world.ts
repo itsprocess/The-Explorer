@@ -1,3 +1,4 @@
+import {world as configWorld} from '../explorer.config.json';
 import {stateRuleFor} from './traits';
 import {deriveRatings,oceanStrength} from './fields';
 export {deriveRatings,recipes,type Rating} from './fields';
@@ -6,8 +7,8 @@ import {interactionFor} from './encounters';
 import {prominentFeatures} from './visibility';
 import {environmentFor,deriveSituations} from './situations';
 import {transportFor} from './transport';
-export const VERSION='world-7';
-export const LIMIT=1_000_000_000;
+export const VERSION=configWorld.version;
+export const LIMIT=configWorld.coordinateLimit;
 export const directions={north:[0,-1],east:[1,0],south:[0,1],west:[-1,0]} as const;
 export type Direction=keyof typeof directions;
 export function checkCoordinate(x:number,y:number){if(!Number.isSafeInteger(x)||!Number.isSafeInteger(y)||Math.abs(x)>LIMIT||Math.abs(y)>LIMIT)throw Error('Coordinates must be integers within ±1,000,000,000.');}

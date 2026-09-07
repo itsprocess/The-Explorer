@@ -1,9 +1,10 @@
+import {noise as configNoise} from '../explorer.config.json';
 import {distanceIntensity,distanceMultiplier} from './intensity';
 import {perlin,fbm,random,cellular,band,clamp,oi} from './noise';
 type Sample={s:string;x:number;y:number;v:Record<string,number>};
 type Field={id:string;name:string;kind:'baseline'|'feature';low:string;high:string;recipe:string;derive:(p:Sample)=>number};
 const noise=(p:Sample,id:string,size:number,octaves=3)=>fbm(p.s,id,p.x,p.y,size,octaves);
-const roll=(p:Sample,id:string,chance:number)=>random(p.s,id,p.x,p.y)<Math.min(.8,chance*distanceMultiplier(p.x,p.y,id==='marvel'||id==='portal'?100:id==='treasure'?6:3))?1:0;
+const roll=(p:Sample,id:string,chance:number)=>random(p.s,id,p.x,p.y)<Math.min(.8,chance*((configNoise.chanceMultipliers as Record<string,number>)[id]??1)*distanceMultiplier(p.x,p.y,id==='marvel'||id==='portal'?100:id==='treasure'?6:3))?1:0;
 const tail=(n:number,start:number)=>clamp((n-start)/(1-start));
 export function oceanStrength(s:string,x:number,y:number){
  const warp=70*(fbm(s,'ocean-warp',x,y,170)-.5);
@@ -12,6 +13,8 @@ export function oceanStrength(s:string,x:number,y:number){
 }
 // Sparse occupied centers with bounded footprints, not a ubiquitous civilization field.
 function centers(p:Sample,id:string,size:number,chance:number,radius:number){
+ const tuning=(configNoise.centers as Record<string,{size:number;radiusMultiplier:number;occupancyChance:number}>)[id];
+ if(tuning){size=tuning.size;radius*=tuning.radiusMultiplier;chance=tuning.occupancyChance;}
  let value=0;const ax=Math.floor(p.x/size),ay=Math.floor(p.y/size);
  for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){
   const a=ax+dx,b=ay+dy;if(random(p.s,id+':occupied',a,b)>=chance*distanceMultiplier(p.x,p.y,1.8))continue;
@@ -27,11 +30,11 @@ export const recipes:Field[]=[
  field('terrain.space_extent','Space','baseline','tight passage','wide clearing or hall','squared local fBm, mostly modest spaces',p=>noise(p,'space',15)**2),
  field('terrain.enclosure','Enclosure','baseline','open sky','underground','thresholded 20-cell rock roof with eroded margins',p=>oceanStrength(p.s,p.x,p.y)>.1?0:clamp((noise(p,'roof',20)-.34)*4)),
  field('architecture.structural_integrity','Stability','baseline','broken ground or masonry','sound ground or masonry','inverse fourth-power fracture field, usually high',p=>1-noise(p,'fracture',19)**4),
- field('world.age','Visible age','baseline','recently formed or made','ancient and weathered','180-cell age provinces with squared antiquity tail',p=>noise(p,'age',180)**2),
+ field('world.age','Visible age','baseline','recently formed or made','ancient and weathered','39-cell age provinces with squared antiquity tail',p=>noise(p,'age',180)**2),
  field('light.level','Light','baseline','dim','bright','roof-dependent daylight plus sparse subterranean glow',p=>clamp((1-p.v['terrain.enclosure'])*(.5+.5*noise(p,'daylight',200))+.08*noise(p,'glow',17))),
- field('climate.wind','Wind','baseline','still','strong wind','squared 65-cell gust field attenuated by enclosure',p=>noise(p,'wind',65)**2*(1-.9*p.v['terrain.enclosure'])),
+ field('climate.wind','Wind','baseline','still','strong wind','squared 17-cell gust field attenuated by enclosure',p=>noise(p,'wind',65)**2*(1-.9*p.v['terrain.enclosure'])),
  field('physics.gravity','Gravity','baseline','light pull','heavy pull','usually normal; rare broad gravity-distortion lobes',p=>.5+(noise(p,'gravity-region',300)>.69-.1*distanceIntensity(p.x,p.y)?(noise(p,'gravity-pull',40)-.5)*1.6:0)),
- field('culture.wildness','Human imprint','baseline','untouched','long-shaped by people','cubic 210-cell historical influence field',p=>noise(p,'human-imprint',210)**3),
+ field('culture.wildness','Human imprint','baseline','untouched','long-shaped by people','cubic 47-cell historical influence field',p=>noise(p,'human-imprint',210)**3),
  field('world.strangeness','Strangeness','baseline','ordinary','unfamiliar forms and materials','thresholded 23-cell oddity patches, usually quiet',p=>tail(noise(p,'strangeness',23),.48)*1.4),
  field('water.ocean','Ocean','feature','absent','deep open ocean','warped 650-cell basins with 95-cell coastal roughness; dry origin buffer',p=>oceanStrength(p.s,p.x,p.y)),
  field('water.coast','Shoreline','feature','absent','a transition between land and open water','narrow shoreline band around the ocean threshold',p=>band(p.v['water.ocean'],.01,.1,.01)),
@@ -42,7 +45,7 @@ export const recipes:Field[]=[
   const canopy=t>.62&&h>.65&&n>.43?.65+.35*tail(n,.43):tail(n,.55)*4;
   return canopy*(cellular(p.s,'clearings',p.x,p.y,9)>.19?1:0);
  }),
- field('water.river','River','feature','absent','wide river channel','thin contour of blended 120/47-cell fields, sparse watershed mask',p=>band(.7*noise(p,'river-a',120,4)+.3*noise(p,'river-b',47),.495,.505,.006)*(noise(p,'watershed',300)>.51?1:0)),
+ field('water.river','River','feature','absent','wide river channel','thin contour of blended 41/17-cell fields, sparse watershed mask',p=>band(.7*noise(p,'river-a',120,4)+.3*noise(p,'river-b',47),.495,.505,.006)*(noise(p,'watershed',300)>.51?1:0)),
  field('water.lake','Lake','feature','absent','deep pool or lake','rare 6-cell basins in low terrain',p=>p.v['terrain.elevation']<.5?centers(p,'lakes',80,.3,6):0),
  field('geology.lava','Exposed molten material','feature','absent','molten geology exposed at the surface','high volcanic tail AND narrow fissure contour',p=>noise(p,'volcanic-region',180)>.66?band(noise(p,'lava-fissure',24),.49,.51,.01):0),
  field('terrain.chasm','Chasm','feature','absent','deep fissure','ridged fault line restricted to fractured districts',p=>noise(p,'fault-district',140)>.6?band(noise(p,'fault',36),.498,.502,.004):0),
@@ -120,7 +123,10 @@ export type Rating={id:string;name:string;kind:Field['kind'];value:number;label:
 export function deriveRatings(s:string,x:number,y:number):Rating[]{
  const v:Record<string,number>={};
  const marine=new Set(['scenery.unique_features','hazards.trap','water.ocean','water.coast','water.archipelago','water.reef','civilization.harbor','history.wreck','wildlife.megafauna','supernatural.portal','supernatural.marvel','scenery.color_burst','scenery.resonance','scenery.inversion','scenery.symbiosis','scenery.miniature','scenery.process','scenery.play','scenery.echoes','scenery.light_behavior']);
- return recipes.map(r=>{let value=oi(r.derive({s,x,y,v}));
+ return recipes.map(r=>{let value=r.derive({s,x,y,v});
+  const tuning=(configNoise.fieldAdjustments as Record<string,{gain:number;offset:number}>)[r.id];
+  if(tuning&&(r.kind==='baseline'||value>0))value=value*tuning.gain+tuning.offset;
+  value=oi(value);
   const intensity=distanceIntensity(x,y);
   if(r.id==='world.strangeness')value=oi(value+.75*intensity*(.55+.45*fbm(s,'strangeness',x,y,110)));
   else if(r.id==='climate.temperature'||r.id==='climate.humidity')value=oi(.5+(value-.5)*(1+.25*intensity));

@@ -1,3 +1,4 @@
+import {provider as configProvider} from '../explorer.config.json';
 import {providerFetch} from './usage';
 import {exhausted} from './token-usage';
 import {pauseForCredit,pauseForRateLimit,assertProviderReady} from './provider-health';
@@ -16,12 +17,12 @@ export async function ensureImage(p:CellPackage):Promise<LocationImage>{
  const cached=await savedImage(x,y);if(cached)return cached;await assertProviderReady();
  await promoteGeneration(imageKey(x,y));
  return withGenerationScope(imageKey(x,y),()=>remember(imageKey(x,y),'image',async()=>{
-  const {OPENAI_API_KEY:key,OPENAI_IMAGE_MODEL:model='gpt-image-2',IMAGES:bucket}=bindings();
+  const {OPENAI_API_KEY:key,OPENAI_IMAGE_MODEL:model=configProvider.imageModel,IMAGES:bucket}=bindings();
   if(!key||!bucket)throw new AppError('Image generation is not configured.',503);
   const death=await db().prepare("SELECT json_extract(value,'$.event.text') AS text FROM visits WHERE x=? AND y=? AND json_extract(value,'$.event.kind')='death' ORDER BY at ASC LIMIT 1").bind(x,y).first<{text:string}>();
   const prompt=imagePrompt(p,death?.text);
-  return queuedProvider('image',{model,prompt,size:'1008x672',quality:'low'},async()=>{
-  const {response,payload}=await providerFetch('image','illustration',model,'https://api.openai.com/v1/images/generations',{method:'POST',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify({model,prompt,n:1,size:'1008x672',quality:'low',output_format:'webp'}),signal:AbortSignal.timeout(180000)});
+  return queuedProvider('image',{model,prompt,size:configProvider.imageSize,quality:configProvider.imageQuality},async()=>{
+  const {response,payload}=await providerFetch('image','illustration',model,'https://api.openai.com/v1/images/generations',{method:'POST',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify({model,prompt,n:1,size:configProvider.imageSize,quality:configProvider.imageQuality,output_format:'webp'}),signal:AbortSignal.timeout(configProvider.imageTimeoutMs)});
   if(!response.ok&&exhausted(payload))throw await pauseForCredit();
   if(response.status===429)await pauseForRateLimit();
   if(!response.ok)throw new AppError(payload.error?.code==='credit_balance_exhausted'||payload.error?.type==='insufficient_quota'?'The OpenAI account needs API credit before this place can be illustrated.':response.status===429?'Image generation is busy. Try again shortly.':'The illustration could not be generated (HTTP '+response.status+'). The location text is saved.',502);

@@ -1,3 +1,4 @@
+import {noise as configNoise} from '../explorer.config.json';
 export function hash(text: string): number {
   let h = 2166136261;
   for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619);
@@ -19,6 +20,7 @@ export function perlin(seed: string, channel: string, x: number, y: number): num
   return clamp(0.5 + mix(mix(grad(0,0),grad(1,0),fade(fx)),mix(grad(0,1),grad(1,1),fade(fx)),fade(fy)) * 0.7);
 }
 export function fbm(seed: string, id: string, x: number, y: number, wavelength: number, octaves = 3, gain = 0.5) {
+  wavelength = (configNoise.wavelengths as Record<string,number>)[id] ?? wavelength;
   let sum = 0, weight = 0, amplitude = 1;
   for (let i=0;i<octaves;i++) {
     const ox = random(seed,id+':ox',i,0)*100, oy = random(seed,id+':oy',i,0)*100;
@@ -28,6 +30,7 @@ export function fbm(seed: string, id: string, x: number, y: number, wavelength: 
   return sum/weight;
 }
 export function cellular(seed: string, id: string, x: number, y: number, size: number) {
+  size=(configNoise.cellularSizes as Record<string,number>)[id]??size;
   const px=x/size, py=y/size, ix=Math.floor(px), iy=Math.floor(py);let nearest=Infinity;
   for(let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++) {
     const a=ix+dx,b=iy+dy;nearest=Math.min(nearest,Math.hypot(px-a-random(seed,id+':x',a,b),py-b-random(seed,id+':y',a,b)));

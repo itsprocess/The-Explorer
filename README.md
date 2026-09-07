@@ -1,6 +1,8 @@
 # The Explorer
 
-A working Sites/Vinext application with deterministic world generation, two OpenAI text passes, saved location illustrations, persistent regional identities, characters, and encounter history.
+A procedural explorer with cached AI scenes and images, persistent characters, and deterministic world rules.
+
+**Portable Node release:** see [private hosting and configuration](docs/PORTABLE-HOSTING.md). Run `npm run build:node`, then `npm start`. `npm run package:node` creates the GoDaddy/Node source ZIP. Settings live in `explorer.config.json`; portable runtime data lives in one `world-data` folder. The sections below describe the existing Sites development target.
 
 The current world uses the Wild Horizons seed, expanded climate ranges, derived terrain situations, historical encounter prose and roughly one transport per eighteen traversable cells. See [Wild Horizons](docs/wild-horizons.md) for the distribution audit and reset behavior, and [frontier preloading](docs/frontier-preloading.md) for caching without discovery.
 

@@ -3,7 +3,7 @@ import {deferTransport,transferCharacter} from './teleport';
 import {savedImage} from './location-images';
 import {db,readPackage,namespace,worldSeed,AppError} from './server';
 import {ensureCell,cellKey,publicCell,type CellPackage} from './generation';
-import {connections,directions,exists,type Direction} from './world';
+import {connections,directions,exists,LIMIT,type Direction} from './world';
 
 import {resolveArrival,awardDistanceBadges,type Character} from './rules';
 export type {Character} from './rules';
@@ -29,7 +29,7 @@ export async function snapshot(owner:string,id?:string,offset=0){
  if(c&&saved&&x===0&&y===0)await db().prepare('INSERT OR IGNORE INTO visits(id,character,x,y,value,at) SELECT ?,?,0,0,?,? WHERE NOT EXISTS(SELECT 1 FROM visits WHERE character=?)').bind(namespace()+'initial:'+c.id,c.id,JSON.stringify({event:{text:c.name+' arrived at '+saved.scene.title+'.',kind:'arrival',newBadge:null}}),Date.now(),c.id).run();
  const known=(await db().prepare('SELECT DISTINCT x,y FROM visits WHERE x BETWEEN ? AND ? AND y BETWEEN ? AND ?').bind(x-5,x+5,y-5,y+5).all<{x:number;y:number}>()).results;
  const knownSet=new Set(known.map(r=>cellKey(r.x,r.y)));const map=[];
- for(let dy=-5;dy<=5;dy++)for(let dx=-5;dx<=5;dx++){const a=x+dx,b=y+dy;map.push({x:a,y:b,exists:Math.abs(a)<=1e9&&Math.abs(b)<=1e9&&exists(worldSeed(),a,b),generated:knownSet.has(cellKey(a,b))});}
+ for(let dy=-5;dy<=5;dy++)for(let dx=-5;dx<=5;dx++){const a=x+dx,b=y+dy;map.push({x:a,y:b,exists:Math.abs(a)<=LIMIT&&Math.abs(b)<=LIMIT&&exists(worldSeed(),a,b),generated:knownSet.has(cellKey(a,b))});}
  const history=c?(await db().prepare('SELECT id,x,y,value,at FROM visits WHERE character=? ORDER BY at DESC,id DESC LIMIT 26 OFFSET ?').bind(c.id,offset).all<{id:string;x:number;y:number;value:string;at:number}>()).results:[];
  const first=c?await db().prepare('SELECT value FROM visits WHERE character=? ORDER BY at DESC,id DESC LIMIT 1').bind(c.id).first<{value:string}>():null;
  const lastEvent=first?JSON.parse(first.value).event:null;

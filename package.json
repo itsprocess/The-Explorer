@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "vinext dev",
     "build": "vinext build",
-    "start": "wrangler dev --config dist/server/wrangler.json",
+    "start": "node runtime/start.mjs",
     "lint": "oxlint",
     "format": "oxfmt",
     "db:generate": "drizzle-kit generate",
@@ -18,7 +18,12 @@
     "data:reset": "node scripts/data.mjs reset",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
-    "smoke:local": "node scripts/smoke-local.mjs"
+    "smoke:local": "node scripts/smoke-local.mjs",
+    "build:node": "node scripts/build-node.mjs",
+    "start:sites": "wrangler dev --config dist/server/wrangler.json",
+    "test:runtime": "node --test tests/runtime.test.mjs",
+    "package:node": "node scripts/package-node.mjs",
+    "smoke:node": "node scripts/smoke-node.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

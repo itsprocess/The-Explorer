@@ -1,0 +1,705 @@
+{
+  "hosting": {
+    "host": "0.0.0.0",
+    "port": 3000,
+    "publicOrigin": "http://localhost:3000",
+    "dataDirectory": "world-data",
+    "noIndex": true,
+    "accessPasswordEnv": "EXPLORER_ACCESS_PASSWORD",
+    "adminPasswordEnv": "EXPLORER_ADMIN_PASSWORD",
+    "adminEmail": "owner@explorer.local",
+    "requestBodyBytes": 32768
+  },
+  "provider": {
+    "apiKeyEnv": "OPENAI_API_KEY",
+    "textModel": "gpt-5.6-luna",
+    "imageModel": "gpt-image-2",
+    "textOutputTokens": 1800,
+    "regionOutputTokens": 600,
+    "textTimeoutMs": 90000,
+    "imageTimeoutMs": 180000,
+    "imageSize": "1008x672",
+    "imageQuality": "low"
+  },
+  "queue": {
+    "textConcurrency": 12,
+    "imageConcurrency": 6,
+    "backgroundTextConcurrency": 10,
+    "backgroundImageConcurrency": 4,
+    "waitTimeoutMs": 300000,
+    "leaseMs": 90000,
+    "heartbeatMs": 20000,
+    "failureCooldownMs": 15000,
+    "rateLimitPauseMs": 60000
+  },
+  "world": {
+    "seed": "the-explorer-riverglass-20260907",
+    "version": "world-7",
+    "coordinateLimit": 1000000000
+  },
+  "intensity": {
+    "quietRadius": 32,
+    "weights": [
+      0.22,
+      0.38,
+      0.4
+    ],
+    "distances": [
+      600,
+      8000,
+      100000
+    ]
+  },
+  "encounters": {
+    "quietChance": 0.32,
+    "activeChance": 0.4,
+    "socialChance": 0.48,
+    "maximumChance": 0.65,
+    "transportChance": 0.062,
+    "onceEverChance": 0.08,
+    "oncePerCharacterCutoff": 0.65,
+    "whimsyChance": 0.3,
+    "whimsyDistanceGain": 0.5,
+    "whimsyMaximum": 0.75,
+    "categories": [
+      "reciprocity",
+      "recognition",
+      "miscommunication",
+      "ritual",
+      "mutual aid",
+      "rivalry",
+      "delivery",
+      "public information",
+      "migration",
+      "ecological interdependence",
+      "automated response",
+      "reuse",
+      "investigation",
+      "hospitality",
+      "disruption",
+      "serendipity",
+      "social obligation",
+      "performance",
+      "identity",
+      "navigation",
+      "coincidence",
+      "labor",
+      "negotiation",
+      "parting",
+      "refuge",
+      "maintenance",
+      "communication across distance",
+      "learned behavior",
+      "wayfinding",
+      "seasonality",
+      "containment",
+      "rumor",
+      "access and permission",
+      "coordination",
+      "improvisation",
+      "sustenance",
+      "play",
+      "rest",
+      "restitution",
+      "oral tradition",
+      "adaptation",
+      "craftsmanship",
+      "disputed knowledge",
+      "remembrance",
+      "preparation",
+      "classification",
+      "impermanence",
+      "cultural change",
+      "territorial coexistence",
+      "system failure",
+      "ingenuity",
+      "nonverbal expression",
+      "shared responsibility",
+      "scarcity",
+      "teaching",
+      "self-organization",
+      "mistaken hospitality",
+      "creative mischief",
+      "unusual etiquette",
+      "unexpected spectators",
+      "a borrowed role",
+      "a harmless contest",
+      "an accidental collaboration",
+      "a migrating tradition",
+      "a practical joke",
+      "a small reconciliation",
+      "collective curiosity",
+      "an improvised celebration",
+      "a reversed routine",
+      "an unlikely messenger",
+      "an interrupted rehearsal",
+      "a surprising imitation",
+      "an exchange of perspectives",
+      "a fleeting transformation",
+      "a dispute over meaning",
+      "a rescue of something small",
+      "an unexpected welcome",
+      "a puzzling natural rhythm",
+      "a beautiful mistake",
+      "an ordinary task done extraordinarily"
+    ]
+  },
+  "noise": {
+    "wavelengths": {
+      "age": 39,
+      "daylight": 29,
+      "wind": 17,
+      "gravity-region": 83,
+      "gravity-pull": 13,
+      "human-imprint": 47,
+      "watershed": 91,
+      "volcanic-region": 61,
+      "fault-district": 43,
+      "fault": 19,
+      "road-district": 59,
+      "desert": 31,
+      "glacier": 23,
+      "mesa": 17,
+      "salt-pan": 21,
+      "geothermal": 49,
+      "crystal-province": 31,
+      "glass-province": 53,
+      "glass-scar": 11,
+      "aqueduct": 23,
+      "heat-shimmer": 13,
+      "river-a": 41,
+      "river-b": 17,
+      "road": 27,
+      "ore": 33,
+      "lava-fissure": 11,
+      "elevation": 72,
+      "temperature": 32,
+      "moisture-warp": 23,
+      "space": 15,
+      "roof": 20,
+      "fracture": 19,
+      "glow": 17,
+      "strangeness": 23,
+      "forest-warp": 11,
+      "forest": 14,
+      "fungi": 8,
+      "fungi-cut": 3,
+      "road-erosion": 9,
+      "ruin-erosion": 3,
+      "dune-ripple": 18,
+      "marsh": 30,
+      "crystal-vein": 12,
+      "cane": 18,
+      "cane-gap": 4,
+      "quarry-cuts": 4,
+      "garden-edge": 3,
+      "glass-erosion": 6,
+      "pigment-cut": 4,
+      "resonance": 13,
+      "interlace": 9,
+      "process-district": 33,
+      "process-front": 7,
+      "play-wear": 3,
+      "balance": 8,
+      "light-pocket": 12,
+      "light-cut": 3,
+      "moisture": 27
+    },
+    "centers": {
+      "town": {
+        "size": 29,
+        "radiusMultiplier": 1.0,
+        "occupancyChance": 0.18
+      },
+      "ruins": {
+        "size": 23,
+        "radiusMultiplier": 0.8,
+        "occupancyChance": 0.3
+      },
+      "fort": {
+        "size": 53,
+        "radiusMultiplier": 1.0,
+        "occupancyChance": 0.3
+      },
+      "garden": {
+        "size": 43,
+        "radiusMultiplier": 1.0,
+        "occupancyChance": 0.2
+      },
+      "quarry": {
+        "size": 39,
+        "radiusMultiplier": 1.0,
+        "occupancyChance": 0.25
+      },
+      "fossils": {
+        "size": 31,
+        "radiusMultiplier": 1.0,
+        "occupancyChance": 0.2
+      },
+      "impact": {
+        "size": 79,
+        "radiusMultiplier": 1.0,
+        "occupancyChance": 0.12
+      },
+      "lakes": {
+        "size": 37,
+        "radiusMultiplier": 0.8333333333333334,
+        "occupancyChance": 0.3
+      },
+      "herd": {
+        "size": 28,
+        "radiusMultiplier": 1,
+        "occupancyChance": 0.2
+      },
+      "battlefield": {
+        "size": 90,
+        "radiusMultiplier": 1,
+        "occupancyChance": 0.2
+      },
+      "islands": {
+        "size": 70,
+        "radiusMultiplier": 1,
+        "occupancyChance": 0.65
+      },
+      "geyser": {
+        "size": 35,
+        "radiusMultiplier": 1,
+        "occupancyChance": 0.2
+      },
+      "harbor": {
+        "size": 24,
+        "radiusMultiplier": 1,
+        "occupancyChance": 0.3
+      },
+      "levitation": {
+        "size": 30,
+        "radiusMultiplier": 1,
+        "occupancyChance": 0.2
+      },
+      "color-burst": {
+        "size": 15,
+        "radiusMultiplier": 1,
+        "occupancyChance": 0.65
+      },
+      "repurpose": {
+        "size": 19,
+        "radiusMultiplier": 1,
+        "occupancyChance": 0.35
+      },
+      "symbiosis": {
+        "size": 16,
+        "radiusMultiplier": 1,
+        "occupancyChance": 0.4
+      },
+      "play-sites": {
+        "size": 17,
+        "radiusMultiplier": 1,
+        "occupancyChance": 0.45
+      }
+    },
+    "cellularSizes": {
+      "clearings": 9,
+      "marsh-islands": 7,
+      "reef": 14,
+      "columns": 22,
+      "interlace-gap": 4
+    },
+    "chanceMultipliers": {
+      "nest": 1,
+      "outpost": 1,
+      "camp": 1,
+      "shrine": 1,
+      "mine": 1,
+      "workshop": 1,
+      "market": 1,
+      "burial": 1,
+      "machine": 1,
+      "traveler": 1,
+      "patrol": 1,
+      "trap": 1,
+      "treasure": 1,
+      "haunting": 1,
+      "portal": 1,
+      "marvel": 1,
+      "giant-growth": 1,
+      "orchard-plot": 1,
+      "library": 1,
+      "observatory": 1,
+      "bridge": 1,
+      "arena": 1,
+      "prison": 1,
+      "caravan": 1,
+      "wreck": 1,
+      "great-creature": 1,
+      "mirage": 1,
+      "monolith": 1,
+      "resonance-on": 1,
+      "inversion": 1,
+      "miniature": 1,
+      "echo-fragment": 1
+    },
+    "fieldAdjustments": {
+      "terrain.elevation": {
+        "gain": 1,
+        "offset": 0
+      },
+      "climate.temperature": {
+        "gain": 1,
+        "offset": 0
+      },
+      "climate.humidity": {
+        "gain": 1,
+        "offset": 0
+      },
+      "terrain.space_extent": {
+        "gain": 1,
+        "offset": 0
+      },
+      "terrain.enclosure": {
+        "gain": 1,
+        "offset": 0
+      },
+      "architecture.structural_integrity": {
+        "gain": 1,
+        "offset": 0
+      },
+      "world.age": {
+        "gain": 1,
+        "offset": 0
+      },
+      "light.level": {
+        "gain": 1,
+        "offset": 0
+      },
+      "climate.wind": {
+        "gain": 1,
+        "offset": 0
+      },
+      "physics.gravity": {
+        "gain": 1,
+        "offset": 0
+      },
+      "culture.wildness": {
+        "gain": 1,
+        "offset": 0
+      },
+      "world.strangeness": {
+        "gain": 1,
+        "offset": 0
+      },
+      "water.ocean": {
+        "gain": 1,
+        "offset": 0
+      },
+      "water.coast": {
+        "gain": 1,
+        "offset": 0
+      },
+      "vegetation.forest": {
+        "gain": 1,
+        "offset": 0
+      },
+      "water.river": {
+        "gain": 1,
+        "offset": 0
+      },
+      "water.lake": {
+        "gain": 1,
+        "offset": 0
+      },
+      "geology.lava": {
+        "gain": 1,
+        "offset": 0
+      },
+      "terrain.chasm": {
+        "gain": 1,
+        "offset": 0
+      },
+      "vegetation.fungi": {
+        "gain": 1,
+        "offset": 0
+      },
+      "wildlife.herd": {
+        "gain": 1,
+        "offset": 0
+      },
+      "wildlife.nest": {
+        "gain": 1,
+        "offset": 0
+      },
+      "civilization.settlement": {
+        "gain": 1,
+        "offset": 0
+      },
+      "civilization.road": {
+        "gain": 1,
+        "offset": 0
+      },
+      "civilization.camp": {
+        "gain": 1,
+        "offset": 0
+      },
+      "civilization.farm": {
+        "gain": 1,
+        "offset": 0
+      },
+      "culture.shrine": {
+        "gain": 1,
+        "offset": 0
+      },
+      "economy.mine": {
+        "gain": 1,
+        "offset": 0
+      },
+      "economy.workshop": {
+        "gain": 1,
+        "offset": 0
+      },
+      "economy.market": {
+        "gain": 1,
+        "offset": 0
+      },
+      "history.ruins": {
+        "gain": 1,
+        "offset": 0
+      },
+      "history.battlefield": {
+        "gain": 1,
+        "offset": 0
+      },
+      "history.burial": {
+        "gain": 1,
+        "offset": 0
+      },
+      "infrastructure.machine": {
+        "gain": 1,
+        "offset": 0
+      },
+      "encounters.traveler": {
+        "gain": 1,
+        "offset": 0
+      },
+      "encounters.patrol": {
+        "gain": 1,
+        "offset": 0
+      },
+      "hazards.trap": {
+        "gain": 1,
+        "offset": 0
+      },
+      "encounters.treasure": {
+        "gain": 1,
+        "offset": 0
+      },
+      "supernatural.haunting": {
+        "gain": 1,
+        "offset": 0
+      },
+      "supernatural.portal": {
+        "gain": 1,
+        "offset": 0
+      },
+      "supernatural.marvel": {
+        "gain": 1,
+        "offset": 0
+      },
+      "terrain.dunes": {
+        "gain": 1,
+        "offset": 0
+      },
+      "terrain.glacier": {
+        "gain": 1,
+        "offset": 0
+      },
+      "water.marsh": {
+        "gain": 1,
+        "offset": 0
+      },
+      "terrain.mesa": {
+        "gain": 1,
+        "offset": 0
+      },
+      "water.archipelago": {
+        "gain": 1,
+        "offset": 0
+      },
+      "water.reef": {
+        "gain": 1,
+        "offset": 0
+      },
+      "water.waterfall": {
+        "gain": 1,
+        "offset": 0
+      },
+      "terrain.saltflat": {
+        "gain": 1,
+        "offset": 0
+      },
+      "geology.geyser": {
+        "gain": 1,
+        "offset": 0
+      },
+      "geology.crystal": {
+        "gain": 1,
+        "offset": 0
+      },
+      "geology.columns": {
+        "gain": 1,
+        "offset": 0
+      },
+      "vegetation.bamboo": {
+        "gain": 1,
+        "offset": 0
+      },
+      "vegetation.giant_growth": {
+        "gain": 1,
+        "offset": 0
+      },
+      "civilization.orchard": {
+        "gain": 1,
+        "offset": 0
+      },
+      "civilization.fortress": {
+        "gain": 1,
+        "offset": 0
+      },
+      "culture.library": {
+        "gain": 1,
+        "offset": 0
+      },
+      "culture.observatory": {
+        "gain": 1,
+        "offset": 0
+      },
+      "civilization.harbor": {
+        "gain": 1,
+        "offset": 0
+      },
+      "economy.quarry": {
+        "gain": 1,
+        "offset": 0
+      },
+      "infrastructure.aqueduct": {
+        "gain": 1,
+        "offset": 0
+      },
+      "infrastructure.bridge": {
+        "gain": 1,
+        "offset": 0
+      },
+      "culture.garden": {
+        "gain": 1,
+        "offset": 0
+      },
+      "culture.arena": {
+        "gain": 1,
+        "offset": 0
+      },
+      "civilization.prison": {
+        "gain": 1,
+        "offset": 0
+      },
+      "encounters.caravan": {
+        "gain": 1,
+        "offset": 0
+      },
+      "history.wreck": {
+        "gain": 1,
+        "offset": 0
+      },
+      "history.fossils": {
+        "gain": 1,
+        "offset": 0
+      },
+      "wildlife.megafauna": {
+        "gain": 1,
+        "offset": 0
+      },
+      "supernatural.levitation": {
+        "gain": 1,
+        "offset": 0
+      },
+      "terrain.glassland": {
+        "gain": 1,
+        "offset": 0
+      },
+      "geology.meteor": {
+        "gain": 1,
+        "offset": 0
+      },
+      "supernatural.mirage": {
+        "gain": 1,
+        "offset": 0
+      },
+      "scenery.unique_features": {
+        "gain": 1,
+        "offset": 0
+      },
+      "culture.monolith": {
+        "gain": 1,
+        "offset": 0
+      },
+      "scenery.color_burst": {
+        "gain": 1,
+        "offset": 0
+      },
+      "scenery.resonance": {
+        "gain": 1,
+        "offset": 0
+      },
+      "scenery.interlacing": {
+        "gain": 1,
+        "offset": 0
+      },
+      "scenery.inversion": {
+        "gain": 1,
+        "offset": 0
+      },
+      "scenery.repurposing": {
+        "gain": 1,
+        "offset": 0
+      },
+      "scenery.symbiosis": {
+        "gain": 1,
+        "offset": 0
+      },
+      "scenery.miniature": {
+        "gain": 1,
+        "offset": 0
+      },
+      "scenery.process": {
+        "gain": 1,
+        "offset": 0
+      },
+      "scenery.play": {
+        "gain": 1,
+        "offset": 0
+      },
+      "scenery.improbable_balance": {
+        "gain": 1,
+        "offset": 0
+      },
+      "scenery.echoes": {
+        "gain": 1,
+        "offset": 0
+      },
+      "scenery.light_behavior": {
+        "gain": 1,
+        "offset": 0
+      }
+    }
+  },
+  "auth": {
+    "sessionDays": 30,
+    "attemptWindowMs": 600000,
+    "nameAttempts": 12,
+    "ipAttempts": 80
+  },
+  "timing": {
+    "packageLeaseMs": 90000,
+    "packageHeartbeatMs": 25000,
+    "clientDeadlineMs": 240000,
+    "imageDownloadTimeoutMs": 45000,
+    "streamHeartbeatMs": 10000
+  }
+}

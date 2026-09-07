@@ -1,3 +1,4 @@
+import {queue as configQueue} from '../explorer.config.json';
 import {assertProviderReady} from './provider-health';
 import {db,namespace,AppError} from './server';
 import {generationScope} from './generation-scope';
@@ -13,7 +14,7 @@ export async function queuedProvider<T>(lane:'text'|'image',request:unknown,make
  const {priority,scope}=generationScope(),start=Date.now(),token=crypto.randomUUID();
  await db().prepare(`INSERT INTO generation_jobs(id,lane,scope,request,status,priority,created,touched) VALUES(?,?,?,?,'queued',?,?,?)
  ON CONFLICT(id) DO UPDATE SET priority=MAX(priority,excluded.priority),touched=excluded.touched`).bind(id,lane,scope,signature,priority,start,start).run();
- while(Date.now()-start<300000){
+ while(Date.now()-start<configQueue.waitTimeoutMs){
   const now=Date.now();
   const row=await db().prepare('SELECT status,result,lease,available,attempts,error,priority FROM generation_jobs WHERE id=?').bind(id).first<Job>();
   if(!row)throw new AppError('The world changed. Refresh to continue.',409);
@@ -21,9 +22,9 @@ export async function queuedProvider<T>(lane:'text'|'image',request:unknown,make
   await assertProviderReady();
   if(row.status==='failed'&&row.available>now)throw new AppError(row.error||'Generation will retry shortly.',502);
   await db().prepare("UPDATE generation_jobs SET status='queued',touched=? WHERE id=? AND status!='complete' AND lease<?").bind(now,id,now).run();
-  const claim=await db().prepare(claimJobSQL).bind(token,now+90000,now,id,now,now,lane,now,queueCapacity(lane,row.priority),now,now-10000).run();
+  const claim=await db().prepare(claimJobSQL).bind(token,now+configQueue.leaseMs,now,id,now,now,lane,now,queueCapacity(lane,row.priority),now,now-10000).run();
   if(!claim.meta.changes){await pause(800+Math.random()*400);continue;}
-  const heartbeat=setInterval(()=>{void db().prepare("UPDATE generation_jobs SET lease=?,touched=? WHERE id=? AND token=? AND status='running'").bind(Date.now()+90000,Date.now(),id,token).run().catch(()=>{});},20000);
+  const heartbeat=setInterval(()=>{void db().prepare("UPDATE generation_jobs SET lease=?,touched=? WHERE id=? AND token=? AND status='running'").bind(Date.now()+configQueue.leaseMs,Date.now(),id,token).run().catch(()=>{});},configQueue.heartbeatMs);
   try{
    await assertProviderReady();
    const result=await make();
@@ -32,7 +33,7 @@ export async function queuedProvider<T>(lane:'text'|'image',request:unknown,make
   }catch(e){
    // Do not fan out retries during provider errors. A later request resumes this receipt.
    const message=e instanceof AppError?e.message:'Generation interrupted. Retry shortly.';
-   await db().prepare("UPDATE generation_jobs SET status='failed',token=NULL,lease=0,available=?,error=?,touched=? WHERE id=? AND token=?").bind(Date.now()+15000,message,Date.now(),id,token).run();
+   await db().prepare("UPDATE generation_jobs SET status='failed',token=NULL,lease=0,available=?,error=?,touched=? WHERE id=? AND token=?").bind(Date.now()+configQueue.failureCooldownMs,message,Date.now(),id,token).run();
    throw e;
   }finally{clearInterval(heartbeat);}
  }

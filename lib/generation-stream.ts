@@ -1,3 +1,4 @@
+import {timing as configTiming,queue as configQueue} from '../explorer.config.json';
 import {publicFailure} from './app-error';
 type Packet={type:string;[key:string]:unknown};
 // Keep the response alive while provider calls await I/O; no detached waitUntil job.
@@ -15,6 +16,6 @@ export function generationStream(run:(send:(packet:Packet)=>void)=>Promise<unkno
  return new Response(body,{headers:{'Content-Type':'application/x-ndjson','Cache-Control':'no-store, no-transform','X-Content-Type-Options':'nosniff'}});
 }
 export async function awaitGenerated<T>(make:()=>Promise<T>){
- const deadline=Date.now()+300000;
+ const deadline=Date.now()+configQueue.waitTimeoutMs;
  for(;;){try{return await make();}catch(e:any){if(e.code!=='generation_pending'||Date.now()>deadline)throw e;await new Promise(r=>setTimeout(r,700+Math.random()*500));}}
 }
