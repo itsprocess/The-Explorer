@@ -12,5 +12,5 @@ export function interactionFor(seed:string,x:number,y:number,v:Record<string,num
  const modeRoll=random(seed,'interaction-repeat',x,y);
  return {id:'interaction',kind:'interaction',mode:modeRoll<.08?'once_ever':modeRoll<.65?'once_per_character':'every_visit',cause:null,deathId:null,entityId:null,category,
   interpretation:random(seed,'interaction-interpretation',x,y)<.12?'unusual but grounded in the present features':'small, concrete and matter-of-fact',
-  outcome:'A brief automatic experience recorded in history. No death, travel, badge, inventory, choice, payment, or lasting world mutation.'};
+  outcome:'Describe one specific harmless thing the visitor experienced: who or what acted, what physically changed, and how the visitor responded. Resolve the incident in the sentence. No death, travel, badge, inventory, choice, payment, or lasting world mutation.'};
 }

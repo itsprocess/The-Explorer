@@ -3,7 +3,7 @@ import {VERSION} from './world';
 export type Bindings={DB:D1Database;IMAGES:R2Bucket;OPENAI_API_KEY?:string;OPENAI_MODEL?:string;OPENAI_IMAGE_MODEL?:string;WORLD_SEED?:string};
 export const bindings=()=>env as unknown as Bindings;
 export const db=()=>bindings().DB;
-export const worldSeed=()=>bindings().WORLD_SEED||'the-explorer-crosscurrents-20260907';
+export const worldSeed=()=>bindings().WORLD_SEED||'the-explorer-riverglass-20260907';
 import {AppError} from './app-error';
 export {AppError} from './app-error';
 // Deployment migration queues retired images. Idempotent deletion survives interrupted requests.

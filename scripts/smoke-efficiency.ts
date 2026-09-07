@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {contextFor} from '../lib/world';
-const base='http://localhost:3000',seed='the-explorer-crosscurrents-20260907';
+const base='http://localhost:3000',seed='the-explorer-riverglass-20260907';
 function sql(command:string){const r=spawnSync(process.execPath,['node_modules/wrangler/bin/wrangler.js','d1','execute','DB','--local','--config','wrangler.local.json','--json','--command',command],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);return JSON.parse(r.stdout)[0]?.results;}
 const pause=sql("SELECT value FROM server_settings WHERE key='provider_pause'")[0];assert.ok(pause?.value.includes('provider_credit'),'This smoke test must run with generation paused.');
 const home=await fetch(base);assert.equal(home.status,200);

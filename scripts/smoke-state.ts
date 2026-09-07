@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {contextFor} from '../lib/world';
 import type {StateRule} from '../lib/traits';
-const base='http://localhost:3000',seed='the-explorer-crosscurrents-20260907',start=88000;
+const base='http://localhost:3000',seed='the-explorer-riverglass-20260907',start=88000;
 function sql(command:string){const r=spawnSync(process.execPath,['node_modules/wrangler/bin/wrangler.js','d1','execute','DB','--local','--config','wrangler.local.json','--command',command],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);}
 function fixture(x:number,rule:StateRule|null,name='',kind='interaction'){
  const c=contextFor(seed,x,0);c.stateRule=rule;c.hostilityPolicy.enforcesForeignHonors=false;c.event=x===0?null:{id:'state-suite',kind,mode:'every_visit',cause:'falling slab',deathId:'death:state-suite',entityId:null} as any;

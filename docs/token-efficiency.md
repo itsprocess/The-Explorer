@@ -43,3 +43,9 @@ The response schema requires an object with exactly the available cardinal exit 
 Authentication completes before location generation; the authenticated game request then streams generation. A failed movement retry reuses its original action and idempotency key, instead of merely reloading the old tile. There is no reset, schema migration, seed change, model change or image setting change in this update.
 
 Validation for foreground update: 53 tests passed. One actual Luna once-only encounter response passed the new schema/compiler/validator in 5.7 seconds, using 1,840 total tokens. No image was generated for this check. This single text-call timing is not an end-to-end exploration latency guarantee.
+
+## Riverglass world and prose cleanup
+
+The new seed is `the-explorer-riverglass-20260907`. Migration 0014 resets locations, history, claims, generation receipts and character world progress (including badges, traits and pending transport), preserving character IDs/names, credential hashes and sessions.
+
+Trait cards omit the redundant generated description line. Trait descriptions requested for stored data must be natural language, never serialized enum labels. Encounter instructions require a specific physical incident and response, not commentary about events or history recording. Base death prose describes the physical cause only. Location death records hide item/status changes; private character history retains the complete lifecycle record for searching.
