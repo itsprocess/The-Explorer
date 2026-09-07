@@ -1,20 +1,21 @@
 "use client";
 import {useEffect,useState,useRef} from 'react';
+import {generationRequest} from '../lib/generation-request';
 import LocationImage from './location-image';
 import {registerExplorerTools} from '../lib/webmcp';
 
 export default function Explorer(){
  const [state,setState]=useState<any>(null),[busy,setBusy]=useState(false),[error,setError]=useState(''),[tab,setTab]=useState('explore'),[name,setName]=useState(''),[password,setPassword]=useState(''),[inspect,setInspect]=useState<any>(null);
- async function load(){const r=await fetch('/api/game');const d:any=await r.json();if(!r.ok)throw Error(d.error);setState(d);return d;}
- useEffect(()=>{load().catch(e=>setError(e.message));},[]);
+ async function load(){const d:any=await generationRequest('/api/game');setState(d);return d;}
+ useEffect(()=>{setBusy(true);load().catch(e=>setError(e.message)).finally(()=>setBusy(false));},[]);
  async function act(action:string,extra:Record<string,unknown>={}){
   setBusy(true);setError('');
-  try{const r=await fetch('/api/game',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,requestId:crypto.randomUUID(),...extra})});const d:any=await r.json();if(!r.ok)throw Error(d.error);setState(d);setInspect(null);return d;}
+  try{const d:any=await generationRequest('/api/game',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,requestId:crypto.randomUUID(),...extra})});setState(d);setInspect(null);return d;}
   catch(e:any){setError(e.message);}finally{setBusy(false);}
  }
  async function auth(action:string){
   setBusy(true);setError('');
-  try{const r=await fetch('/api/character',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,name,password})});const d:any=await r.json();if(!r.ok)throw Error(d.error);setState(d);setPassword('');setInspect(null);setTab('explore');}
+  try{const d:any=await generationRequest('/api/character',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,name,password})},'/api/game');setState(d);setPassword('');setInspect(null);setTab('explore');}
   catch(e:any){setError(e.message);}finally{setBusy(false);}
  }
  async function workshop(){setTab('dev');setInspect(null);try{const r=await fetch('/api/workshop?x='+(state?.character?.x??0)+'&y='+(state?.character?.y??0));const d:any=await r.json();if(!r.ok)throw Error(d.error);setInspect(d);}catch(e:any){setError(e.message);}}

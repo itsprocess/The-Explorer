@@ -27,5 +27,7 @@ export async function POST(request:Request){try{
   if(!await verifyPassword(body.password,credential.password_hash))throw new AppError('Incorrect name or password.',401);
   account={id:credential.character,owner:credential.owner};
  }
- return Response.json(await snapshot(account.owner,account.id),{headers:{'Set-Cookie':await newSession(account.id,request),'Cache-Control':'no-store'}});
+ const cookie=await newSession(account.id,request);
+ try{return Response.json(await snapshot(account.owner,account.id),{headers:{'Set-Cookie':cookie,'Cache-Control':'no-store'}});}
+ catch(e){const response=errorResponse(e);response.headers.set('Set-Cookie',cookie);return response;}
  }catch(e){return errorResponse(e);}}

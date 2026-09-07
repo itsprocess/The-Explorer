@@ -36,6 +36,13 @@
       "when": 1788756299655,
       "tag": "0004_reset_world_v4",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1788756868182,
+      "tag": "0005_recover_abandoned_generation",
+      "breakpoints": true
     }
   ]
 }

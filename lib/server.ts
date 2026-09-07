@@ -4,7 +4,7 @@ export type Bindings={DB:D1Database;IMAGES:R2Bucket;OPENAI_API_KEY?:string;OPENA
 export const bindings=()=>env as unknown as Bindings;
 export const db=()=>bindings().DB;
 export const worldSeed=()=>bindings().WORLD_SEED||'the-explorer-first-world';
-export class AppError extends Error{constructor(message:string,public status=400){super(message);}}
+export class AppError extends Error{constructor(message:string,public status=400,public code?:string){super(message);}}
 // Deployment migration queues retired images. Idempotent deletion survives interrupted requests.
 export async function removeRetiredImages(){
  const rows=await db().prepare("SELECT key,value FROM server_settings WHERE key LIKE 'retired-image:%' LIMIT 1000").all<{key:string;value:string}>();
@@ -27,7 +27,7 @@ export async function remember<T>(key:string,kind:string,make:()=>Promise<T>):Pr
  await db().prepare('INSERT INTO packages(key,kind,value,token,lease,updated) VALUES(?,?,NULL,?,?,?) ON CONFLICT(key) DO UPDATE SET token=excluded.token,lease=excluded.lease,updated=excluded.updated WHERE packages.value IS NULL AND packages.lease < ?').bind(key,kind,token,now+600000,now,now).run();
  const lock=await db().prepare('SELECT token,value FROM packages WHERE key=?').bind(key).first<{token:string;value:string|null}>();
  if(lock?.value)return JSON.parse(lock.value);
- if(lock?.token!==token)throw new AppError('Another explorer is revealing this place. Try again in a moment.',409);
+ if(lock?.token!==token)throw new AppError('Loading this location…',409,'generation_pending');
  try{const value=await make();const result=await db().prepare('UPDATE packages SET value=?,token=NULL,lease=0,updated=? WHERE key=? AND token=? AND value IS NULL').bind(JSON.stringify(value),Date.now(),key,token).run();if(!result.meta.changes){const winner=await readPackage<T>(key);if(winner)return winner;throw new AppError('Generation ownership changed. Please retry.',409);}return value;}
  catch(e){await db().prepare('UPDATE packages SET token=NULL,lease=0 WHERE key=? AND token=?').bind(key,token).run();throw e;}
 }

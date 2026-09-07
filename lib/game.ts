@@ -7,12 +7,12 @@ import {resolveArrival,type Character} from './rules';
 export type {Character} from './rules';
 
 export async function createCharacter(name:string,nameKey:string,passwordHash:string){
- const id=crypto.randomUUID(),p=await ensureCell(0,0),now=Date.now();
+ const id=crypto.randomUUID(),now=Date.now();
  const character:Character={id,name,x:0,y:0,alive:true,deaths:0,furthest:0,badges:[],consumed:[]};
  try{await db().batch([
   db().prepare('INSERT INTO character_credentials(character,name_key,password_hash,created) VALUES(?,?,?,?)').bind(id,nameKey,passwordHash,now),
   db().prepare('INSERT INTO characters(id,owner,value,revision,updated) VALUES(?,?,?,0,?)').bind(id,id,JSON.stringify(character),now),
-  db().prepare('INSERT INTO visits(id,character,x,y,value,at) VALUES(?,?,0,0,?,?)').bind(crypto.randomUUID(),id,JSON.stringify({event:{text:name+' arrived at '+p.scene.title+'.',kind:'arrival',newBadge:null}}),now),
+  db().prepare('INSERT INTO visits(id,character,x,y,value,at) VALUES(?,?,0,0,?,?)').bind(crypto.randomUUID(),id,JSON.stringify({event:{text:name+' arrived at the origin.',kind:'arrival',newBadge:null}}),now),
  ]);}catch(e){if(await db().prepare('SELECT character FROM character_credentials WHERE name_key=?').bind(nameKey).first())throw new AppError('That character name is already taken.',409);throw e;}
  return {id,owner:id};
 }
