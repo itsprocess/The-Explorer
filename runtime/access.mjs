@@ -22,6 +22,11 @@ export function accessGuard(config, env=process.env) {
     res.setHeader('Cache-Control','private, no-store');
     res.setHeader('Referrer-Policy','no-referrer');
     res.setHeader('X-Content-Type-Options','nosniff');
+    // The dashboard uses / for health checks; the game stays behind its gate.
+    if(host.basePath && (req.url==='/'||req.url?.startsWith('/?')) && ['GET','HEAD'].includes(req.method)){
+      res.statusCode=200;res.setHeader('Content-Type','text/html; charset=utf-8');
+      res.end(req.method==='HEAD'?undefined:'<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>The Explorer</title><body><h1>The Explorer</h1><p><a href="'+host.basePath+'/">Enter The Explorer</a></p></body></html>');return;
+    }
     // Managed-host health probes must not need game credentials.
     if(req.url==='/healthz'){
       if(!['GET','HEAD'].includes(req.method)){res.statusCode=405;res.setHeader('Allow','GET, HEAD');res.end();return;}
