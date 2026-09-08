@@ -130,3 +130,7 @@ Creation selects Strength, Kindness, Wit, Speed, Cunning, Charisma, Resolve or F
 Text readiness reveals the page independently of image completion. Image work starts asynchronously through the existing persisted provider queue; current-location queued images are prioritized, old queued images demoted, and signatures deduplicate work. Restarted image work resumes on a subsequent location/image request; no separate image daemon is introduced.
 
 Local scope only: no hosting bundles, public updates or data reset. No paid generation was run. Legacy broad distribution tests describe the replaced generator and are not used to recalibrate the approved baseline. Narrative quality and real provider output still need an explicitly authorized live playtest.
+
+## Sites testing correction
+
+The owner superseded the local-only/Godaddy direction: publish the source to the existing private Sites project with no hosting password or domain secret, and wipe all disposable dev accounts and data. Character login and permanent trait selection remain. Migration 0015 is the explicitly authorized one-time account/world reset; R2 cleanup runs before new generation. No ongoing account-deletion control is exposed. Worker background image work uses waitUntil, and the separate browser image request stays active while moving between cells. Sites is the active runtime; legacy Node publishing instructions are historical.

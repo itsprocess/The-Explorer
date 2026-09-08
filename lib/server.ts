@@ -1,8 +1,9 @@
 import {timing as configTiming, world as configWorld} from '../explorer.config.json';
-import {env} from 'cloudflare:workers';
+import {env,waitUntil} from 'cloudflare:workers';
 import {VERSION} from './world';
 export type Bindings={DB:D1Database;IMAGES:R2Bucket;OPENAI_API_KEY?:string;OPENAI_MODEL?:string;OPENAI_IMAGE_MODEL?:string;ADMIN_EMAIL?:string;WORLD_SEED?:string};
 export const bindings=()=>env as unknown as Bindings;
+export const background=(job:Promise<unknown>)=>waitUntil(job.catch(()=>{}));
 export const db=()=>bindings().DB;
 export const worldSeed=()=>bindings().WORLD_SEED||configWorld.seed;
 import {AppError} from './app-error';
@@ -18,6 +19,7 @@ export async function removeRetiredImages(){
  if(rows.results.length===1000)await removeRetiredImages();
 }
 export async function readPackage<T=any>(key:string):Promise<T|null>{
+ await finishDevImageReset();
  await removeRetiredImages();
  const row=await db().prepare('SELECT value FROM packages WHERE key=?').bind(key).first<{value:string|null}>();if(row?.value)return JSON.parse(row.value);
  return null;
@@ -36,3 +38,19 @@ export async function remember<T>(key:string,kind:string,make:()=>Promise<T>):Pr
  finally{clearInterval(heartbeat);}
 }
 export const namespace=()=>worldSeed()+':'+VERSION+':'+((bindings() as Bindings&{WORLD_EPOCH?:string}).WORLD_EPOCH?((bindings() as Bindings&{WORLD_EPOCH?:string}).WORLD_EPOCH+':'):'');
+
+// A one-time owner-requested bucket purge. Block new generation until it is complete.
+export async function finishDevImageReset(){
+ const key='dev-image-reset-20260908',now=Date.now(),lease=String(now+60000);
+ const row=await db().prepare('SELECT value FROM server_settings WHERE key=?').bind(key).first<{value:string}>();if(!row)return;
+ const claimed=await db().prepare('UPDATE server_settings SET value=? WHERE key=? AND CAST(value AS INTEGER)<?').bind(lease,key,now).run();
+ if(!claimed.meta.changes)throw new AppError('Finishing the dev reset…',409,'generation_pending');
+ try{
+  for(let page=0;page<20;page++){
+   const objects=await bindings().IMAGES.list({limit:1000});
+   if(!objects.objects.length){await db().prepare('DELETE FROM server_settings WHERE key=? AND value=?').bind(key,lease).run();return;}
+   await bindings().IMAGES.delete(objects.objects.map(o=>o.key));
+  }
+  throw new AppError('Finishing the dev reset…',409,'generation_pending');
+ }finally{await db().prepare('UPDATE server_settings SET value=0 WHERE key=? AND value=?').bind(key,lease).run();}
+}

@@ -4,7 +4,7 @@ import {complete} from './openai';
 import {remember} from './server';
 import {deferTransport,transferCharacter} from './teleport';
 import {savedImage,ensureImage} from './location-images';
-import {db,readPackage,namespace,worldSeed,AppError} from './server';
+import {background,db,readPackage,namespace,worldSeed,AppError} from './server';
 import {ensureCell,cellKey,publicCell,type CellPackage} from './generation';
 import {connections,directions,exists,LIMIT,type Direction} from './world';
 
@@ -28,7 +28,7 @@ export async function snapshot(owner:string,id?:string,offset=0){
  const row=id?await characterRow(owner,id):rows[0];const c:Character|null=row?JSON.parse(row.value):null;
  const x=c?.x??0,y=c?.y??0;
  const saved=c?await ensureCell(x,y):await readPackage<CellPackage>(cellKey(x,y));
- if(saved&&c){await db().prepare("UPDATE generation_jobs SET priority=0 WHERE lane='image' AND status='queued' AND scope<>?").bind(namespace()+'image:'+x+':'+y).run();void ensureImage(saved).catch(()=>{});}
+ if(saved&&c){await db().prepare("UPDATE generation_jobs SET priority=0 WHERE lane='image' AND status='queued' AND scope<>?").bind(namespace()+'image:'+x+':'+y).run();background(ensureImage(saved));}
  // A reset preserves the character at origin but clears visits. Re-establish the actual arrival.
  if(c&&saved&&x===0&&y===0)await db().prepare('INSERT OR IGNORE INTO visits(id,character,x,y,value,at) SELECT ?,?,0,0,?,? WHERE NOT EXISTS(SELECT 1 FROM visits WHERE character=?)').bind(namespace()+'initial:'+c.id,c.id,JSON.stringify({event:{text:c.name+' arrived at '+saved.scene.title+'.',kind:'arrival',newBadge:null}}),Date.now(),c.id).run();
  const known=(await db().prepare('SELECT DISTINCT x,y FROM visits WHERE x BETWEEN ? AND ? AND y BETWEEN ? AND ?').bind(x-5,x+5,y-5,y+5).all<{x:number;y:number}>()).results;

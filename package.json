@@ -11,7 +11,7 @@
     "test:sandbox": "tsx --test tests/sandbox.test.ts",
     "dev": "vinext dev",
     "build": "vinext build",
-    "start": "node runtime/start.mjs",
+    "start": "wrangler dev --config dist/server/wrangler.json",
     "lint": "oxlint",
     "format": "oxfmt",
     "db:generate": "drizzle-kit generate",

@@ -2,8 +2,6 @@ import tailwindcss from '@tailwindcss/postcss';
 import vinext from 'vinext';
 import { defineConfig } from 'vite';
 import hostingConfig from './.openai/hosting.json';
-import {hosting} from './explorer.config.json';
-import {fileURLToPath} from 'node:url';
 
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
   '00000000-0000-4000-8000-000000000000';
@@ -36,12 +34,7 @@ const localBindingConfig = {
 };
 
 export default defineConfig(async () => {
-  process.env.NEXT_PUBLIC_EXPLORER_BASE_PATH=process.env.EXPLORER_BUILD_TARGET==='node'?hosting.basePath:'';
-  if(process.env.EXPLORER_BUILD_TARGET==='node')return {
-    css:{postcss:{plugins:[tailwindcss()]}},
-    resolve:{alias:{'cloudflare:workers':fileURLToPath(new URL('./runtime/node-bindings.ts',import.meta.url))}},
-    plugins:[vinext()],
-  };
+  process.env.NEXT_PUBLIC_EXPLORER_BASE_PATH='';
   // Keep Wrangler and Miniflare state project-local. These are non-secret tool
   // settings; application environment belongs in ignored `.env*` files.
   process.env.WRANGLER_WRITE_LOGS ??= 'false';
