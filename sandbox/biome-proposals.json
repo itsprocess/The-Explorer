@@ -1,0 +1,257 @@
+{
+  "version": 3,
+  "name": "Variable sandbox",
+  "seed": "natural-study-001",
+  "variables": [
+    {
+      "id": "natural.elevation",
+      "appName": "biome.elevation",
+      "naturalName": "Altitude",
+      "description": "Broad, smoothly varying natural relief. A large Perlin field establishes height; a second, elongated Perlin field contributes 10% regional relief. Values are relative height, not meters.",
+      "color": "#c5b18a",
+      "type": "gradient",
+      "cutoff": 0.5,
+      "off": "Absent",
+      "on": "Present",
+      "low": "Deep basins and low ground",
+      "high": "High ridges and uplands",
+      "steps": [
+        {
+          "id": "cc97df9b-a9dd-44e4-b953-06ee6335c189",
+          "name": "Low",
+          "cutoff": 0,
+          "description": "A low amount."
+        },
+        {
+          "id": "df0ebcca-589f-4fd2-bbaa-353b1c0a5acd",
+          "name": "Medium",
+          "cutoff": 0.4,
+          "description": "A moderate amount."
+        },
+        {
+          "id": "a2e5f150-08d3-49b5-a1a9-1c7a1e605e28",
+          "name": "High",
+          "cutoff": 0.65,
+          "description": "A high amount."
+        }
+      ],
+      "layers": [
+        {
+          "id": "ee617ad8-41cd-4707-897d-c34a27b09ffc",
+          "name": "Continental relief",
+          "enabled": true,
+          "source": "perlin",
+          "channel": "biome-relief-broad",
+          "reference": "",
+          "blend": "replace",
+          "weight": 1,
+          "scaleX": 3200,
+          "scaleY": 2400,
+          "offsetX": 128340,
+          "offsetY": -27340,
+          "rotation": 0,
+          "octaves": 1,
+          "persistence": 0.5,
+          "lacunarity": 2,
+          "gain": 1,
+          "bias": 0,
+          "invert": false,
+          "constant": 0.5
+        },
+        {
+          "id": "15089352-5eb5-4e33-aa0f-cd069e546fd3",
+          "name": "Elongated regional relief",
+          "enabled": true,
+          "source": "perlin",
+          "channel": "biome-relief-regional",
+          "reference": "",
+          "blend": "replace",
+          "weight": 0.1,
+          "scaleX": 1400,
+          "scaleY": 2600,
+          "offsetX": -82400,
+          "offsetY": 61200,
+          "rotation": 25,
+          "octaves": 1,
+          "persistence": 0.5,
+          "lacunarity": 2,
+          "gain": 1,
+          "bias": 0,
+          "invert": false,
+          "constant": 0.5
+        }
+      ],
+      "category": "biome"
+    },
+    {
+      "id": "natural.ocean",
+      "appName": "biome.ocean",
+      "naturalName": "Ocean",
+      "description": "Ocean follows its own noise-shaped footprint, but only where Altitude is at or below the editable sea-level gate. Low terrain outside the footprint remains ocean-free.",
+      "color": "#478bda",
+      "type": "boolean",
+      "cutoff": 0.58,
+      "off": "No ocean here: outside its footprint or above sea level.",
+      "on": "Ocean occupies this low-altitude cell within its footprint.",
+      "low": "Dry land",
+      "high": "Sea",
+      "steps": [
+        {
+          "id": "ab992bcc-aa41-4622-a7f7-f4e80389ceee",
+          "name": "Low",
+          "cutoff": 0,
+          "description": "A low amount."
+        },
+        {
+          "id": "61180bb3-5fdb-42a2-ab49-8170b1d80950",
+          "name": "Medium",
+          "cutoff": 0.4,
+          "description": "A moderate amount."
+        },
+        {
+          "id": "6c2cd215-52b7-4526-887c-e5759558526e",
+          "name": "High",
+          "cutoff": 0.65,
+          "description": "A high amount."
+        }
+      ],
+      "layers": [
+        {
+          "id": "e668f7b4-b5af-479c-9065-8a8ee99844b3",
+          "name": "Ocean regions",
+          "enabled": true,
+          "source": "perlin",
+          "channel": "51f6a481-6b04-4123-81ab-4db61ce30caa",
+          "reference": "",
+          "blend": "replace",
+          "weight": 1,
+          "scaleX": 3000,
+          "scaleY": 2000,
+          "offsetX": 345234,
+          "offsetY": 0,
+          "rotation": 0,
+          "octaves": 1,
+          "persistence": 0.5,
+          "lacunarity": 2,
+          "gain": 1,
+          "bias": 0,
+          "invert": false,
+          "constant": 0.5
+        },
+        {
+          "id": "f5cb3790-7ebd-4102-a5f6-dd725ef376ea",
+          "name": "Below sea level · hard gate",
+          "enabled": true,
+          "source": "variable",
+          "channel": "unused-reference",
+          "reference": "natural.elevation",
+          "blend": "multiply",
+          "weight": 1,
+          "scaleX": 1,
+          "scaleY": 1,
+          "offsetX": 0,
+          "offsetY": 0,
+          "rotation": 0,
+          "octaves": 1,
+          "persistence": 0.5,
+          "lacunarity": 2,
+          "gain": 1,
+          "bias": 0,
+          "invert": false,
+          "constant": 0.5,
+          "referenceMode": "at-most",
+          "referenceCutoff": 0.42
+        }
+      ],
+      "category": "biome"
+    },
+    {
+      "id": "biome.river",
+      "appName": "biome.river",
+      "naturalName": "River",
+      "description": "Strength within the river channel; crossing permission comes from the separate river barrier field.",
+      "color": "#53bddc",
+      "type": "gradient",
+      "cutoff": 0.5,
+      "off": "Absent",
+      "on": "Present",
+      "low": "No river channel at zero; near zero, the faintest thread or fringe of running water.",
+      "high": "The full heart of a great river dominates the terrain, its channel commanding the scene.",
+      "steps": [
+        {
+          "id": "b26f32eb-2a49-496f-9ada-72af3a4de8c5",
+          "name": "Low",
+          "cutoff": 0,
+          "description": "No river channel at zero; near zero, the faintest thread or fringe of running water."
+        },
+        {
+          "id": "25732aa3-3f64-4c20-8d22-6151c3d0e992",
+          "name": "Medium",
+          "cutoff": 0.4,
+          "description": "A balanced intermediate expression of river, between its two poles; preserve the local context."
+        },
+        {
+          "id": "3b8d9719-abc2-4e4f-86d1-5a5b95cab668",
+          "name": "High",
+          "cutoff": 0.65,
+          "description": "The full heart of a great river dominates the terrain, its channel commanding the scene."
+        }
+      ],
+      "layers": [
+        {
+          "id": "32be71c9-9d1a-4c31-aed6-a5470789c7af",
+          "name": "River contours",
+          "enabled": true,
+          "source": "perlin",
+          "channel": "biome-river-contours",
+          "reference": "",
+          "blend": "replace",
+          "weight": 1,
+          "scaleX": 2200,
+          "scaleY": 1800,
+          "offsetX": 0,
+          "offsetY": 0,
+          "rotation": 0,
+          "octaves": 1,
+          "persistence": 0.5,
+          "lacunarity": 2,
+          "gain": 1,
+          "bias": 0,
+          "invert": false,
+          "constant": 0.5,
+          "noiseTransform": "band",
+          "bandLow": 0.497,
+          "bandHigh": 0.503
+        },
+        {
+          "id": "587e63d3-207c-4454-a385-09b2065217fb",
+          "name": "Land only",
+          "enabled": true,
+          "source": "variable",
+          "channel": "biome-river-contours",
+          "reference": "natural.ocean",
+          "blend": "multiply",
+          "weight": 1,
+          "scaleX": 2200,
+          "scaleY": 1800,
+          "offsetX": 0,
+          "offsetY": 0,
+          "rotation": 0,
+          "octaves": 1,
+          "persistence": 0.5,
+          "lacunarity": 2,
+          "gain": 1,
+          "bias": 0,
+          "invert": true,
+          "constant": 0.5,
+          "noiseTransform": "value",
+          "bandLow": 0.497,
+          "bandHigh": 0.503
+        }
+      ],
+      "category": "biome"
+    }
+  ],
+  "biomeRecipeRevision": 1,
+  "riverStudyRevision": 2
+}

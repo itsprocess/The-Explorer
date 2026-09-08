@@ -2,7 +2,7 @@
 
 A procedural explorer with cached AI scenes and images, persistent characters, and deterministic world rules.
 
-**Portable Node release:** see [private hosting and configuration](docs/PORTABLE-HOSTING.md). Run `npm run build:node`, then `npm start`. `npm run package:node` creates the GoDaddy/Node source ZIP. Settings live in `explorer.config.json`; portable runtime data lives in one `world-data` folder. The sections below describe the existing Sites development target.
+**Current deployment workflow:** see [Edit and publish](docs/EDIT-AND-PUBLISH.md). Edit source here, build the Node release, push the separate compiled GitHub checkout, then use GoDaddy Update Preview and Publish to Live. The sections below describe the separate Sites development target.
 
 The current world uses the Wild Horizons seed, expanded climate ranges, derived terrain situations, historical encounter prose and roughly one transport per eighteen traversable cells. See [Wild Horizons](docs/wild-horizons.md) for the distribution audit and reset behavior, and [frontier preloading](docs/frontier-preloading.md) for caching without discovery.
 
@@ -102,3 +102,4 @@ Latest: [Teleport confirmation, community panel, and distance escalation](docs/t
 Latest: [Possessions, status, conditional encounters, and searchable history](docs/traits-and-history.md).
 
 See [token accounting and efficiency](docs/token-efficiency.md) for the current generation pipeline, cost measurements, failure recovery and full reset.
+

@@ -1,7 +1,16 @@
 import {createHash,timingSafeEqual} from 'node:crypto';
 const digest=value=>createHash('sha256').update(value).digest();
 export function accessGuard(config, env=process.env) {
-  const host=config.hosting, origin=new URL(host.publicOrigin);
+  const host=config.hosting;
+  const originVariable=host.publicOriginEnv||'EXPLORER_PUBLIC_ORIGIN';
+  const originValue=env[originVariable]||host.publicOrigin;
+  if(!originValue)throw Error('Set '+originVariable+' to this deployment\'s HTTPS origin (no path).');
+  const suppliedUrl=new URL(originValue.trim());
+  if(suppliedUrl.username||suppliedUrl.password)
+    throw Error(originVariable+' must not contain embedded credentials.');
+  // Hosting dashboards copy full preview links. Only the trusted origin is needed.
+  const origin=new URL(suppliedUrl.origin);
+  if(!/^(?:\/[a-zA-Z0-9_-]+)*$/.test(host.basePath||''))throw Error('basePath must be empty or a slash-prefixed folder path.');
   const friend=env[host.accessPasswordEnv], admin=env[host.adminPasswordEnv];
   if(!friend || friend.length<24 || !admin || admin.length<24 || friend===admin)
     throw Error('Set different access and admin passwords of at least 24 characters. See docs/PORTABLE-HOSTING.md.');
@@ -13,6 +22,17 @@ export function accessGuard(config, env=process.env) {
     res.setHeader('Cache-Control','private, no-store');
     res.setHeader('Referrer-Policy','no-referrer');
     res.setHeader('X-Content-Type-Options','nosniff');
+    // The dashboard uses / for health checks; the game stays behind its gate.
+    if(host.basePath && (req.url==='/'||req.url?.startsWith('/?')) && ['GET','HEAD'].includes(req.method)){
+      res.statusCode=200;res.setHeader('Content-Type','text/html; charset=utf-8');
+      res.end(req.method==='HEAD'?undefined:'<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>The Explorer</title><body><h1>The Explorer</h1><p><a href="'+host.basePath+'/">Enter The Explorer</a></p></body></html>');return;
+    }
+    // Managed-host health probes must not need game credentials.
+    if(req.url==='/healthz'){
+      if(!['GET','HEAD'].includes(req.method)){res.statusCode=405;res.setHeader('Allow','GET, HEAD');res.end();return;}
+      res.setHeader('Content-Type','application/json');
+      res.statusCode=200;res.end(req.method==='HEAD'?undefined:'{"status":"ok"}');return;
+    }
     // These headers are authoritative only at the Sites edge. Never trust client copies.
     for(const key of Object.keys(req.headers))if(key.startsWith('oai-')||key.startsWith('x-forwarded-')||key==='forwarded'||key==='cf-connecting-ip')delete req.headers[key];
     req.headers.host=origin.host;

@@ -1,6 +1,14 @@
+**Current GoDaddy workflow:** [Edit and publish](EDIT-AND-PUBLISH.md) supersedes the historical ZIP and initial-deployment instructions below. GitHub preview and live publication are now verified working.
+
 # Private prototype: portable Node release
 
 Use **Node.js hosting**, not a static upload or a PHP-only cPanel directory. This release runs a persistent Node process, SQLite, and ordinary image files. It does not need Cloudflare D1/R2, MySQL, Redis, or a separate generation worker. Multiple requests can await OpenAI concurrently; SQLite handles short transactional writes. Run **one application instance**, with one persistent local disk; do not put SQLite on a network share or launch replicas with independent disks.
+
+## Selected address
+
+The portable build is configured for `https://appliedcoordination.com/the-explorer/`: `hosting.publicOrigin` is `https://appliedcoordination.com` and `hosting.basePath` is `/the-explorer`. Links, API calls, images, framework assets, and character cookies use this prefix. Changing the prefix requires a rebuild.
+
+GoDaddy must route `/the-explorer` and `/the-explorer/*` from the existing domain to the Node app, preserving the prefix and streaming responses. Uploading a Node app does not itself establish a subfolder route on an existing cPanel site. Confirm path-based routing/reverse-proxy support with GoDaddy before connecting the domain; do not repoint the main domain away from its current website. The account�s cPanel Application Manager exposes Base Application URL, and `/the-explorer` has been selected. The deployed route has not been tested yet. Keep the password gate even with an unlisted path.
 
 ## Install and start
 
@@ -30,7 +38,7 @@ Requirements: Node **22.13 or later**, writable persistent disk, outbound HTTPS 
 
 5. Open the URL. The browser first asks for username **`friend`** and the access password. Then create/log in to an Explorer character normally. Use **`admin`** and the separate admin password for the Dev tab. To switch the outer browser login, use a separate browser profile/private window. Character Log Out does not clear the browser's outer HTTP authentication.
 
-The server refuses to start without both access passwords. Public origins must use HTTPS. The default localhost origin is only for local use. Keep API caching disabled at your CDN/proxy and allow streaming responses and requests lasting at least five minutes. Do not expose the Node inspector/debug port. Preserve the pinned dependency lockfile and install security updates before broadening access.
+The server refuses to start without both access passwords. Public origins must use HTTPS. For local use, set publicOrigin to `http://localhost:3000`, then open `http://localhost:3000/the-explorer/`. Keep API caching disabled at your CDN/proxy and allow streaming responses and requests lasting at least five minutes. Do not expose the Node inspector/debug port. Preserve the pinned dependency lockfile and install security updates before broadening access.
 
 ## GoDaddy
 
@@ -52,7 +60,7 @@ world-data/
   images/               # generated image objects, hashed file names
 ```
 
-**To completely reset: stop the process, delete this one folder, then start again.** The schema and an empty world are recreated automatically. This deletes accounts and character progression as well as world content. Nothing is reset automatically by a build or restart. No live data was deleted for this release.
+**World reset:** use Dev → World Administration → Wipe World, which preserves accounts and sessions. Never delete the data folder as a reset procedure; it contains account credentials. See [World administration](WORLD-ADMIN.md).
 
 To back up, stop the process and copy the entire folder together, then restart. Restore that folder while stopped. Do not copy just the SQLite file while writes are running; its WAL may contain committed changes. Never delete or replace data underneath a running process. Keep backups outside the data folder if they should survive a reset.
 
@@ -103,3 +111,8 @@ npm run package:node
 Runtime tests use temporary data and verify SQLite persistence, uniqueness, transaction rollback, image storage, the access gate, forged identity rejection, and unauthenticated movement rejection. The HTTP smoke test never requests an AI generation. The ZIP is source-only and excludes keys, `.env` files, accounts, world data, dependency folders, and build output.
 
 The Sites target is still built with `npm run build` in the main checkout and deployed through Sites. `npm run start:sites` previews that Worker build locally. Its D1/R2 storage is managed remotely, so the single-folder reset applies to the **portable Node release**, not the remote Sites backend.
+
+## Selected cPanel installation
+
+App directory: `/home/eslsqgfz2ldc/nodeapps/the-explorer`. Data directory: `/home/eslsqgfz2ldc/data/the-explorer` (the configured relative path is `../../data/the-explorer`, resolved from the app directory). Node binary: `/home/eslsqgfz2ldc/.local/node-downloads/node-v22.23.2-linux-x64/bin/node`. Passenger startup file: `app.js`. Configure PassengerNodejs to that binary; setting the interactive shell PATH alone does not select Passenger�s runtime. The launcher disables automatic port selection until the access guard is attached, then explicitly binds to Passenger. Apache routing, permissions, and streaming still need verification on the hosting account.
+

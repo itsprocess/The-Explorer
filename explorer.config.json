@@ -2,13 +2,14 @@
   "hosting": {
     "host": "0.0.0.0",
     "port": 3000,
-    "publicOrigin": "http://localhost:3000",
-    "dataDirectory": "world-data",
+    "publicOrigin": "https://appliedcoordination.com",
+    "dataDirectory": "../../data/the-explorer",
     "noIndex": true,
     "accessPasswordEnv": "EXPLORER_ACCESS_PASSWORD",
     "adminPasswordEnv": "EXPLORER_ADMIN_PASSWORD",
     "adminEmail": "owner@explorer.local",
-    "requestBodyBytes": 32768
+    "requestBodyBytes": 32768,
+    "basePath": "/the-explorer"
   },
   "provider": {
     "apiKeyEnv": "OPENAI_API_KEY",

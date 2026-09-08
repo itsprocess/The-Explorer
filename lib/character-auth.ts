@@ -1,3 +1,4 @@
+import {appPath} from './app-path';
 import {auth as configAuth} from '../explorer.config.json';
 import {db,AppError} from './server';
 import {tokenHash,characterName} from './passwords';
@@ -18,9 +19,9 @@ export async function requireCharacter(request:Request){const session=await char
 export async function newSession(character:string,request:Request){
  const token=Array.from(crypto.getRandomValues(new Uint8Array(32)),n=>n.toString(16).padStart(2,'0')).join('');
  await db().prepare('INSERT INTO character_sessions(token_hash,character,expires) VALUES(?,?,?)').bind(await tokenHash(token),character,Date.now()+TTL).run();
- return COOKIE+'='+token+'; HttpOnly; SameSite=Strict; Path=/; Max-Age='+TTL/1000+(new URL(request.url).protocol==='https:'?'; Secure':'');
+ return COOKIE+'='+token+'; HttpOnly; SameSite=Strict; Path='+appPath('/')+'; Max-Age='+TTL/1000+(new URL(request.url).protocol==='https:'?'; Secure':'');
 }
-export async function logout(request:Request){const token=cookieToken(request);if(token)await db().prepare('DELETE FROM character_sessions WHERE token_hash=?').bind(await tokenHash(token)).run();return COOKIE+'=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'+(new URL(request.url).protocol==='https:'?'; Secure':'');}
+export async function logout(request:Request){const token=cookieToken(request);if(token)await db().prepare('DELETE FROM character_sessions WHERE token_hash=?').bind(await tokenHash(token)).run();return COOKIE+'=; HttpOnly; SameSite=Strict; Path='+appPath('/')+'; Max-Age=0'+(new URL(request.url).protocol==='https:'?'; Secure':'');}
 export async function throttle(request:Request,nameKey:string){
  const now=Date.now(),window=Math.floor(now/configAuth.attemptWindowMs),ip=request.headers.get('cf-connecting-ip')||'local';
  const keys=[['name:'+await tokenHash(nameKey),configAuth.nameAttempts],['ip:'+await tokenHash(ip),configAuth.ipAttempts]] as const;

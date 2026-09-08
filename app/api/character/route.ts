@@ -1,3 +1,4 @@
+import {definingTraits} from '../../../lib/occurrences';
 import {db,AppError} from '../../../lib/server';
 import {checkOrigin,errorResponse} from '../../../lib/auth';
 import {characterName,checkPassword,hashPassword,verifyPassword} from '../../../lib/passwords';
@@ -15,13 +16,14 @@ export async function POST(request:Request){try{
  const credential=await db().prepare('SELECT a.character,a.password_hash,c.owner FROM character_credentials a JOIN characters c ON c.id=a.character WHERE a.name_key=?').bind(identity.key).first<{character:string;password_hash:string|null;owner:string}>();
  let account:{id:string;owner:string};
  if(body.action==='create'){
+  if(!definingTraits.includes(body.definingTrait))throw new AppError('Choose your permanent defining trait.');
   if(credential){
    // A pre-password character can only be secured by its original platform owner.
    const platform=await getChatGPTUser();
    if(credential.password_hash||platform?.userId!==credential.owner)throw new AppError('That character name is already taken.',409);
    const update=await db().prepare('UPDATE character_credentials SET password_hash=? WHERE character=? AND password_hash IS NULL').bind(await hashPassword(body.password),credential.character).run();if(!update.meta.changes)throw new AppError('That character name is already taken.',409);
    account={id:credential.character,owner:credential.owner};
-  }else account=await createCharacter(identity.name,identity.key,await hashPassword(body.password));
+  }else account=await createCharacter(identity.name,identity.key,await hashPassword(body.password),body.definingTrait);
  }else{
   if(!credential?.password_hash){if(credential&&!credential.password_hash&&(await getChatGPTUser())?.userId===credential.owner)throw new AppError('This existing character needs a password. Use Create with this name to set one.',409);throw new AppError('Incorrect name or password.',401);}
   if(!await verifyPassword(body.password,credential.password_hash))throw new AppError('Incorrect name or password.',401);

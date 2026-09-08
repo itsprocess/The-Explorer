@@ -1,3 +1,4 @@
+import {appPath} from './app-path';
 import {timing as configTiming} from '../explorer.config.json';
 import {readGenerationPackets} from './generation-packets';
 type RetryOptions={signal?:AbortSignal;maxWaitMs?:number};
@@ -16,7 +17,7 @@ export async function generationRequest(url:string,init?:RequestInit,afterPendin
   const controller=new AbortController(),abort=()=>controller.abort(options.signal?.reason);
   options.signal?.addEventListener('abort',abort,{once:true});
   const timer=setTimeout(()=>controller.abort(new Error('This location is taking too long. Retry to continue from its saved progress.')),Math.max(1,deadline-Date.now()));
-  try{response=await fetch(target,{...request,headers,signal:controller.signal});data=await readGenerationPackets(response,undefined,controller.signal);}
+  try{response=await fetch(appPath(target),{...request,headers,signal:controller.signal});data=await readGenerationPackets(response,undefined,controller.signal);}
   finally{clearTimeout(timer);options.signal?.removeEventListener('abort',abort);}
   options.signal?.throwIfAborted();
   if(data.code!=='generation_pending'){if(response.ok&&!data.error)return data;throw Object.assign(Error(data.error||'Request failed.'),{code:data.code});}

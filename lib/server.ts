@@ -35,4 +35,4 @@ export async function remember<T>(key:string,kind:string,make:()=>Promise<T>):Pr
  catch(e){await db().prepare('UPDATE packages SET token=NULL,lease=0 WHERE key=? AND token=?').bind(key,token).run();throw e;}
  finally{clearInterval(heartbeat);}
 }
-export const namespace=()=>worldSeed()+':'+VERSION+':';
+export const namespace=()=>worldSeed()+':'+VERSION+':'+((bindings() as Bindings&{WORLD_EPOCH?:string}).WORLD_EPOCH?((bindings() as Bindings&{WORLD_EPOCH?:string}).WORLD_EPOCH+':'):'');

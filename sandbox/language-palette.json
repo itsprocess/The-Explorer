@@ -1,0 +1,186 @@
+{
+  "natural.elevation": {
+    "description": "Vertical position of the terrain, from the deepest depressions to the highest summits; water coverage is determined separately.",
+    "low": "Profoundly sunken terrain: deep basins, hollowed depressions and the lowest reaches of the world.",
+    "high": "Soaring summits and monumental ridgelines tower above the surrounding world."
+  },
+  "natural.ocean": {
+    "description": "Presence of the ocean within its configured footprint and sea-level constraint.",
+    "low": "No ocean occupies this ground; other water features may still be present.",
+    "high": "The ocean claims this place: an immense body of salt water with no walkable ground in this cell."
+  },
+  "biome.river": {
+    "description": "Strength within the river channel; crossing permission comes from the separate river barrier field.",
+    "low": "No river channel at zero; near zero, the faintest thread or fringe of running water.",
+    "high": "The full heart of a great river dominates the terrain, its channel commanding the scene."
+  },
+  "biome.void": {
+    "description": "Presence of an open void replacing terrain.",
+    "low": "No void breaks the ground here.",
+    "high": "The ground gives way to a vast, fathomless absence: a black gulf where a landscape should be."
+  },
+  "biome.groundcover": {
+    "description": "Abundance of low vegetation, independent of trees and moisture.",
+    "low": "Almost naked ground, with scarcely a blade, tuft or creeping shoot.",
+    "high": "An extravagant carpet of low growth crowds every available surface in thick mats and tangled layers."
+  },
+  "biome.large_foliage": {
+    "description": "Abundance of trees and other large plants; species and form follow the surrounding setting.",
+    "low": "An utterly open skyline: no trees or towering foliage, hardly a stem rising above the low growth.",
+    "high": "Towering growth crowds overhead in immense, overlapping masses, enclosing the scene beneath a canopy."
+  },
+  "biome.moisture": {
+    "description": "Ambient moisture and humidity, independent of water-feature presence and weather severity.",
+    "low": "Desiccating dryness: powdery surfaces, brittle textures and air that seems to draw moisture from everything.",
+    "high": "Saturated, clinging damp: beads of condensation, sodden textures and air heavy with moisture."
+  },
+  "biome.weather_severity": {
+    "description": "Force and disruption of local weather, with its form supplied by the setting.",
+    "low": "Almost preternatural stillness: soft air and scarcely a stirring or disturbance.",
+    "high": "Weather at its most overwhelming: battering force, engulfing conditions and a landscape consumed by the elements."
+  },
+  "biome.exposed_rock": {
+    "description": "Amount of visible stone and bedrock, independent of elevation and vegetation.",
+    "low": "Stone is almost entirely hidden beneath the surface cover.",
+    "high": "The bones of the earth stand naked: immense slabs, fractured outcrops and raw stone dominate every view."
+  },
+  "biome.lakes_ponds": {
+    "description": "Presence and interior strength of a lake or pond; positive water coverage follows the configured traversal rule.",
+    "low": "No lake at zero; near zero, the slenderest water margin or shallow pond edge.",
+    "high": "Open inland water fills the scene, gathering into the full body of a lake or pond."
+  },
+  "biome.chasms": {
+    "description": "Presence of a deep open fissure that blocks exploration.",
+    "low": "No open chasm splits this ground.",
+    "high": "A yawning rupture cleaves the earth, with sheer broken walls dropping into an unseen depth."
+  },
+  "biome.river_barrier": {
+    "description": "Authoritative river crossing constraint, independent of how dramatic the river is described.",
+    "low": "River water does not block this cell; where a river exists, this is crossing relief. Other biome blockers still apply.",
+    "high": "The river presents an uncrossable barrier at this cell; no narrative ford or bridge overrides that constraint."
+  },
+  "civilization.density": {
+    "description": "Concentration of current organized inhabitants, human or otherwise; absence does not imply absence of past civilization.",
+    "low": "Deserted at zero; near zero, lonely wanderers or the faintest scattered habitation amid vast emptiness.",
+    "high": "A teeming metropolis or equivalent concentration: inhabitants press together in an almost unbroken flood of activity."
+  },
+  "civilization.age": {
+    "description": "How far into the past civilization impact reaches, independent of present population, sophistication or ruin condition.",
+    "low": "The first fresh marks of civilization: an arrival so recent that almost nothing has acquired a history.",
+    "high": "Civilization reaches back through lost ages: successive eras lie layered beneath memory, their beginnings swallowed by antiquity."
+  },
+  "civilization.advancement": {
+    "description": "Technical sophistication and capability, independent of wealth, population and infrastructure amount.",
+    "low": "The bare beginnings of technique: elementary tools, direct handwork and severely limited technical means.",
+    "high": "Staggering technical mastery: exquisitely developed methods and capabilities at the farthest limits allowed by this world."
+  },
+  "civilization.aggression": {
+    "description": "Disposition toward confrontation and coercion, independent of species, wealth and affiliation.",
+    "low": "Radical gentleness and forbearance: accommodation, restraint and an almost unshakable refusal of confrontation.",
+    "high": "Ruthless belligerence: threats, domination and coercion saturate social dealings, with conflict always close to the surface."
+  },
+  "civilization.commerce": {
+    "description": "Intensity of exchange, independent of material wealth and technical advancement.",
+    "low": "Exchange has dwindled to nothing: no markets, no trading bustle, scarcely anything changing hands.",
+    "high": "A fever of commerce: bargaining, deliveries and ceaseless exchange turn every gathering into a marketplace."
+  },
+  "civilization.wealth": {
+    "description": "Material resources and reserves; express scarcity or abundance in forms appropriate to the local inhabitants.",
+    "low": "Grinding destitution: exhausted stores, threadbare possessions and scraps hoarded against desperate need; hunger or squalor where the context supports it.",
+    "high": "Dazzling opulence: overflowing reserves, lavish possessions and astonishing material abundance far beyond ordinary need."
+  },
+  "civilization.species_homogeneity": {
+    "description": "How mixed the inhabited population is; this carries no inherent moral, political or behavioral meaning.",
+    "low": "An extraordinary intermingling of peoples or species, with no single population dominating the community.",
+    "high": "An almost complete monoculture: one people or species fills the community, with scarcely an outsider represented."
+  },
+  "civilization.infrastructure": {
+    "description": "Extent of constructed fabric, independent of current occupation, technical level, age and upkeep.",
+    "low": "Almost no built fabric: bare terrain, a faint track or the most minimal shelter.",
+    "high": "Construction overwhelms the landscape: sprawling structures, layered routes and extensive engineered systems occupy nearly every available space."
+  },
+  "civilization.footprint": {
+    "description": "Strength of present or past civilization impact; this is the shared presence footprint, not proof of current inhabitants.",
+    "low": "No civilization footprint at zero; near zero, only the faintest isolated trace of habitation or construction.",
+    "high": "Civilization has thoroughly marked the terrain: a powerful built or inhabited imprint, whether bustling or abandoned."
+  },
+  "civilization.animal_population": {
+    "description": "Concentration of land animals, independent of organized civilization and animal species mix.",
+    "low": "Animal life is absent or hauntingly sparse: scarcely a movement, call or fresh track.",
+    "high": "Animal life throngs the place: dense gatherings and constant movement fill the scene with living bodies."
+  },
+  "civilization.animal_homogeneity": {
+    "description": "Animal species concentration, independent of animal abundance and aggression.",
+    "low": "A profusion of different animal kinds shares the habitat, with no single species prevailing.",
+    "high": "Almost every animal belongs to the same species: wolves upon wolves, or the local equivalent, with scarcely another kind."
+  },
+  "variation.whimsy": {
+    "description": "Playful imaginative tone; independent of danger, absurdity and literal supernatural power.",
+    "low": "Severely sober and orthodox: practical forms, earnest customs and not a trace of playful fancy.",
+    "high": "Exuberantly fanciful: joyous oddities, delightful flourishes and a sense of wonder spill into every fitting detail."
+  },
+  "variation.chaos": {
+    "description": "Instability and disorder within established facts; never permission to contradict app state.",
+    "low": "Clockwork order: patterns hold, arrangements remain exact and every detail seems firmly in its place.",
+    "high": "Tumultuous disorder: arrangements unravel, competing forces collide and the scene feels perpetually on the verge of upheaval."
+  },
+  "variation.fantasticness": {
+    "description": "Distance from mundane possibilities, bounded by established world facts and app mechanics.",
+    "low": "Resolutely mundane: ordinary materials and natural explanations, without a hint of the marvelous.",
+    "high": "Astonishingly otherworldly: wonders beyond ordinary experience saturate the setting, as extraordinary as established world rules permit."
+  },
+  "variation.unexpectedness": {
+    "description": "Surprise relative to this particular setting and its established expectations.",
+    "low": "Utterly familiar and foreseeable: each detail follows naturally from what came before.",
+    "high": "A succession of breathtaking reversals of expectation: startling discoveries that remain coherent with established facts."
+  },
+  "variation.interestingness": {
+    "description": "Density of details that invite attention; low values mean restraint, not poor narration.",
+    "low": "Quietly uneventful and unassuming: simple textures, few focal points and room to breathe.",
+    "high": "Intensely arresting: striking details and tantalizing implications compete for attention at every turn."
+  },
+  "variation.absurdity": {
+    "description": "Incongruity and surreal juxtaposition; independent of whimsy, danger and app-state correctness.",
+    "low": "Uncompromisingly sensible: conventional relationships and nothing out of place.",
+    "high": "Gloriously outrageous incongruity: surreal juxtapositions and straight-faced impossibilities of custom strain all ordinary expectations."
+  },
+  "variation.opportunity": {
+    "description": "Narrative abundance of promising openings; actual awards and availability remain app-authoritative.",
+    "low": "An unforgiving lack of openings: little advantage, little promise and scarcely a prospect to seize.",
+    "high": "Possibility seems to overflow: extraordinary openings and enticing prospects crowd the scene wherever mechanics support them."
+  },
+  "variation.danger": {
+    "description": "Atmosphere and intensity of threat; does not itself create death, damage or traversal rules.",
+    "low": "Profoundly sheltered and unthreatening in tone, with scarcely a sign of menace; explicit hazards still remain authoritative.",
+    "high": "Overwhelming menace: exposure and peril press in from every side, making every permitted choice feel consequential."
+  },
+  "occurrences.certain_death": {
+    "description": "A Certain Death occurrence whose activation and consequences must be resolved by the app, never invented by narration.",
+    "low": "No Certain Death occurrence is assigned here; this does not promise safety.",
+    "high": "An absolute terminal peril is assigned here: portray its finality vividly, but announce death only if the app resolves it."
+  },
+  "occurrences.teleport": {
+    "description": "A relocation occurrence; the app determines activation and destination.",
+    "low": "No teleport occurrence is assigned here.",
+    "high": "A dramatic passage to elsewhere is present: render the transition with the full character of this setting, using only the app-assigned destination and outcome."
+  },
+  "occurrences.gift": {
+    "description": "An award occurrence supporting status, inventory and/or badges. A co-located challenge resolves first; grant only when its requirement is satisfied.",
+    "low": "No gift occurrence is assigned here; this does not erase ordinary possessions or narrative generosity.",
+    "high": "A pointed moment of bestowal: make the authorized award feel distinctive and memorable, without increasing its assigned quantity, power or eligibility."
+  },
+  "occurrences.challenge": {
+    "description": "Exactly two outcomes: requirement present or absent. The app checks registered item, status or affiliation IDs before any co-located gift; AI chooses narrative valence independently.",
+    "low": "No challenge occurrence is assigned here; ordinary narrative difficulties may still exist.",
+    "high": "A decisive test confronts the traveler: make both the requirement-present and requirement-absent outcomes vivid and consequential, while preserving the app-selected branch and award eligibility."
+  },
+  "civilization.faction": {
+    "description": "Abstract faction identity. Give its local manifestation a vivid name, symbols, customs and history shaped by the other fields. The enum slot has no inherent rank, morality, intensity or fixed narrative identity."
+  },
+  "civilization.kingdom": {
+    "description": "Abstract kingdom identity. Give its local manifestation a vivid name, symbols, customs and history shaped by the other fields. The enum slot has no inherent rank, morality, intensity or fixed narrative identity."
+  },
+  "civilization.religion": {
+    "description": "Abstract religion identity. Give its local manifestation a vivid name, symbols, customs and history shaped by the other fields. The enum slot has no inherent rank, morality, intensity or fixed narrative identity."
+  }
+}

@@ -1,3 +1,3 @@
-export function locationConcealed(hasCharacter:boolean,busy:boolean,hasCell:boolean,locationKey:string,readyImageKey:string){
- return hasCharacter&&(busy||!hasCell||locationKey!==readyImageKey);
+export function locationConcealed(hasCharacter:boolean,busy:boolean,hasCell:boolean,_locationKey:string,_readyImageKey:string){
+ return hasCharacter&&(busy||!hasCell);
 }

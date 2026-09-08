@@ -1,5 +1,4 @@
 import type { NextConfig } from 'next';
-
-const nextConfig: NextConfig = {};
-
+import {hosting} from './explorer.config.json';
+const nextConfig:NextConfig={basePath:process.env.EXPLORER_BUILD_TARGET==='node'?hosting.basePath:''};
 export default nextConfig;

@@ -1,5 +1,5 @@
 import {DatabaseSync} from 'node:sqlite';
-import {mkdirSync, readFileSync} from 'node:fs';
+import {mkdirSync, readFileSync, rmSync} from 'node:fs';
 import {writeFile, readFile, rename, rm, mkdir} from 'node:fs/promises';
 import {resolve, join} from 'node:path';
 import {createHash, randomUUID} from 'node:crypto';
@@ -41,5 +41,30 @@ export function openStorage(root) {
     try { return {body:new Uint8Array(await readFile(pathFor(key)))}; }
     catch(e) { if(e.code==='ENOENT')return null; throw e; }
   },async delete(keys) { await Promise.all((Array.isArray(keys)?keys:[keys]).map(key=>rm(pathFor(key),{force:true}))); }};
-  return {DB,IMAGES,close:()=>sqlite.close()};
+  function worldState(seed){
+    sqlite.prepare("INSERT OR IGNORE INTO server_settings(key,value) VALUES('world:seed',?)").run(seed);
+    return {seed:sqlite.prepare("SELECT value FROM server_settings WHERE key='world:seed'").get().value,
+      epoch:sqlite.prepare("SELECT value FROM server_settings WHERE key='world:epoch'").get()?.value||''};
+  }
+  function resetWorld(seed){
+    const epoch=randomUUID(),now=Date.now();
+    sqlite.exec('BEGIN IMMEDIATE');
+    try{
+      if(sqlite.prepare("SELECT 1 FROM packages WHERE token IS NOT NULL AND lease>? LIMIT 1").get(now)||sqlite.prepare("SELECT 1 FROM generation_jobs WHERE status='running' AND lease>? LIMIT 1").get(now))throw Error('Generation is still active. Wait for it to finish before resetting.');
+      const update=sqlite.prepare('UPDATE characters SET value=?,revision=revision+1,last_op=NULL,updated=? WHERE id=?');
+      for(const row of sqlite.prepare('SELECT id,value FROM characters').all()){
+        const old=JSON.parse(row.value);
+        update.run(JSON.stringify({id:row.id,name:old.name,x:0,y:0,alive:true,deaths:0,furthest:0,badges:[],consumed:[],traits:[]}),now,row.id);
+      }
+      // Credentials, sessions and login throttles are intentionally untouched.
+      for(const table of ['claims','packages','visits','generation_jobs','generation_usage','character_presence','server_settings'])sqlite.exec('DELETE FROM '+table);
+      const save=sqlite.prepare('INSERT INTO server_settings(key,value) VALUES(?,?)');
+      save.run('world:seed',seed);save.run('world:epoch',epoch);
+      sqlite.exec('COMMIT');
+    }catch(e){sqlite.exec('ROLLBACK');throw e;}
+    let cleanupWarning=false;
+    try{rmSync(join(folder,'images'),{recursive:true,force:true});}catch{cleanupWarning=true;}
+    return {seed,epoch,cleanupWarning};
+  }
+  return {DB,IMAGES,worldState,resetWorld,close:()=>sqlite.close()};
 }

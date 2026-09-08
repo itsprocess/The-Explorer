@@ -1,8 +1,8 @@
-import { sites } from '@openai/sites-vite-plugin';
 import tailwindcss from '@tailwindcss/postcss';
 import vinext from 'vinext';
 import { defineConfig } from 'vite';
 import hostingConfig from './.openai/hosting.json';
+import {hosting} from './explorer.config.json';
 import {fileURLToPath} from 'node:url';
 
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
@@ -36,6 +36,7 @@ const localBindingConfig = {
 };
 
 export default defineConfig(async () => {
+  process.env.NEXT_PUBLIC_EXPLORER_BASE_PATH=process.env.EXPLORER_BUILD_TARGET==='node'?hosting.basePath:'';
   if(process.env.EXPLORER_BUILD_TARGET==='node')return {
     css:{postcss:{plugins:[tailwindcss()]}},
     resolve:{alias:{'cloudflare:workers':fileURLToPath(new URL('./runtime/node-bindings.ts',import.meta.url))}},
@@ -49,6 +50,7 @@ export default defineConfig(async () => {
 
   // Wrangler snapshots its log path while the Cloudflare plugin is imported.
   const { cloudflare } = await import('@cloudflare/vite-plugin');
+  const { sites } = await import('@openai/sites-vite-plugin');
 
   return {
     css: { postcss: { plugins: [tailwindcss()] } },

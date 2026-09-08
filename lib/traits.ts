@@ -1,5 +1,7 @@
+import baseline from './fieldwork-baseline.json';
+const affiliationValues=(family:string)=>baseline.variables.find(v=>v.appName==='civilization.'+family)!.steps.map(s=>s.id);
 import {random} from './noise';
-export const statusFamilies={social_rank:['commoner','artisan','noble','royalty'],blessing:['speed','ward','luck'],burden:['exposure','illness','haunting'],reputation:['trusted','feared','disgraced'],attunement:['flame','tide','stone','wind']} as const;
+export const statusFamilies={faction:affiliationValues('faction'),kingdom:affiliationValues('kingdom'),religion:affiliationValues('religion'),social_rank:['commoner','artisan','noble','royalty'],blessing:['speed','ward','luck'],burden:['exposure','illness','haunting'],reputation:['trusted','feared','disgraced'],attunement:['flame','tide','stone','wind']} as const;
 export const possessionDimensions={purpose:['protection','passage','perception','craft'],affinity:['stone','water','air','spirit'],material:['mineral','organic','metal','woven']} as const;
 export const lifetimes=['permanent','until_death','single_use'] as const;
 export type Lifetime=typeof lifetimes[number];

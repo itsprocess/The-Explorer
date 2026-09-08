@@ -1,3 +1,4 @@
+import {interpretPass,occurrenceText,type OccurrenceText} from './interpretation';
 import {assertProviderReady,providerPause} from './provider-health';
 import {usageForCell} from './usage';
 import {promoteGeneration} from './provider-queue';
@@ -7,7 +8,7 @@ import {db,remember,readPackage,namespace,worldSeed} from './server';
 import {complete} from './openai';
 import {savedImage} from './location-images';
 import {entitySchema,sceneSchemaFor,compileScene,detailPrompt,scenePrompt,assertScene,preparedDetails,PROMPT_VERSION,type Scene,type Region} from './prompts';
-export type CellPackage={context:CellContext;regions:Region[];scene:Scene;created:number;pass2Prompt:unknown;pass2Result:unknown;imagePackage:unknown};
+export type CellPackage={occurrenceText?:OccurrenceText;context:CellContext;regions:Region[];scene:Scene;created:number;pass2Prompt:unknown;pass2Result:unknown;imagePackage:unknown};
 export const cellKey=(x:number,y:number)=>namespace()+'cell:'+x+':'+y;
 export const stageKey=(x:number,y:number)=>namespace()+'details:'+x+':'+y;
 async function ensureRegions(c:CellContext):Promise<Region[]>{
@@ -28,17 +29,31 @@ export async function ensureCell(x:number,y:number):Promise<CellPackage>{
  const context=contextFor(worldSeed(),x,y);if(!context.exists)throw Error('There is no cell at those coordinates.');
  await promoteGeneration(cellKey(x,y));
  return withGenerationScope(cellKey(x,y),()=>remember(cellKey(x,y),'cell',async()=>{
+  const biome=await interpretPass(context,'biome',null);
   const regions=await ensureRegions(context);
+  const civilization=await interpretPass(context,'civilization',{biome,regions});
+  const variation=await interpretPass(context,'variation',{biome,civilization});
+  const interpreted={biome,civilization,variation};
+  const prose=await occurrenceText(context,interpreted);
+
   const stage=await remember(stageKey(x,y),'details',async()=>{return {prompt:detailPrompt(context,regions),result:preparedDetails(context),model:'local',usage:{input_tokens:0,output_tokens:0,total_tokens:0},created:Date.now()};});
   const neighbors=[];
   for(const [direction,[dx,dy]] of Object.entries(directions)){if(!context.connections[direction as keyof typeof directions])continue;
    const saved=await readPackage<CellPackage>(cellKey(x+dx,y+dy));
    if(saved)neighbors.push({direction,description:saved.scene.description,continuity_facts:saved.scene.continuity_facts,shared_exit:saved.scene.exits.find(e=>e.direction===({north:'south',south:'north',east:'west',west:'east'} as Record<string,string>)[direction])?.description});
   }
-  const prompt=scenePrompt(context,regions,stage.result,neighbors);let response=await complete<Scene>('canonical_scene',sceneSchemaFor(context),prompt);
+  const prompt=scenePrompt(context,regions,{details:[],regional_texture:JSON.stringify(interpreted)},neighbors);
+  prompt.input=JSON.stringify({...JSON.parse(prompt.input),interpreted});let response=await complete<Scene>('canonical_scene',sceneSchemaFor(context),prompt);
   response.result=compileScene(response.result);
   try{assertScene(response.result,context);}catch(e){prompt.instructions+=' Correction required: '+(e as Error).message+' Regenerate the complete scene satisfying the schema and every narrative constraint.';response=await complete<Scene>('canonical_scene',sceneSchemaFor(context),prompt);response.result=compileScene(response.result);try{assertScene(response.result,context);}catch(finalError){await db().prepare("INSERT INTO server_settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").bind(cellKey(x,y)+':diagnostic',JSON.stringify({at:Date.now(),message:(finalError as Error).message})).run();throw finalError;}}
-  return {context,regions,scene:response.result,created:Date.now(),pass2Prompt:prompt,pass2Result:{...response,version:PROMPT_VERSION},imagePackage:{enabled:true}};
+  for(const exit of response.result.exits){
+   const edge=context.edges.find(e=>e.direction===exit.direction)!;
+   await remember(namespace()+'transition:'+x+':'+y+':'+exit.direction,'transition',async()=>({from:[x,y],direction:exit.direction,boundary:edge.id,opening:edge.opening,material:edge.material,description:exit.description,created:Date.now()}));
+   const [dx,dy]=directions[exit.direction],reverse=({north:'south',south:'north',east:'west',west:'east'} as const)[exit.direction];
+   const counterpart=await readPackage(namespace()+'transition:'+(x+dx)+':'+(y+dy)+':'+reverse);
+   if(counterpart)await db().prepare('INSERT INTO server_settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').bind(namespace()+'boundary-settled:'+edge.id,JSON.stringify({settled:true,opening:edge.opening,material:edge.material})).run();
+  }
+  return {context,regions,occurrenceText:prose,scene:response.result,created:Date.now(),pass2Prompt:prompt,pass2Result:{...response,version:PROMPT_VERSION},imagePackage:{enabled:true}};
  }));
 }
 export async function workshopData(x:number,y:number){const derived=contextFor(worldSeed(),x,y),saved=await readPackage<CellPackage>(cellKey(x,y)),context=saved?.context??derived,stage=await readPackage(stageKey(x,y));return {diagnostic:await db().prepare('SELECT value FROM server_settings WHERE key=?').bind(cellKey(x,y)+':diagnostic').first(),providerPause:await providerPause(),usage:await usageForCell(cellKey(x,y),context.regions.map(r=>namespace()+'entity:'+r.id)),ratings:context.ratings,context,pass1Prompt:stage?.prompt??detailPrompt(context,[]),pass1Result:stage?.result??null,pass2Prompt:saved?.pass2Prompt??null,pass2Result:saved?.pass2Result??null,imagePackage:await savedImage(x,y)??saved?.imagePackage??{enabled:true}};}

@@ -1,0 +1,68 @@
+{
+  "version": 3,
+  "name": "Infrastructure proposal",
+  "seed": "natural-study-001",
+  "variables": [
+    {
+      "id": "civilization.infrastructure",
+      "appName": "civilization.infrastructure",
+      "naturalName": "Infrastructure Level",
+      "description": "Extent of constructed fabric, independent of current occupation, technical level, age and upkeep.",
+      "color": "#b3aea0",
+      "category": "civilization",
+      "type": "gradient",
+      "cutoff": 0.5,
+      "off": "Absent",
+      "on": "Present",
+      "low": "Almost no built fabric: bare terrain, a faint track or the most minimal shelter.",
+      "high": "Construction overwhelms the landscape: sprawling structures, layered routes and extensive engineered systems occupy nearly every available space.",
+      "steps": [],
+      "layers": [
+        {
+          "id": "civ-infrastructure-regions-v1",
+          "name": "Regional built extent",
+          "enabled": true,
+          "source": "fbm",
+          "channel": "civ-infrastructure-regions-v1",
+          "reference": "",
+          "blend": "replace",
+          "weight": 1,
+          "scaleX": 800,
+          "scaleY": 620,
+          "offsetX": -5820,
+          "offsetY": 3940,
+          "rotation": 0,
+          "octaves": 3,
+          "persistence": 0.5,
+          "lacunarity": 2,
+          "gain": 2.8,
+          "bias": -0.9,
+          "invert": false,
+          "constant": 0.5
+        },
+        {
+          "id": "civ-infrastructure-detail-v1",
+          "name": "Local built concentrations",
+          "enabled": true,
+          "source": "perlin",
+          "channel": "civ-infrastructure-detail-v1",
+          "reference": "",
+          "blend": "replace",
+          "weight": 0.2,
+          "scaleX": 90,
+          "scaleY": 70,
+          "offsetX": 1420,
+          "offsetY": -680,
+          "rotation": 0,
+          "octaves": 3,
+          "persistence": 0.5,
+          "lacunarity": 2,
+          "gain": 2.4,
+          "bias": -0.7,
+          "invert": false,
+          "constant": 0.5
+        }
+      ]
+    }
+  ]
+}

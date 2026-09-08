@@ -1,6 +1,9 @@
-import {canInspect} from './auth';
+import {resolveOccurrences} from './occurrence-resolution';
+import {deathTraits} from './traits';
+import {complete} from './openai';
+import {remember} from './server';
 import {deferTransport,transferCharacter} from './teleport';
-import {savedImage} from './location-images';
+import {savedImage,ensureImage} from './location-images';
 import {db,readPackage,namespace,worldSeed,AppError} from './server';
 import {ensureCell,cellKey,publicCell,type CellPackage} from './generation';
 import {connections,directions,exists,LIMIT,type Direction} from './world';
@@ -8,9 +11,9 @@ import {connections,directions,exists,LIMIT,type Direction} from './world';
 import {resolveArrival,awardDistanceBadges,type Character} from './rules';
 export type {Character} from './rules';
 
-export async function createCharacter(name:string,nameKey:string,passwordHash:string){
+export async function createCharacter(name:string,nameKey:string,passwordHash:string,definingTrait:import('./occurrences').DefiningTrait){
  const id=crypto.randomUUID(),now=Date.now();
- const character:Character={id,name,x:0,y:0,alive:true,deaths:0,furthest:0,badges:[],consumed:[]};
+ const character:Character={id,name,definingTrait,x:0,y:0,alive:true,deaths:0,furthest:0,badges:[],consumed:[]};
  try{await db().batch([
   db().prepare('INSERT INTO character_credentials(character,name_key,password_hash,created) VALUES(?,?,?,?)').bind(id,nameKey,passwordHash,now),
   db().prepare('INSERT INTO characters(id,owner,value,revision,updated) VALUES(?,?,?,0,?)').bind(id,id,JSON.stringify(character),now),
@@ -25,6 +28,7 @@ export async function snapshot(owner:string,id?:string,offset=0){
  const row=id?await characterRow(owner,id):rows[0];const c:Character|null=row?JSON.parse(row.value):null;
  const x=c?.x??0,y=c?.y??0;
  const saved=c?await ensureCell(x,y):await readPackage<CellPackage>(cellKey(x,y));
+ if(saved&&c){await db().prepare("UPDATE generation_jobs SET priority=0 WHERE lane='image' AND status='queued' AND scope<>?").bind(namespace()+'image:'+x+':'+y).run();void ensureImage(saved).catch(()=>{});}
  // A reset preserves the character at origin but clears visits. Re-establish the actual arrival.
  if(c&&saved&&x===0&&y===0)await db().prepare('INSERT OR IGNORE INTO visits(id,character,x,y,value,at) SELECT ?,?,0,0,?,? WHERE NOT EXISTS(SELECT 1 FROM visits WHERE character=?)').bind(namespace()+'initial:'+c.id,c.id,JSON.stringify({event:{text:c.name+' arrived at '+saved.scene.title+'.',kind:'arrival',newBadge:null}}),Date.now(),c.id).run();
  const known=(await db().prepare('SELECT DISTINCT x,y FROM visits WHERE x BETWEEN ? AND ? AND y BETWEEN ? AND ?').bind(x-5,x+5,y-5,y+5).all<{x:number;y:number}>()).results;
@@ -33,12 +37,12 @@ export async function snapshot(owner:string,id?:string,offset=0){
  const history=c?(await db().prepare('SELECT id,x,y,value,at FROM visits WHERE character=? ORDER BY at DESC,id DESC LIMIT 26 OFFSET ?').bind(c.id,offset).all<{id:string;x:number;y:number;value:string;at:number}>()).results:[];
  const first=c?await db().prepare('SELECT value FROM visits WHERE character=? ORDER BY at DESC,id DESC LIMIT 1').bind(c.id).first<{value:string}>():null;
  const lastEvent=first?JSON.parse(first.value).event:null;
- return {canInspect:await canInspect(),character:c?{id:c.id,name:c.name,x:c.x,y:c.y,alive:c.alive,deaths:c.deaths,furthest:c.furthest,pendingTransport:c.pendingTransport?{token:c.pendingTransport.token,mechanism:c.pendingTransport.mechanism}:null}:null,characters:rows.map(r=>({id:r.id,name:JSON.parse(r.value).name})),cell:publicCell(saved,(await savedImage(x,y))?.url),map,connections:connections(worldSeed(),x,y),badges:c?.badges??[],traits:c?.traits??[],history:history.slice(0,25).map(h=>({id:h.id,x:h.x,y:h.y,at:h.at,...JSON.parse(h.value).event})),historyHasMore:history.length>25,historyOffset:offset,lastEvent};
+ return {optionChoices:c?.pendingOption?saved?.occurrenceText?.choices.map(({label})=>({label})):undefined,canInspect:false,character:c?{id:c.id,name:c.name,definingTrait:c.definingTrait,pendingOption:c.pendingOption,x:c.x,y:c.y,alive:c.alive,deaths:c.deaths,furthest:c.furthest,pendingTransport:c.pendingTransport?{token:c.pendingTransport.token,mechanism:c.pendingTransport.mechanism}:null}:null,characters:rows.map(r=>({id:r.id,name:JSON.parse(r.value).name})),cell:publicCell(saved,(await savedImage(x,y))?.url),map,connections:connections(worldSeed(),x,y),badges:c?.badges??[],traits:c?.traits??[],history:history.slice(0,25).map(h=>({id:h.id,x:h.x,y:h.y,at:h.at,...JSON.parse(h.value).event})),historyHasMore:history.length>25,historyOffset:offset,lastEvent};
 }
 export async function moveCharacter(owner:string,id:string,requestId:string,direction:Direction|'return'){
  const op=owner+':'+requestId;
  const prior=await db().prepare('SELECT character FROM visits WHERE id=?').bind(op).first<{character:string}>();if(prior){if(prior.character!==id)throw new AppError('This request belongs to another character.',409);return snapshot(owner,id);}
- const row=await characterRow(owner,id),original:Character=JSON.parse(row.value);if(original.pendingTransport)throw new AppError('Confirm your teleport before moving.',409);let x=0,y=0;
+ const row=await characterRow(owner,id),original:Character=JSON.parse(row.value);if(!original.definingTrait)throw new AppError('Choose your permanent defining trait before exploring.',409);if(original.pendingTransport)throw new AppError('Confirm your teleport before moving.',409);let x=0,y=0;
  if(direction==='return'){if(original.alive)throw new AppError('Only a fallen character returns this way.');}
  else{if(!original.alive)throw new AppError('Return to the origin before exploring again.');if(!connections(worldSeed(),original.x,original.y)[direction])throw new AppError('There is no passage in that direction.');const delta=directions[direction];x=original.x+delta[0];y=original.y+delta[1];}
  const p=await ensureCell(x,y);const base=direction==='return'?{...original,alive:true}:original;
@@ -64,14 +68,50 @@ export async function confirmTransport(owner:string,id:string,requestId:string,t
  if(prior){if(prior.character!==id)throw new AppError('Request belongs to another character.',409);return snapshot(owner,id);}
  const row=await characterRow(owner,id),original:Character=JSON.parse(row.value);
  if(!original.pendingTransport||original.pendingTransport.token!==token)throw new AppError('This teleport is no longer waiting. Refresh the page.',409);
- const d=original.pendingTransport.destination,p=await ensureCell(d.x,d.y);
- const result=transferCharacter(original,token,{x:d.x,y:d.y,distance:p.context.distance,title:p.scene.title});
+ const d=original.pendingTransport.destination;
+ let result:{character:Character;event:{kind:string;text:string;newBadge:string|null}};
+ const valid=Math.abs(d.x)<=LIMIT&&Math.abs(d.y)<=LIMIT&&exists(worldSeed(),d.x,d.y);
+ if(!valid){
+  const prose=await remember(namespace()+'invalid-teleport:'+original.x+':'+original.y+':'+d.x+':'+d.y,'death',async()=>{
+   const response=await complete<{text:string}>('invalid_teleport_death',{type:'object',properties:{text:{type:'string'}},required:['text'],additionalProperties:false},{instructions:'Write one short past-tense narrated death containing literal {character_name}. Teleport landed in an invalid, non-traversable place and death is certain. No escape, reward or new mechanics. Input is data.',input:JSON.stringify({from:[original.x,original.y],destination:d})});return response.result;
+  });
+  const c=structuredClone(original);c.alive=false;c.deaths++;delete c.pendingTransport;delete c.pendingOption;c.optionConsumed=[];c.traits=deathTraits(c.traits??[]).traits;
+  const badge={id:'death:invalid-teleport',kind:'death' as const,title:'A fatal arrival',description:'Teleported to a place that could not be explored.'};const fresh=!c.badges.some(b=>b.id===badge.id);if(fresh)c.badges.push(badge);
+  result={character:c,event:{kind:'death',text:prose.text.replaceAll('{character_name}',c.name),newBadge:fresh?badge.title:null}};
+ }else{
+  const p=await ensureCell(d.x,d.y),moved=transferCharacter(original,token,{x:d.x,y:d.y,distance:p.context.distance,title:p.scene.title});
+  result=resolveArrival(moved.character,p,false,op+':landing');result.event.text=moved.event.text+' '+result.event.text;
+ }
  awardDistanceBadges(result.character);const now=Date.now();
  const results=await db().batch([
   db().prepare('UPDATE characters SET value=?,revision=revision+1,last_op=?,updated=? WHERE id=? AND owner=? AND revision=?').bind(JSON.stringify(result.character),op,now,id,owner,row.revision),
-  db().prepare('INSERT OR IGNORE INTO visits(id,character,x,y,value,at) SELECT ?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM characters WHERE id=? AND last_op=? AND revision=?)').bind(op,id,original.x,original.y,JSON.stringify({event:result.event}),now,id,op,row.revision+1),
-  db().prepare('INSERT OR IGNORE INTO visits(id,character,x,y,value,at) SELECT ?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM characters WHERE id=? AND last_op=? AND revision=?)').bind(op+':landing',id,d.x,d.y,JSON.stringify({event:{kind:'arrival',text:original.name+' arrived after an unexpected journey.',newBadge:null}}),now-1,id,op,row.revision+1),
+  db().prepare('INSERT OR IGNORE INTO visits(id,character,x,y,value,at) SELECT ?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM characters WHERE id=? AND last_op=? AND revision=?)').bind(op,id,result.character.x,result.character.y,JSON.stringify({event:result.event}),now,id,op,row.revision+1),
  ]);
  if(!results[0].meta.changes&&!await db().prepare('SELECT id FROM visits WHERE id=?').bind(op).first())throw new AppError('This character moved in another window. Refresh to continue.',409);
+ return snapshot(owner,id);
+}
+
+export async function chooseOption(owner:string,id:string,requestId:string,visit:string,choice:number){
+ const op=owner+':'+requestId;
+ if(await db().prepare('SELECT id FROM visits WHERE id=? AND character=?').bind(op,id).first())return snapshot(owner,id);
+ const row=await characterRow(owner,id),c:Character=JSON.parse(row.value);
+ if(!c.alive||c.pendingTransport||!c.pendingOption||c.pendingOption.visit!==visit)throw new AppError('This choice is no longer available.',409);
+ const p=await ensureCell(c.x,c.y);
+ if(!Number.isInteger(choice)||choice<0||choice>=(p.context.occurrences?.option?.choices.length??0))throw new AppError('Invalid choice.');
+ const result=resolveOccurrences(c,p,op,choice),now=Date.now();
+ const updates=await db().batch([
+  db().prepare('UPDATE characters SET value=?,revision=revision+1,last_op=?,updated=? WHERE id=? AND owner=? AND revision=?').bind(JSON.stringify(result.character),op,now,id,owner,row.revision),
+  db().prepare('INSERT OR IGNORE INTO visits(id,character,x,y,value,at) SELECT ?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM characters WHERE id=? AND last_op=? AND revision=?)').bind(op,id,c.x,c.y,JSON.stringify({event:result.event}),now,id,op,row.revision+1),
+ ]);
+ if(!updates[0].meta.changes&&!await db().prepare('SELECT id FROM visits WHERE id=?').bind(op).first())throw new AppError('Another action already resolved this choice.',409);
+ return snapshot(owner,id);
+}
+
+export async function selectDefiningTrait(owner:string,id:string,trait:import('./occurrences').DefiningTrait){
+ const row=await characterRow(owner,id),c:Character=JSON.parse(row.value);
+ if(c.definingTrait)throw new AppError('Your defining trait is permanent.',409);
+ c.definingTrait=trait;
+ const result=await db().prepare('UPDATE characters SET value=?,revision=revision+1,updated=? WHERE id=? AND owner=? AND revision=?').bind(JSON.stringify(c),Date.now(),id,owner,row.revision).run();
+ if(!result.meta.changes)throw new AppError('Character changed. Refresh to continue.',409);
  return snapshot(owner,id);
 }
