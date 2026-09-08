@@ -22,6 +22,12 @@ export function accessGuard(config, env=process.env) {
     res.setHeader('Cache-Control','private, no-store');
     res.setHeader('Referrer-Policy','no-referrer');
     res.setHeader('X-Content-Type-Options','nosniff');
+    // Managed-host health probes must not need game credentials.
+    if(req.url==='/healthz'){
+      if(!['GET','HEAD'].includes(req.method)){res.statusCode=405;res.setHeader('Allow','GET, HEAD');res.end();return;}
+      res.setHeader('Content-Type','application/json');
+      res.statusCode=200;res.end(req.method==='HEAD'?undefined:'{"status":"ok"}');return;
+    }
     // These headers are authoritative only at the Sites edge. Never trust client copies.
     for(const key of Object.keys(req.headers))if(key.startsWith('oai-')||key.startsWith('x-forwarded-')||key==='forwarded'||key==='cf-connecting-ip')delete req.headers[key];
     req.headers.host=origin.host;
