@@ -3,7 +3,7 @@ import {resolveOccurrences} from './occurrence-resolution';
 import {findTrait,grantTrait,useTrait,deathTraits,type Trait,type StateChange} from './traits';
 import type {CellPackage} from './generation';
 export type Badge={id:string;title:string;description:string;entityId?:string;kind:'death'|'honor'|'treasure'|'distance'};
-export type Character={id:string;name:string;definingTrait?:import('./occurrences').DefiningTrait;optionConsumed?:string[];awardClaims?:string[];pendingOption?:{key:string;visit:string};affiliations?:Record<string,string[]>;x:number;y:number;alive:boolean;deaths:number;furthest:number;badges:Badge[];consumed:string[];traits?:Trait[];pendingTransport?:{token:string;destination:{x:number;y:number};narrative:string;mechanism:string}};
+export type Character={introSeen?:boolean;devState?:Character;devEvent?:{text:string;kind:string;newBadge:string|null};devOperation?:string;id:string;name:string;definingTrait?:import('./occurrences').DefiningTrait;optionConsumed?:string[];awardClaims?:string[];pendingOption?:{key:string;visit:string};affiliations?:Record<string,string[]>;x:number;y:number;alive:boolean;deaths:number;furthest:number;badges:Badge[];consumed:string[];traits?:Trait[];pendingTransport?:{token:string;destination:{x:number;y:number};narrative:string;mechanism:string}};
 
 type EventRecord={text:string;newBadge:string|null;kind:string;stateChanges?:StateChange[]};
 export const fill=(text:string,name:string)=>fillCharacter(text,name);

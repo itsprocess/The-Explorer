@@ -148,6 +148,13 @@
       "when": 1788921960302,
       "tag": "0020_reset_dev_goose",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1788958461214,
+      "tag": "0021_reset_dev_compass",
+      "breakpoints": true
     }
   ]
 }

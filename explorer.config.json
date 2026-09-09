@@ -34,7 +34,7 @@
     "rateLimitPauseMs": 60000
   },
   "world": {
-    "seed": "the-goose-has-a-teleport-license",
+    "seed": "my-compass-is-a-suspicious-potato",
     "version": "world-7",
     "coordinateLimit": 1000000000
   },

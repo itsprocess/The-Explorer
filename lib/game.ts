@@ -1,3 +1,5 @@
+import {devCell} from './dev-cell';
+import {tileTagPrefix} from './tile-tags';
 import {tileMemory} from './tile-memory';
 import {deduplicateBadges} from './achievement-identity';
 import {fieldworkAt} from './fieldwork';
@@ -29,19 +31,22 @@ type CharacterRow={id:string;owner:string;value:string;revision:number;last_op:s
 export async function characterRow(owner:string,id:string){const row=await db().prepare('SELECT * FROM characters WHERE id=? AND owner=?').bind(id,owner).first<CharacterRow>();if(!row)throw new AppError('That character could not be found.',404);return row;}
 export async function snapshot(owner:string,id?:string,offset=0){
  const rows=(await db().prepare('SELECT id,value FROM characters WHERE owner=? ORDER BY updated DESC').bind(owner).all<{id:string;value:string}>()).results;
- const row=id?await characterRow(owner,id):rows[0];const c:Character|null=row?JSON.parse(row.value):null;
+ const row=id?await characterRow(owner,id):rows[0];const real:Character|null=row?JSON.parse(row.value):null;const c=real?.devState??real,devMode=!!real?.devState;
  const x=c?.x??0,y=c?.y??0;
- const saved=c?await ensureCell(x,y):await readPackage<CellPackage>(cellKey(x,y));
+ const saved=c?devMode?await devCell(x,y):await ensureCell(x,y):await readPackage<CellPackage>(cellKey(x,y));
 
  // A reset preserves the character at origin but clears visits. Re-establish the actual arrival.
- if(c&&saved&&x===0&&y===0)await db().prepare('INSERT OR IGNORE INTO visits(id,character,x,y,value,at) SELECT ?,?,0,0,?,? WHERE NOT EXISTS(SELECT 1 FROM visits WHERE character=?)').bind(namespace()+'initial:'+c.id,c.id,JSON.stringify({event:{text:c.name+' arrived at '+saved.scene.title+'.',kind:'arrival',newBadge:null}}),Date.now(),c.id).run();
+ if(c&&!devMode&&saved&&x===0&&y===0)await db().prepare('INSERT OR IGNORE INTO visits(id,character,x,y,value,at) SELECT ?,?,0,0,?,? WHERE NOT EXISTS(SELECT 1 FROM visits WHERE character=?)').bind(namespace()+'initial:'+c.id,c.id,JSON.stringify({event:{text:c.name+' arrived at '+saved.scene.title+'.',kind:'arrival',newBadge:null}}),Date.now(),c.id).run();
  const known=(await db().prepare('SELECT DISTINCT x,y FROM visits WHERE x BETWEEN ? AND ? AND y BETWEEN ? AND ?').bind(x-5,x+5,y-5,y+5).all<{x:number;y:number}>()).results;
+ const personal=c?(await db().prepare('SELECT DISTINCT x,y FROM visits WHERE character=? AND x BETWEEN ? AND ? AND y BETWEEN ? AND ?').bind(c.id,x-5,x+5,y-5,y+5).all<{x:number;y:number}>()).results:[];
+ const ownSet=new Set(personal.map(r=>cellKey(r.x,r.y)));
+ const tags=c?(await db().prepare('SELECT value FROM server_settings WHERE key LIKE ?').bind(tileTagPrefix(c.id)+'%').all<{value:string}>()).results.map(r=>JSON.parse(r.value)):[];
  const knownSet=new Set(known.map(r=>cellKey(r.x,r.y)));const map=[];
- for(let dy=-5;dy<=5;dy++)for(let dx=-5;dx<=5;dx++){const a=x+dx,b=y+dy;map.push({x:a,y:b,exists:Math.abs(a)<=LIMIT&&Math.abs(b)<=LIMIT&&exists(worldSeed(),a,b),generated:knownSet.has(cellKey(a,b))});}
+ for(let dy=-5;dy<=5;dy++)for(let dx=-5;dx<=5;dx++){const a=x+dx,b=y+dy;map.push({x:a,y:b,exists:Math.abs(a)<=LIMIT&&Math.abs(b)<=LIMIT&&exists(worldSeed(),a,b),generated:knownSet.has(cellKey(a,b)),visited:ownSet.has(cellKey(a,b)),icon:tags.find(t=>t.x===a&&t.y===b)?.icon??null});}
  const history=c?(await db().prepare('SELECT id,x,y,value,at FROM visits WHERE character=? ORDER BY at DESC,id DESC LIMIT 26 OFFSET ?').bind(c.id,offset).all<{id:string;x:number;y:number;value:string;at:number}>()).results:[];
  const first=c?await db().prepare('SELECT value FROM visits WHERE character=? ORDER BY at DESC,id DESC LIMIT 1').bind(c.id).first<{value:string}>():null;
- const lastEvent=first?JSON.parse(first.value).event:null;
- return {tileMemory:await tileMemory(x,y),encounterSetup:saved?.occurrenceText?.setup??null,imageState:await imageStatus(x,y),optionChoices:c?.pendingOption?saved?.occurrenceText?.choices.map(({label})=>({label:fillCharacter(label,c.name)})):undefined,canInspect:false,character:c?{id:c.id,name:c.name,definingTrait:c.definingTrait,pendingOption:c.pendingOption,x:c.x,y:c.y,alive:c.alive,deaths:c.deaths,furthest:c.furthest,pendingTransport:c.pendingTransport?{token:c.pendingTransport.token,mechanism:c.pendingTransport.mechanism,narrative:c.pendingTransport.narrative}:null}:null,characters:rows.map(r=>({id:r.id,name:JSON.parse(r.value).name})),cell:publicCell(saved,(await savedImage(x,y))?.url,c?.name),map,connections:connections(worldSeed(),x,y),badges:deduplicateBadges(c?.badges??[]),traits:c?.traits??[],history:history.slice(0,25).map(h=>({id:h.id,x:h.x,y:h.y,at:h.at,...JSON.parse(h.value).event})),historyHasMore:history.length>25,historyOffset:offset,lastEvent};
+ const lastEvent=devMode?real?.devEvent:first?JSON.parse(first.value).event:null;
+ return {devMode,needsIntro:!!real&&!real.introSeen&&!devMode,tileMemory:await tileMemory(x,y),encounterSetup:saved?.occurrenceText?.setup??null,imageState:await imageStatus(x,y),optionChoices:c?.pendingOption?saved?.occurrenceText?.choices.map(({label})=>({label:fillCharacter(label,c.name)})):undefined,canInspect:false,character:c?{id:c.id,name:c.name,definingTrait:c.definingTrait,pendingOption:c.pendingOption,x:c.x,y:c.y,alive:c.alive,deaths:c.deaths,furthest:c.furthest,pendingTransport:c.pendingTransport?{token:c.pendingTransport.token,mechanism:c.pendingTransport.mechanism,narrative:c.pendingTransport.narrative}:null}:null,characters:rows.map(r=>({id:r.id,name:JSON.parse(r.value).name})),cell:publicCell(saved,(await savedImage(x,y))?.url,c?.name),map,connections:connections(worldSeed(),x,y),badges:deduplicateBadges(c?.badges??[]),traits:c?.traits??[],history:history.slice(0,25).map(h=>({id:h.id,x:h.x,y:h.y,at:h.at,...JSON.parse(h.value).event})),historyHasMore:history.length>25,historyOffset:offset,lastEvent};
 }
 export async function moveCharacter(owner:string,id:string,requestId:string,direction:Direction|'return'){
  const op=owner+':'+requestId;

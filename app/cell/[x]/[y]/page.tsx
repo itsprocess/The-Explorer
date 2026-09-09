@@ -1,3 +1,4 @@
+import TileMarker from '../../../tile-marker';
 import {tileMemory} from '../../../../lib/tile-memory';
 import {appPath} from '../../../../lib/app-path';
 import {PublicStateChanges} from '../../../trait-display';
@@ -16,7 +17,7 @@ export default async function CellPage({params}:{params:Promise<{x:string;y:stri
  if(!cell)return <main className="public-page"><a href={appPath('/')}>Return to game</a><p className="view-only">Location record · View only</p><h1>Undiscovered</h1></main>;
  const image=await savedImage(x,y),memory=await tileMemory(x,y);
  const marks=(await db().prepare('SELECT v.character,v.value,c.value AS character_value FROM visits v JOIN characters c ON c.id=v.character WHERE v.x=? AND v.y=? ORDER BY v.at DESC LIMIT 30').bind(x,y).all<{character:string;value:string;character_value:string}>()).results;
- return <main className="public-page"><a href={appPath('/')}>Return to game</a><p className="view-only">Location record · View only. Viewing this page does not move your character.</p><h1>{cell.scene.title}</h1><div className="coordinates">{x}, {y}</div>{memory.discoverer&&<small>Discovered by <a href={appPath('/profile/')+memory.discoverer.id}>{memory.discoverer.name}</a></small>}
+ return <main className="public-page"><a href={appPath('/')}>Return to game</a><p className="view-only">Location record · View only. Viewing this page does not move your character.</p><h1>{cell.scene.title}</h1><div className="coordinates">{x}, {y}</div><TileMarker x={x} y={y}/>{memory.discoverer&&<small>Discovered by <a href={appPath('/profile/')+memory.discoverer.id}>{memory.discoverer.name}</a></small>}
  {image&&<img className="location-image" src={appPath(image.url)} alt={cell.scene.title}/>}
  <p>{cell.scene.description}</p>{memory.imprint&&<aside className="scene shared-imprint"><small>A lasting trace</small><p>{memory.imprint}</p></aside>}<Passages exits={cell.scene.exits.map(e=>({...e,glimpse:cell.context.edges.find(n=>n.direction===e.direction)?.glimpse}))} blocked={cell.context.blocked}/>
  <details><summary>Visits</summary>{marks.map((m,i)=><article className="encounter player-record" key={i}><PlayerMark/><a href={appPath('/profile/')+m.character}>{JSON.parse(m.character_value).name}</a><p>{JSON.parse(m.value).event.text}</p><PublicStateChanges kind={JSON.parse(m.value).event.kind} changes={JSON.parse(m.value).event.stateChanges}/></article>)}</details></main>;
