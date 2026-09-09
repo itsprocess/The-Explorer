@@ -1,105 +1,62 @@
 # The Explorer
 
-A procedural explorer with cached AI scenes and images, persistent characters, and deterministic world rules.
+A shared procedural world with deterministic terrain and encounters, AI-authored locations, asynchronous illustrations, and persistent characters. [Play the current Sites deployment](https://the-explorer.steve402319.chatgpt.site/).
 
-**Current deployment workflow:** [Sites only](docs/EDIT-AND-PUBLISH.md). GoDaddy, cPanel and portable Node builds are deprecated; do not use their historical instructions or outputs.
+## Active source and runtime
 
-The current world uses the Wild Horizons seed, expanded climate ranges, derived terrain situations, historical encounter prose and roughly one transport per eighteen traversable cells. See [Wild Horizons](docs/wild-horizons.md) for the distribution audit and reset behavior, and [frontier preloading](docs/frontier-preloading.md) for caching without discovery.
+This `web/` checkout is the source repository. The game runs as a Sites Cloudflare Worker with D1 and R2. `app/` contains UI/routes, `lib/` the game engine, `db/schema.ts` the schema, and `drizzle/` migrations. GitHub source lives on `source-integration`; Sites uses its own main branch. Follow [Edit and publish](docs/EDIT-AND-PUBLISH.md).
 
-## Run locally
+GoDaddy, cPanel, portable Node packaging, `runtime/`, `app.js`, and `outputs/github-deployment/` are historical artifacts. Do not rebuild, synchronize or publish them.
 
-Requirements: Node 22.13+ and the root workspace `.env.local` containing `OPENAI_API_KEY`. Optional `OPENAI_MODEL` and `WORLD_SEED` override the defaults.
+## Local game
 
-```powershell
-cd web
+From this directory, with Node 22.13+:
+
+```sh
 npm ci
 npm run setup:local
 npm run db:local
 npm run dev
 ```
 
-`db:local` applies missing local migrations and can be rerun. Local records live in `.wrangler/state/v3/d1` on disk; production uses durable D1 storage. Normal server restarts preserve both.
+Local setup reads the parent workspace `.env.local` and writes ignored `.dev.vars`. Supply `OPENAI_API_KEY`; optional `ADMIN_EMAIL`, `DEV_PASSWORD`, `OPENAI_MODEL`, `OPENAI_IMAGE_MODEL` and `WORLD_SEED` override defaults. Provider and seed fallbacks come from `explorer.config.json`. Production variables remain in Sites, separately configured. Never commit secrets or generated data.
 
-Characters use globally unique, case-insensitive names and passwords. Names are normalized and limited to 2–40 ASCII letters, digits, spaces, hyphens, or underscores. Passwords are 8–128 characters, stored only as independently salted scrypt hashes (N=16384, r=8, p=5). Random session tokens are kept in HttpOnly, SameSite=Strict cookies (Secure on HTTPS); only their SHA-256 hashes are stored server-side. Login attempts are rate-limited. There is no password recovery yet.
+Local D1/R2 data persists under `.wrangler/state`. Review unapplied migrations before running `db:local` against valuable local data: historical migrations include explicitly authorized resets. No migrations or resets run merely by building.
 
-The hosted Site retains its configured audience behind Sites sign-in. Character login is separate. Existing pre-password names remain reserved: their original signed-in Sites owner can use Create with the same name and a password to secure them. The Dev tab still requires Sites sign-in.
+Character credentials use salted scrypt hashes and hashed session tokens in HttpOnly cookies. The permanent defining trait is selected at creation. Sites audience access is separate from character login. Dev controls require owner identity plus a secondary password unlock for the current character login session.
 
-## Development data
+## Noise app and default package
 
-| Table | Stored data |
-| --- | --- |
-| packages | Generated cells, regional identities, rating prose, and scene packages |
-| characters | Character identity, position, deaths, maximum distance, badges, consumed events |
-| visits / claims | History and globally consumed events |
-| character_credentials | Unique name keys and password hashes |
-| character_sessions / auth_attempts | Hashed sessions and login throttling |
-| server_settings | Bootstrap-generation policy |
-
-`npm run data:status` shows local storage location and counts. To clear data, stop the dev server, run one of these in `web`, then restart it:
-
-```powershell
-# Clear characters, logins, history, and event claims; retain generated world.
-npm run data:reset -- --scope characters --confirm RESET
-# Clear both world and characters for a new development run.
-npm run data:reset -- --scope all --confirm RESET
-# Clear world and progress, keeping character names and password logins.
-npm run data:reset -- --scope world --confirm RESET
+```sh
+npm run sandbox
+npm run build:sandbox
 ```
 
-These commands are strictly local; they have no remote mode. They preserve schema and API-key files. Bundled world descriptions have been removed. After a world reset, logging in generates a fresh origin using the API. The same seed and world version still produce the same numerical world. A world reset clears regional/cell packages, visits, claims, badges and progress, returns existing characters to origin, and preserves their names/passwords. An all reset also removes those identities and sessions. The one-time 0002 migration performs the user-requested world reset on existing installations.
+The standalone noise app runs at `http://127.0.0.1:4317`; its build is in ignored `outputs/sandbox/`. It requires no AI key and performs no paid generation. See [noise app guide](sandbox/README.md).
 
-The root key file is read only by `setup:local`, which writes ignored `.dev.vars`. Never commit either file. Production secrets are configured through Sites, not the browser or hosting manifest.
+`lib/fieldwork-baseline.json` and `sandbox/reviewed-project.json` are identical approved defaults. Both use `sandbox/model.ts`. Browser draft edits remain local until explicitly reviewed/imported into source; exporting a draft does not change production.
 
-## Generation
+The stack contains biome, civilization, variation and occurrence fields. River identity and crossing permission are separate. Civilization follows traversibility, with current population and historical impact defining its footprint. Variation includes Whimsy, Chaos, Fantasticness, Unexpectedness, Interestingness, Absurdity, Opportunity, Danger, Vibrance, Psychedelic and Terrifying. Quiet fractal backgrounds and rare sparks escalate with distance. Off-ground and weather severity also escalate. Atmosphere never invents mechanical encounters or deaths.
 
-1. `lib/fields.ts` computes 75 fields (12 baselines and 63 features), including exact-zero feature absence and independently shaped spatial patterns. `lib/world.ts` resolves topology, symmetric exits, regions, events, and protected-origin overrides. See the [field catalog and distribution audit](docs/world-fields.md).
-2. Missing shared regional entities are named once and persisted.
-3. Pass 1 translates two baseline fields and up to four present features into short concrete details.
-4. Pass 2 writes a usually 25–55-word scene (80-word maximum), plus one 10–24-word description per exit. Previews show terrain and prominent physical features; saved neighboring descriptions and reciprocal exits preserve continuity. Names, individual inhabitants, interiors, traps, treasure, and events stay private. Every blocked direction gets a physical explanation. See [world-4 interactions and visibility](docs/world-v4.md).
-5. Pass 3 generates a landscape illustration using GPT Image 2 (1536×1024, low quality, WebP). Its prompt contains the approved current scene, exits, broad terrain glimpses, and blocked boundaries. R2 stores the bytes; D1 stores metadata and the exact prompt. The UI requests only the logged-in character's current cell and shows a separate image loading state. A failed image can retry without regenerating text.
+## Game behavior
 
-Each stage uses a durable lease and saves its validated output independently. A failed scene pass reuses completed descriptive and regional stages. Generated cells are never rerolled on a normal revisit. Ordinary cells can have no special feature, event, or badge. The Dev view separates present features, baseline conditions, and absent features and explains each derivation.
+- AI compiles variables into a cohesive setting; peeks expose terrain, infrastructure and enclosure. Directional transitions preserve neighboring geometry.
+- Text and calculations gate travel; images load asynchronously. Saved images are reused. Only unlocked Dev controls can force regeneration.
+- Options pause travel. Automatic challenges use the actual trait, possession, status or standing. Failed checks cannot award achievement badges. Teleport Continue/Wait controls are UI, not lore; Wait allows inspection and markers, while attempted travel reopens the encounter.
+- Personal markers and three minimap tones distinguish unexplored, others’ discoveries and your visits. Discoverer credits, relic records and occasional lasting traces make the world shared.
+- Badges are unique achievements and open shareable image/story pages without coordinates. Death preserves permanent progression, defining trait and affiliation standings; temporary possessions/statuses follow their lifetime rules. Give up is available on the profile.
+- Dev travel remains isolated until Return to normal; it does not discover locations or advance the real run.
+- Origin is a safe starting/return sanctuary. A sealed origin has four teleporter exits.
 
-The Dev tab shows exact prompts, results, and internal ratings. Normal exploration and shareable cell/profile pages receive curated public data. Cardinal controls appear only for connected cells and disappear on death; the server enforces these same movement rules. The initial Site is owner-private; before opening it to a wider audience, add an owner-specific workshop permission and production generation spending/rate limits.
+## Validation and maintenance
 
-## Validation
-
-```powershell
-npm test
+```sh
 npm run typecheck
+npx tsx --test tests/sky-weather.test.ts tests/token-economy.test.ts tests/dev-unlock.test.ts tests/river-identity.test.ts tests/challenge-success.test.ts tests/badge-sharing.test.ts
 npm run build
+npm run build:sandbox
 ```
 
-`npm run smoke:local` creates a test character and performs real billable generation if its fixture cells are missing. It checks unique names, password login, session cookies, logout, cross-character authorization, origin safety, both text stages, connected-neighbor context, idempotent moves, and omission of passwords/private ratings from public responses. It writes the inspected cell package to ignored `outputs/example-cell-package.json`. `node scripts/test-reset.mjs` checks resets using isolated storage under ignored `outputs/reset-test-db`.
+These focused checks do not invoke AI. Do not run paid generation or broad procedural sampling without authorization. Generated content remains cached across prompt updates. No reset is part of normal maintenance, building or publishing. A specifically requested wipe follows the owner’s documented scope and seed policy.
 
-Unit tests cover deterministic and bounded ratings, origin protection, reciprocal edges at negative/large coordinates, spatial coherence, prompt completeness, death badge deduplication, repeat modes, character separation, and hostile badges.
-
-## First-edition limits
-
-- Coordinates are supported to ±1 billion on each axis, rather than claiming arbitrary-precision infinity.
-- The connected backbone is a regular corridor lattice; optional rooms use noise. Recipes are an initial calibration, not a completed landscape simulation.
-- Weather is static. Rivers are shaped bands, not a physical drainage simulation.
-- The event catalog has quiet cells, ordinary physical traps, rarer supernatural deaths, honors, elections, rare treasure, and portals. The origin and Manhattan radius 2 are safe.
-- Portals make one transfer; destination encounter effects wait for a later entry, preventing automatic portal chains.
-- Character history is paginated in groups of 25. Each character has a separate name/password login.
-- The model and prompts are configurable; schema checks do not prove perfect narrative consistency. Canonical outputs remain saved even when a future prompt version changes.
-- Optional WebMCP tools are registered when the browser supports them. No supported WebMCP validation context was available during this implementation; their live browser contract is not claimed as verified.
-
-Regional naming and both text passes use [GPT-5.6 Luna](https://developers.openai.com/api/docs/models/gpt-5.6-luna) through the Responses API with strict Structured Outputs, low reasoning effort, and low verbosity. Illustrations use [GPT Image 2](https://developers.openai.com/api/docs/models/gpt-image-2), separately configurable through OPENAI_IMAGE_MODEL.
-
-Images live in the IMAGES R2 binding (local files under .wrangler/state/v3/r2). Local world/all resets delete recorded image objects as well as generated records. The latest reset, migration 0007, clears world and progress while preserving character names, password hashes and sessions; retired images are removed on subsequent package access.
-
-Location records are explicitly labeled View only. Their GET requests never move a character, generate content, or record a visit. Profile badges precede stats, and history is collapsed by default. The map uses fixed 11×11 grid tracks and size-constrained markers.
-
-To test real image generation and persistence, set EXPLORER_TEST_IMAGE=1 when running npm run smoke:local. This creates one billable illustration and verifies repeat requests reuse it.
-
-Latest: [loading, threat art, and the Thresholds reset](docs/thresholds.md).
-
-Latest: [Crosscurrents: shared generation queue, parallel frontier streams, broader categories](docs/crosscurrents.md).
-
-Latest: [Teleport confirmation, community panel, and distance escalation](docs/teleports-presence-distance.md).
-
-Latest: [Possessions, status, conditional encounters, and searchable history](docs/traits-and-history.md).
-
-See [token accounting and efficiency](docs/token-efficiency.md) for the current generation pipeline, cost measurements, failure recovery and full reset.
-
+Current implementation notes: [token economy](docs/TOKEN-ECONOMY.md), [Dev unlock and Wait](docs/DEV-UNLOCK.md), [river identity](docs/RIVER-IDENTITY.md), [challenge rewards](docs/CHALLENGE-REWARDS.md), [badge sharing](docs/BADGE-SHARING.md), [variation extensions](docs/VARIATION-EXTENSIONS.md). Older dated design notes are historical and may describe superseded seeds or mechanics.

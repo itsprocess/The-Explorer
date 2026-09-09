@@ -11,8 +11,10 @@ Never include secrets, local environment files, databases, accounts or generated
 
 ## Explicitly requested resets
 
-A normal publication does not reset data. For a user-requested world wipe, use a one-time migration that preserves character identity, defining trait, password credentials and sessions while clearing generated world content and progress. The existing gated R2 cleanup must finish before new generation. Do not add an account-deletion control.
+Normal maintenance and publication preserve data and the seed. The owner’s latest override is authoritative: an explicitly requested wipe clears all accounts, credentials, sessions and world data and changes WORLD_SEED, unless the owner specifies otherwise. Do not add account-deletion controls. Historical reset migrations record earlier authorized operations and are not instructions to repeat them.
 
-Migration 0023 implements the 2026-09-09 relic iteration wipe. Its new seed is the-stones-remember-your-footsteps; configure WORLD_SEED through Sites so an older override cannot retain the previous world. Older migrations that removed disposable dev accounts are historical authorizations, not current instructions.
+The latest schema migration, 0028, only adds the session-scoped Dev unlock column. Production secrets (including DEV_PASSWORD) remain in Sites. Local setup forwards locally supplied values into ignored .dev.vars and uses explorer.config.json for provider/seed defaults.
 
-Owner override, 2026-09-09: an explicitly requested wipe now clears ALL accounts, sessions and world data and always changes WORLD_SEED, unless the owner says otherwise. Do not reset during ordinary publishing or expose account-deletion controls. Migration 0025 is explicitly authorized for the sanctuary/affiliation iteration.
+## Current source map
+
+The root README describes current behavior and validation. sandbox/README.md documents the standalone noise app. Runtime defaults in lib/fieldwork-baseline.json must match sandbox/reviewed-project.json. Maintain db/schema.ts and migration snapshots alongside schema changes; never create a duplicate migration for a column already applied.

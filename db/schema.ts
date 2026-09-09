@@ -18,7 +18,7 @@ export const credentials=sqliteTable('character_credentials',{
  character:text('character').primaryKey(),nameKey:text('name_key').notNull(),passwordHash:text('password_hash'),created:integer('created').notNull(),
 },t=>[uniqueIndex('character_names_global_unique').on(t.nameKey)]);
 export const sessions=sqliteTable('character_sessions',{
- tokenHash:text('token_hash').primaryKey(),character:text('character').notNull(),expires:integer('expires').notNull(),
+ tokenHash:text('token_hash').primaryKey(),character:text('character').notNull(),expires:integer('expires').notNull(),devUnlocked:integer('dev_unlocked').notNull().default(0),
 },t=>[index('character_sessions_expiry').on(t.expires)]);
 export const authAttempts=sqliteTable('auth_attempts',{
  key:text('key').primaryKey(),count:integer('count').notNull(),expires:integer('expires').notNull(),
