@@ -42,10 +42,10 @@ test('death and nested death require badge text in the provider schema itself',(
  for(const key of ['death','challenge:absent']){
   const leaf=schema.items.anyOf.find((s:any)=>s.properties.key.enum[0]===key);
   assert.equal(leaf.properties.badgeTitle.minLength,1);assert.equal(leaf.properties.badgeDescription.minLength,1);
-  assert.equal(leaf.properties.awards.maxItems,0);
+  assert.equal(leaf.properties.awards,undefined);
  }
  const nonAward=schema.items.anyOf.find((s:any)=>s.properties.key.enum[0]==='challenge:present');
- assert.equal(nonAward.properties.badgeTitle.minLength,undefined);
+ assert.equal(nonAward.properties.badgeTitle,undefined);
 });
 
 test('physical reward forms vary independently of the same mechanical specification',()=>{

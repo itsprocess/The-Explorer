@@ -11,14 +11,14 @@ export function narrativeOutcomes(o:Occurrences){
  o.option?.choices.forEach((r,i)=>add('option-'+i,r));
  return results;
 }
-export function outcomeNarrativeSchema(o:Occurrences){
+export function outcomeNarrativeSchema(o:Occurrences,sharedMark=true){
  const text={type:'string'},nonempty={type:'string',minLength:1};
  const object=(properties:Record<string,unknown>)=>({type:'object',properties,required:Object.keys(properties),additionalProperties:false});
  const leaves=narrativeOutcomes(o);
  return {type:'array',minItems:leaves.length,maxItems:leaves.length,items:{anyOf:leaves.map(({key,outcome})=>{
   const badge=outcome.kind==='kill'||outcome.kind==='badge'||outcome.kind==='give'&&outcome.badge;
   const count=outcome.kind==='give'?outcome.awards.length:0;
-  return object({imprint:text,key:{type:'string',enum:[key]},text:nonempty,repeatText:outcome.kind==='give'||outcome.kind==='badge'||outcome.kind==='relic'?nonempty:text,badgeTitle:badge?nonempty:text,badgeDescription:badge?nonempty:text,awards:{type:'array',minItems:count,maxItems:count,items:object({name:nonempty,description:nonempty})}});
+  return object({...(sharedMark?{imprint:text}:{}),key:{type:'string',enum:[key]},text:nonempty,...(outcome.kind==='give'||outcome.kind==='badge'||outcome.kind==='relic'?{repeatText:nonempty}:{}),...(badge?{badgeTitle:nonempty,badgeDescription:nonempty}:{}),...(count?{awards:{type:'array',minItems:count,maxItems:count,items:object({name:nonempty,description:nonempty})}}:{})});
  })}};
 }
 export function validateOutcomeNarratives(o:Occurrences,rows:OutcomeNarrative[]){
@@ -34,3 +34,5 @@ export function validateOutcomeNarratives(o:Occurrences,rows:OutcomeNarrative[])
   if(r.awards.length!==count||r.awards.some(a=>!a.name.trim()||!a.description.trim()))throw Error('Missing reward description: '+key);
  }
 }
+
+export function normalizeOutcomeNarratives(rows:Partial<OutcomeNarrative>[]):OutcomeNarrative[]{return rows.map(r=>({key:'',text:'',imprint:'',repeatText:'',badgeTitle:'',badgeDescription:'',awards:[],...r}));}
