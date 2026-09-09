@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useRef,useState} from 'react';
-import {Gift,Sparkles,Award,Skull,Orbit} from 'lucide-react';
+import {Gift,Sparkles,Award,Skull,Orbit,ShieldCheck} from 'lucide-react';
 export function feedbackFor(before:any,after:any){
  const ids=new Set((before?.badges??[]).map((b:any)=>b.id));
  const badges=(after?.badges??[]).filter((b:any)=>!ids.has(b.id));
@@ -31,8 +31,8 @@ function FeedbackDialog({notice,dismiss}:{notice:any;dismiss:()=>void}){
  useEffect(()=>{dialog.current?.showModal();return()=>dialog.current?.close();},[]);
  const awards=(notice.event?.stateChanges??[]).filter((c:any)=>c.type==='acquired');
  const death=notice.event?.kind==='death',transport=notice.event?.kind==='teleport';
- const Icon=notice.event?.relic?Sparkles:death?Skull:transport?Orbit:awards.some((a:any)=>a.trait.kind==='possession')?Gift:awards.length?Sparkles:Award;
- const title=notice.event?.relic?'Relic uncovered':death?'Journey ended':transport?'Through the unknown':awards.length?awards.some((a:any)=>a.trait.kind==='possession')?'Something to carry':'You have changed':notice.badges.length?'Achievement earned':'Encounter';
+ const Icon=notice.event?.kind==='rescued'?ShieldCheck:notice.event?.relic?Sparkles:death?Skull:transport?Orbit:awards.some((a:any)=>a.trait.kind==='possession')?Gift:awards.length?Sparkles:Award;
+ const title=notice.event?.kind==='rescued'?'Death Protection spent':notice.event?.relic?'Relic uncovered':death?'Journey ended':transport?'Through the unknown':awards.length?awards.some((a:any)=>a.trait.kind==='possession')?'Something to carry':'You have changed':notice.badges.length?'Achievement earned':'Encounter';
  return <dialog ref={dialog} className={'event-popup event-reveal '+(death?'fallen':'')} aria-labelledby="event-reveal-title" onCancel={dismiss}>
   <button className="popup-close" aria-label="Dismiss notification" onClick={dismiss}>×</button>
   <Icon size={38} aria-hidden="true"/><h2 id="event-reveal-title">{title}</h2>

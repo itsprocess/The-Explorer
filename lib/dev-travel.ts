@@ -30,7 +30,7 @@ export async function devTravel(owner:string,id:string,body:any){
     if(c.pendingOption||c.pendingTransport)throw new AppError('Resolve the current preview encounter first.',409);
     const d=body.direction as keyof typeof directions;if(!directions[d]||!devConnections(c.x,c.y)[d])throw new AppError('No passage there.');const portal=originTeleports(worldSeed(),x,y).find(p=>p.direction===d);if(portal){x=portal.destination.x;y=portal.destination.y;}else{x+=directions[d][0];y+=directions[d][1];}c.alive=true;
    }else throw new AppError('Unknown preview action.');
-   checkCoordinate(x,y);const p=await devCell(x,y);c.x=x;c.y=y;
+   checkCoordinate(x,y);const p=await devCell(x,y);c.previousTile={x:c.x,y:c.y};c.x=x;c.y=y;
    result=p.context.exists?resolveArrival(c,p,false,body.requestId):{character:{...c,alive:false},event:{kind:'death',text:fillCharacter(p.scene.event_narrative,c.name),newBadge:null}};
   }
   // All experience is kept in the preview copy. No visits, claims, presence or shared marks are written.

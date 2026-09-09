@@ -36,7 +36,14 @@ export function resolveOccurrences(original:Character,p:CellPackage,visit:string
   const choice=t?.choices[selected];if(choice?.label)event.choice=fillCharacter(choice.label,c.name);say(choice?.result);apply(o.option.choices[selected],'option-'+selected,choice?.present,choice?.absent);if(c.alive&&o.option.policy==='life')c.optionConsumed.push(key);delete c.pendingOption;
  }else{
   delete c.pendingOption;
-  if(o.death){say(narrative?.text||t?.death);kill();}
+  if(o.death){
+   const protection=c.traits.find(t=>t.kind==='status'&&t.family==='death_protection'&&t.value==='reprieve');
+   if(protection){const departure=original.previousTile??{x:original.x,y:original.y};c.traits=c.traits.filter(t=>t.id!==protection.id);c.x=departure.x;c.y=departure.y;delete c.pendingOption;delete c.pendingTransport;
+    event.kind='rescued';event.text=fillCharacter(narrative?.rescueText||'{character_name} was saved from certain death by {protection_name}, which was spent returning them to the place they came from.',c.name).replaceAll('{protection_name}',()=>protection.name);
+    event.stateChanges.push({type:'consumed',trait:protection,reason:'Spent preventing certain death'});awardDistanceBadges(c);return {character:c,event};
+   }
+   say(narrative?.text||t?.death);kill();}
+
   else{
    if(o.relic)apply({kind:'relic'},'relic');
    const relicText=event.relic?.text;

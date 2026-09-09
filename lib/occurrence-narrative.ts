@@ -1,6 +1,6 @@
 import {challengeFailure} from './occurrences';
 import type {Occurrences,Outcome} from './occurrences';
-export type OutcomeNarrative={key:string;text:string;imprint?:string;repeatText?:string;badgeTitle:string;badgeDescription:string;awards:{name:string;description:string}[]};
+export type OutcomeNarrative={key:string;text:string;rescueText?:string;imprint?:string;repeatText?:string;badgeTitle:string;badgeDescription:string;awards:{name:string;description:string}[]};
 export function narrativeOutcomes(o:Occurrences){
  const results:{key:string;outcome:Outcome}[]=[];
  const add=(key:string,outcome:Outcome)=>{if(outcome.kind==='challenge'){add(key+':present',outcome.present);add(key+':absent',challengeFailure(outcome.absent));}else results.push({key,outcome});};
@@ -19,7 +19,7 @@ export function outcomeNarrativeSchema(o:Occurrences,sharedMark=true){
  return {type:'array',minItems:leaves.length,maxItems:leaves.length,items:{anyOf:leaves.map(({key,outcome})=>{
   const badge=outcome.kind==='kill'||outcome.kind==='badge'||outcome.kind==='give'&&outcome.badge;
   const count=outcome.kind==='give'?outcome.awards.length:0;
-  return object({...(sharedMark?{imprint:text}:{}),key:{type:'string',enum:[key]},text:nonempty,...(outcome.kind==='give'||outcome.kind==='badge'||outcome.kind==='relic'?{repeatText:nonempty}:{}),...(badge?{badgeTitle:nonempty,badgeDescription:nonempty}:{}),...(count?{awards:{type:'array',minItems:count,maxItems:count,items:object({name:nonempty,description:nonempty})}}:{})});
+  return object({...(key==='death'?{rescueText:nonempty}:{}),...(sharedMark?{imprint:text}:{}),key:{type:'string',enum:[key]},text:nonempty,...(outcome.kind==='give'||outcome.kind==='badge'||outcome.kind==='relic'?{repeatText:nonempty}:{}),...(badge?{badgeTitle:nonempty,badgeDescription:nonempty}:{}),...(count?{awards:{type:'array',minItems:count,maxItems:count,items:object({name:nonempty,description:nonempty})}}:{})});
  })}};
 }
 export function validateOutcomeNarratives(o:Occurrences,rows:OutcomeNarrative[]){
