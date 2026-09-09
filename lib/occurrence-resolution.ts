@@ -1,3 +1,4 @@
+import {changeStanding,standingScore,affiliationFamilies} from './affiliations';
 import {leavesMark} from './reward-direction';
 import {deduplicateBadges} from './achievement-identity';
 import {fillCharacter} from './character-text';
@@ -5,9 +6,10 @@ import {findTrait,grantTrait,deathTraits,type StateChange} from './traits';
 import {awardDistanceBadges,type Character,type Badge} from './rules';
 import type {CellPackage} from './generation';
 import type {Outcome,Requirement} from './occurrences';
-export function requirementPresent(c:Character,r:Requirement){return r.kind==='defining'?c.definingTrait===r.value:r.kind==='affiliation'?!!findTrait(c.traits??[],{kind:'status',family:r.family,value:r.value}):!!findTrait(c.traits??[],r);}
+export function requirementPresent(c:Character,r:Requirement){return r.kind==='defining'?c.definingTrait===r.value:r.kind==='affiliation'?standingScore(c,r.family,r.value)>=(r.minimum??1):!!findTrait(c.traits??[],r);}
 export function resolveOccurrences(original:Character,p:CellPackage,visit:string,selected?:number){
  const c=structuredClone(original);c.badges=deduplicateBadges(c.badges);c.awardClaims??=[];c.traits??=[];c.optionConsumed??=[];c.x=p.context.x;c.y=p.context.y;c.furthest=Math.max(c.furthest,p.context.distance);
+ for(const ref of p.context.regions??[]){if(ref.enumId&&affiliationFamilies.includes(ref.kind as any)){const name=p.regions?.find(r=>r.id===ref.id)?.name;changeStanding(c,{family:ref.kind as any,value:ref.enumId,delta:0},name?[name]:[]);}}
  const o=p.context.occurrences!,t=p.occurrenceText,key=p.context.seed+':'+p.context.version+':'+c.x+':'+c.y;
  const event:{text:string;newBadge:string|null;kind:string;relic?:{text:string};imprint?:string;stateChanges:StateChange[]}={text:c.name+' arrived at '+p.scene.title+'.',newBadge:null,kind:'arrival',stateChanges:[]};
  const say=(s?:string)=>{if(s)event.text=fillCharacter(s,c.name);};
@@ -16,8 +18,9 @@ export function resolveOccurrences(original:Character,p:CellPackage,visit:string
  const kill=()=>{if(!c.alive)return;c.alive=false;c.deaths++;c.optionConsumed=[];delete c.pendingOption;delete c.pendingTransport;const lost=deathTraits(c.traits!);c.traits=lost.traits;event.stateChanges.push(...lost.changes);event.kind='death';badge('death:'+key,'death');};
  const apply=(r:Outcome,label:string,yes?:string,no?:string)=>{
   if(!c.alive)return;
-  if(r.kind==='challenge'){const matched=requirementPresent(c,r.requirement);requirementName=r.requirement.kind==='defining'?r.requirement.value:r.requirement.kind==='affiliation'?findTrait(c.traits!,{kind:'status',family:r.requirement.family,value:r.requirement.value})?.name??'':findTrait(c.traits!,r.requirement)?.name??'';say(matched?yes:no);apply(matched?r.present:r.absent,label+(matched?':present':':absent'));return;}
+  if(r.kind==='challenge'){const matched=requirementPresent(c,r.requirement);requirementName=r.requirement.kind==='defining'?r.requirement.value:r.requirement.kind==='affiliation'?(c.standings?.find(s=>s.family===(r.requirement as Extract<Requirement,{kind:'affiliation'}>).family&&s.value===(r.requirement as Extract<Requirement,{kind:'affiliation'}>).value)?.names.join(', ')||r.requirement.family):findTrait(c.traits!,r.requirement)?.name??'';say(matched?yes:no);apply(matched?r.present:r.absent,label+(matched?':present':':absent'));return;}
   narrative=t?.outcomes?.find(n=>n.key===label);say(narrative?.text?.replaceAll('{requirement_name}',()=>requirementName));
+  if(r.standing){c.standingClaims??=[];const claim=key+':'+label+':life:'+c.deaths;if(!c.standingClaims.includes(claim)){changeStanding(c,r.standing);c.standingClaims.push(claim);}}
   if(r.kind==='kill'){kill();return;}
   if(r.kind==='teleport'){c.pendingTransport={token:visit+':'+label,destination:r.destination,narrative:event.text,mechanism:'teleport'};event.kind='transport_pending';return;}
   if(r.kind==='badge'){const count=c.badges.length;badge(key+':'+label,'honor');event.kind=c.badges.length>count?'honor':'revisit';if(event.kind==='revisit')say(narrative?.repeatText);return;}

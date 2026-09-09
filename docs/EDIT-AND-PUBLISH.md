@@ -14,3 +14,5 @@ Never include secrets, local environment files, databases, accounts or generated
 A normal publication does not reset data. For a user-requested world wipe, use a one-time migration that preserves character identity, defining trait, password credentials and sessions while clearing generated world content and progress. The existing gated R2 cleanup must finish before new generation. Do not add an account-deletion control.
 
 Migration 0023 implements the 2026-09-09 relic iteration wipe. Its new seed is the-stones-remember-your-footsteps; configure WORLD_SEED through Sites so an older override cannot retain the previous world. Older migrations that removed disposable dev accounts are historical authorizations, not current instructions.
+
+Owner override, 2026-09-09: an explicitly requested wipe now clears ALL accounts, sessions and world data and always changes WORLD_SEED, unless the owner says otherwise. Do not reset during ordinary publishing or expose account-deletion controls. Migration 0025 is explicitly authorized for the sanctuary/affiliation iteration.
