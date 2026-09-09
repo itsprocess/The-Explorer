@@ -15,7 +15,7 @@ export async function POST(request:Request){try{
  checkOrigin(request);await requireOwner();const session=await requireCharacter(request);
  const body:any=await request.json(),real=JSON.parse((await characterRow(session.owner,session.id)).value),c=real.devState??real;
  if(body.force!==true||body.x!==c.x||body.y!==c.y)throw new AppError('Explicit Dev regeneration for the current cell is required.',403);
- const p=real.devState?await devCell(c.x,c.y):await readPackage<CellPackage>(cellKey(c.x,c.y));if(!p)throw new AppError('Load the location first.',409);
+ const p=real.devState||!c.alive?await devCell(c.x,c.y):await readPackage<CellPackage>(cellKey(c.x,c.y));if(!p)throw new AppError('Load the location first.',409);
  const lock=imageKey(c.x,c.y)+':dev-lock',now=Date.now();
  const claimed=await db().prepare('INSERT INTO server_settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value WHERE CAST(server_settings.value AS INTEGER)<?').bind(lock,String(now+300000),now).run();
  if(!claimed.meta.changes)throw new AppError('Image regeneration is already pending.',409);

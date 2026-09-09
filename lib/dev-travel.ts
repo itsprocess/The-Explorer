@@ -1,7 +1,7 @@
 import {previewResult} from './dev-travel-state';
 import {characterRow,snapshot} from './game';
 import {db,AppError} from './server';
-import {checkCoordinate,directions} from './world';
+import {checkCoordinate,directions,devConnections} from './world';
 import {devCell} from './dev-cell';
 import {resolveArrival,type Character} from './rules';
 import {resolveOccurrences} from './occurrence-resolution';
@@ -23,8 +23,8 @@ export async function devTravel(owner:string,id:string,body:any){
    else if(body.action==='return'){x=0;y=0;c.alive=true;delete c.pendingOption;delete c.pendingTransport;}
    else if(body.action==='teleport'){if(!c.pendingTransport||c.pendingTransport.token!==body.token)throw new AppError('No matching preview teleport.',409);({x,y}=c.pendingTransport.destination);delete c.pendingTransport;}
    else if(body.action==='move'){
-    if(!c.alive||c.pendingOption||c.pendingTransport)throw new AppError('Resolve the current preview encounter first.',409);
-    const p=await devCell(c.x,c.y),d=body.direction as keyof typeof directions;if(!directions[d]||!p.context.connections[d])throw new AppError('No passage there.');x+=directions[d][0];y+=directions[d][1];
+    if(c.pendingOption||c.pendingTransport)throw new AppError('Resolve the current preview encounter first.',409);
+    const d=body.direction as keyof typeof directions;if(!directions[d]||!devConnections(c.x,c.y)[d])throw new AppError('No passage there.');x+=directions[d][0];y+=directions[d][1];c.alive=true;
    }else throw new AppError('Unknown preview action.');
    checkCoordinate(x,y);const p=await devCell(x,y);c.x=x;c.y=y;
    result=p.context.exists?resolveArrival(c,p,false,body.requestId):{character:{...c,alive:false},event:{kind:'death',text:fillCharacter(p.scene.event_narrative,c.name),newBadge:null}};
