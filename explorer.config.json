@@ -34,7 +34,7 @@
     "rateLimitPauseMs": 60000
   },
   "world": {
-    "seed": "the-compass-has-a-snack-pocket",
+    "seed": "the-clouds-have-a-ground-floor",
     "version": "world-7",
     "coordinateLimit": 1000000000
   },

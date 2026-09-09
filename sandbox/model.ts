@@ -22,6 +22,7 @@ export type Layer = {
 };
 export type EnumStep = { id: string; name: string; cutoff: number; description: string };
 export type Variable = {
+  distanceEscalation?: boolean;
   presenceReference?: string;
   traversal?: { mode: 'passable' | 'positive' | 'threshold'; cutoff?: number };
   category: 'biome' | 'civilization' | 'variation' | 'occurrences';
@@ -190,7 +191,7 @@ export function evaluator(project: Project) {
       if (active.has(key)) throw new Error('Circular variable dependency. Remove one of the reference layers.');
       const v = vars.get(key); if (!v) throw new Error('Choose an existing variable for every reference layer.');
       active.add(key);
-      const drive=v.category==='variation'?uniquenessDrive(project,x,y):1;
+      const drive=v.category==='variation'||v.distanceEscalation?uniquenessDrive(project,x,y):1;
       const sparkDrive=v.category==='occurrences'&&project.occurrenceCivilizationBoost?civilizationEventDrive(project.variables.filter(f=>f.category==='civilization'&&['civilization.density','civilization.footprint','civilization.infrastructure'].includes(f.appName)).map(f=>evaluate(f.id).value),project.occurrenceCivilizationBoost):drive;
       let value = 0;
       const trace: Trace[] = [];
@@ -295,6 +296,7 @@ export function parseProject(text: string): Project {
   const ids = new Set<string>();
   const unique = (id: unknown) => { if (!str(id) || !id || ids.has(id as string)) fail(); ids.add(id as string); };
   for (const v of p.variables) {
+    if(v?.distanceEscalation!==undefined&&typeof v.distanceEscalation!=='boolean')return fail();
     if(v?.presenceReference!==undefined&&!str(v.presenceReference))return fail();
     if(v?.traversal!==undefined&&(!v.traversal||!['passable','positive','threshold'].includes(v.traversal.mode)||(v.traversal.cutoff!==undefined&&!num(v.traversal.cutoff,0,1))))return fail();
     if (!v || ![v.id,v.appName,v.naturalName,v.description,v.color,v.off,v.on,v.low,v.high].every(str) ||

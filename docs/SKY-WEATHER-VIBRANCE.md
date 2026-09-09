@@ -1,0 +1,4 @@
+Off the ground is a biome gradient using civilization settlement patch scales at half diameter (minimum one tile) and one-fifth candidate frequency. It is independent of civilization presence and masked outside underground. It describes physical position and does not change traversal by itself.
+Weather Severity is reused. Weather and Off the ground explicitly opt into shared bounded distance escalation; Vibrance is a new variation field using that same curve. Zero remains zero. All current variables, including relic and devoutness, are synchronized in runtime baseline and the noise app reviewed default. The noise app backs up its previous browser project before a one-time default refresh.
+Origin arrivals have AI-authored infrastructure explaining repeated materialization, distinct from outbound teleport interactions. No fixed narrative object is supplied.
+0027 is the requested full account/world wipe; seed the-clouds-have-a-ground-floor.
