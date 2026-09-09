@@ -43,7 +43,7 @@ export async function snapshot(owner:string,id?:string,offset=0){
 export async function moveCharacter(owner:string,id:string,requestId:string,direction:Direction|'return'){
  const op=owner+':'+requestId;
  const prior=await db().prepare('SELECT character FROM visits WHERE id=?').bind(op).first<{character:string}>();if(prior){if(prior.character!==id)throw new AppError('This request belongs to another character.',409);return snapshot(owner,id);}
- const row=await characterRow(owner,id),original:Character=JSON.parse(row.value);if(!original.definingTrait)throw new AppError('Choose your permanent defining trait before exploring.',409);if(original.pendingTransport)throw new AppError('Confirm your teleport before moving.',409);let x=0,y=0;
+ const row=await characterRow(owner,id),original:Character=JSON.parse(row.value);if(!original.definingTrait)throw new AppError('Choose your permanent defining trait before exploring.',409);if(original.pendingOption)throw new AppError('Answer the current option before traveling.',409);if(original.pendingTransport)throw new AppError('Confirm your teleport before moving.',409);let x=0,y=0;
  if(direction==='return'){if(original.alive)throw new AppError('Only a fallen character returns this way.');}
  else{if(!original.alive)throw new AppError('Return to the origin before exploring again.');if(!connections(worldSeed(),original.x,original.y)[direction])throw new AppError('There is no passage in that direction.');const delta=directions[direction];x=original.x+delta[0];y=original.y+delta[1];}
  const p=await ensureCell(x,y);const base=direction==='return'?{...original,alive:true}:original;

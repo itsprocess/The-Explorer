@@ -1,3 +1,4 @@
+import {limitLethalChoices} from './occurrences';
 import {fillCharacter} from './character-text';
 import {settingInput,settingInstructions,leanSceneInstructions} from './lean-generation';
 import {interpretPass,occurrenceText,type OccurrenceText} from './interpretation';
@@ -10,7 +11,7 @@ import {db,remember,readPackage,namespace,worldSeed} from './server';
 import {complete} from './openai';
 import {savedImage} from './location-images';
 import {entitySchema,sceneSchemaFor,compileScene,detailPrompt,scenePrompt,assertScene,preparedDetails,PROMPT_VERSION,type Scene,type Region} from './prompts';
-export type CellPackage={occurrenceText?:OccurrenceText;context:CellContext;regions:Region[];scene:Scene;created:number;pass2Prompt:unknown;pass2Result:unknown;imagePackage:unknown};
+export type CellPackage={optionRevision?:number;occurrenceText?:OccurrenceText;context:CellContext;regions:Region[];scene:Scene;created:number;pass2Prompt:unknown;pass2Result:unknown;imagePackage:unknown};
 export const cellKey=(x:number,y:number)=>namespace()+'cell:'+x+':'+y;
 export const stageKey=(x:number,y:number)=>namespace()+'details:'+x+':'+y;
 async function ensureRegions(c:CellContext):Promise<Region[]>{
@@ -48,7 +49,14 @@ async function ensureSettings(cells:CellContext[]):Promise<Map<string,SettingPac
  return settings;
 }
 export async function ensureCell(x:number,y:number):Promise<CellPackage>{
- const cached=await readPackage<CellPackage>(cellKey(x,y));if(cached)return cached;await assertProviderReady();
+ const cached=await readPackage<CellPackage>(cellKey(x,y));if(cached){
+  if(cached.context.occurrences?.option&&cached.optionRevision!==2){
+   cached.context.occurrences.option.choices=limitLethalChoices(cached.context.occurrences.option.choices);
+   cached.occurrenceText=await occurrenceText(cached.context,{name:cached.context.biome,description:cached.scene.description});cached.optionRevision=2;
+   await db().prepare('UPDATE packages SET value=? WHERE key=? AND lease=0').bind(JSON.stringify(cached),cellKey(x,y)).run();
+  }
+  return cached;
+ }await assertProviderReady();
  const context=contextFor(worldSeed(),x,y);if(!context.exists)throw Error('There is no cell at those coordinates.');
  await promoteGeneration(cellKey(x,y));
  return withGenerationScope(cellKey(x,y),()=>remember(cellKey(x,y),'cell',async()=>{
@@ -87,7 +95,7 @@ export async function ensureCell(x:number,y:number):Promise<CellPackage>{
    const counterpart=await readPackage(namespace()+'transition:'+(x+dx)+':'+(y+dy)+':'+reverse);
    if(counterpart)await db().prepare('INSERT INTO server_settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').bind(namespace()+'boundary-settled:'+edge.id,JSON.stringify({settled:true,opening:edge.opening,material:edge.material})).run();
   }
-  return {context,regions,occurrenceText:prose,scene:response.result,created:Date.now(),pass2Prompt:prompt,pass2Result:{...response,version:PROMPT_VERSION},imagePackage:{enabled:true}};
+  return {optionRevision:2,context,regions,occurrenceText:prose,scene:response.result,created:Date.now(),pass2Prompt:prompt,pass2Result:{...response,version:PROMPT_VERSION},imagePackage:{enabled:true}};
  }));
 }
 export async function workshopData(x:number,y:number){const derived=contextFor(worldSeed(),x,y),saved=await readPackage<CellPackage>(cellKey(x,y)),context=saved?.context??derived,stage=await readPackage(stageKey(x,y));return {diagnostic:await db().prepare('SELECT value FROM server_settings WHERE key=?').bind(cellKey(x,y)+':diagnostic').first(),providerPause:await providerPause(),usage:await usageForCell(cellKey(x,y),context.regions.map(r=>namespace()+'entity:'+r.id)),ratings:context.ratings,context,pass1Prompt:stage?.prompt??detailPrompt(context,[]),pass1Result:stage?.result??null,pass2Prompt:saved?.pass2Prompt??null,pass2Result:saved?.pass2Result??null,imagePackage:await savedImage(x,y)??saved?.imagePackage??{enabled:true}};}

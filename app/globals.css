@@ -60,3 +60,5 @@
 @media(max-width:500px){.history-controls{flex-direction:column}.history-controls label:last-child{flex:auto}}
 
 .token-usage{margin-bottom:1.5rem}.usage-scroll{overflow-x:auto}.token-usage table{width:100%;border-collapse:collapse;text-align:left;font-variant-numeric:tabular-nums}.token-usage th,.token-usage td{padding:.65rem;border-bottom:1px solid var(--border,#34363e)}.token-usage td small{display:block;color:#b7bdcc}.token-usage .muted{font-size:.875rem}
+
+.option-dialog{position:fixed;inset:0;margin:auto}.option-dialog h2{margin-top:0}.option-actions{display:grid;gap:12px}.option-actions button{padding:14px;text-align:left;width:100%}

@@ -22,5 +22,9 @@ export function occurrencesFor(seed:string,x:number,y:number,v:Record<string,num
   return {kind:'challenge',requirement,present:simple(key+'yes'),absent:simple(key+'no')};
  };
  const outcome=(key:string):Outcome=>{const kind=pick(key,['give','challenge','teleport','badge','kill'] as const);return kind==='give'?gift(key):kind==='challenge'?challenge(key):kind==='teleport'?{kind,destination:teleportDestination(seed,x,y,key)}:{kind};};
- return {death:v['occurrences.certain_death']>0,teleport:v['occurrences.teleport']>0?teleportDestination(seed,x,y):null,gift:v['occurrences.gift']>0?gift('gift'):null,challenge:v['occurrences.challenge']>0?challenge('challenge'):null,option:v['occurrences.option']>0?{policy:pick('option-policy',['visit','life'] as const),choices:Array.from({length:pick('option-count',[2,3])},(_,i)=>outcome('option-'+i))}:null};
+ return {death:v['occurrences.certain_death']>0,teleport:v['occurrences.teleport']>0?teleportDestination(seed,x,y):null,gift:v['occurrences.gift']>0?gift('gift'):null,challenge:v['occurrences.challenge']>0?challenge('challenge'):null,option:v['occurrences.option']>0?{policy:pick('option-policy',['visit','life'] as const),choices:limitLethalChoices(Array.from({length:pick('option-count',[2,3])},(_,i)=>outcome('option-'+i)))}:null};
 }
+
+// Teleport can be fatal on arrival, so it counts toward the same one-choice limit.
+export function canCauseDeath(outcome:Outcome):boolean{return outcome.kind==='kill'||outcome.kind==='teleport'||outcome.kind==='challenge'&&(canCauseDeath(outcome.present)||canCauseDeath(outcome.absent));}
+export function limitLethalChoices(choices:Outcome[]):Outcome[]{let retained=false;return choices.map(choice=>{if(!canCauseDeath(choice))return choice;if(!retained){retained=true;return choice;}return {kind:'badge'};});}
