@@ -11,9 +11,9 @@ Never include secrets, local environment files, databases, accounts or generated
 
 ## Explicitly requested resets
 
-Normal maintenance and publication preserve data and the seed. The owner’s latest override is authoritative: an explicitly requested wipe clears all accounts, credentials, sessions and world data and changes WORLD_SEED, unless the owner specifies otherwise. Do not add account-deletion controls. Historical reset migrations record earlier authorized operations and are not instructions to repeat them.
+Normal maintenance and publication preserve data and the seed. Current AGENTS.md rules are authoritative: a requested wipe resets the world and character progress and changes WORLD_SEED, preserving accounts, passwords, sessions and defining traits. Do not add account-deletion controls. Historical reset migrations record earlier authorized operations and are not instructions to repeat them.
 
-The latest schema migration, 0028, only adds the session-scoped Dev unlock column. Production secrets (including DEV_PASSWORD) remain in Sites. Local setup forwards locally supplied values into ignored .dev.vars and uses explorer.config.json for provider/seed defaults.
+Migration 0030 is the explicitly requested water/void world reset; it preserves identity and sessions. Production secrets (including DEV_PASSWORD) remain in Sites. Local setup forwards locally supplied values into ignored .dev.vars and uses explorer.config.json for provider/seed defaults.
 
 ## Current source map
 

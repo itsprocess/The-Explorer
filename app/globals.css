@@ -92,3 +92,5 @@
 .auth-mode{display:flex;gap:8px;margin-bottom:24px}.auth-mode button{flex:1}.auth-mode button[aria-pressed="true"]{background:#4b62ba;border-color:#9eb6ff;color:white}
 
 .auth > button.primary{margin-top:24px}
+
+.option-dialog .option-wait{margin-top:20px}
