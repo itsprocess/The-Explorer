@@ -7,8 +7,9 @@ export type Requirement=TraitCondition|{kind:'defining';value:DefiningTrait}|{ki
 export type Outcome=({kind:'give';awards:TraitSpec[];badge:boolean}|{kind:'challenge';requirement:Requirement;present:SimpleOutcome;absent:SimpleOutcome}|SimpleOutcome)&{standing?:StandingShift};
 export type SimpleOutcome=({kind:'kill'}|{kind:'teleport';destination:{x:number;y:number}}|{kind:'badge'}|{kind:'none'}|{kind:'relic'})&{standing?:StandingShift};
 export type Occurrences={relic?:boolean;death:boolean;teleport:{x:number;y:number}|null;gift:Extract<Outcome,{kind:'give'}>|null;challenge:Extract<Outcome,{kind:'challenge'}>|null;option:{policy:'visit'|'life';choices:Outcome[]}|null};
+export const teleportRange=(x:number,y:number)=>Math.max(100,10*Math.hypot(x,y));
 export function teleportDestination(seed:string,x:number,y:number,channel='teleport'){
- const radius=Math.max(50,Math.hypot(x,y)),angle=random(seed,channel+':angle',x,y)*Math.PI*2,reach=Math.sqrt(random(seed,channel+':radius',x,y))*radius;
+ const radius=teleportRange(x,y),angle=random(seed,channel+':angle',x,y)*Math.PI*2,reach=Math.sqrt(random(seed,channel+':radius',x,y))*radius;
  return {x:Math.round(x+Math.cos(angle)*reach),y:Math.round(y+Math.sin(angle)*reach)};
 }
 export function occurrencesFor(seed:string,x:number,y:number,v:Record<string,number>,fields:{id:string;enumId?:string}[]):Occurrences{
@@ -34,3 +35,16 @@ export function canCauseDeath(outcome:Outcome):boolean{return outcome.kind==='ki
 export function limitLethalChoices(choices:Outcome[]):Outcome[]{let retained=false;return choices.map(choice=>{if(!canCauseDeath(choice))return choice;if(!retained){retained=true;return choice;}return {kind:'badge'};});}
 
 export function challengeFailure(outcome:SimpleOutcome):SimpleOutcome{return outcome.kind==='badge'?{...outcome,kind:'none'}:outcome;}
+
+/** Refresh destinations only; preserve cached encounter assignments and their authored prose. */
+export function retargetTeleports(o:Occurrences,seed:string,x:number,y:number):Occurrences{
+ const next=structuredClone(o);
+ const update=(outcome:Outcome,channel:string)=>{
+  if(outcome.kind==='teleport')outcome.destination=teleportDestination(seed,x,y,channel);
+  if(outcome.kind==='challenge'){update(outcome.present,channel+'yes');update(outcome.absent,channel+'no');}
+ };
+ if(next.teleport)next.teleport=teleportDestination(seed,x,y);
+ if(next.challenge)update(next.challenge,'challenge');
+ next.option?.choices.forEach((choice,i)=>update(choice,'option-'+i));
+ return next;
+}

@@ -1,5 +1,5 @@
 import {needsDeathNarrativeRepair,narrativeOutcomes} from './occurrence-narrative';
-import {limitLethalChoices} from './occurrences';
+import {limitLethalChoices,retargetTeleports,teleportDestination} from './occurrences';
 import {fillCharacter} from './character-text';
 import {settingInput,settingInstructions,sceneInstructionsFor,neighborContinuity} from './lean-generation';
 import {interpretPass,occurrenceText,type OccurrenceText} from './interpretation';
@@ -12,7 +12,7 @@ import {db,remember,readPackage,namespace,worldSeed} from './server';
 import {complete} from './openai';
 import {savedImage,scheduleInitialImage} from './location-images';
 import {entitySchema,sceneSchemaFor,compileScene,detailPrompt,scenePrompt,assertScene,preparedDetails,originBrief,PROMPT_VERSION,type Scene,type Region} from './prompts';
-export type CellPackage={playerDeathRevision?:number;encounterRevision?:number;presentationRevision?:number;optionRevision?:number;occurrenceText?:OccurrenceText;context:CellContext;regions:Region[];scene:Scene;created:number;pass2Prompt:unknown;pass2Result:unknown;imagePackage:unknown};
+export type CellPackage={portalRangeRevision?:number;playerDeathRevision?:number;encounterRevision?:number;presentationRevision?:number;optionRevision?:number;occurrenceText?:OccurrenceText;context:CellContext;regions:Region[];scene:Scene;created:number;pass2Prompt:unknown;pass2Result:unknown;imagePackage:unknown};
 export const cellKey=(x:number,y:number)=>namespace()+'cell:'+x+':'+y;
 export const stageKey=(x:number,y:number)=>namespace()+'details:'+x+':'+y;
 async function ensureRegions(c:CellContext):Promise<Region[]>{
@@ -51,6 +51,13 @@ async function ensureSettings(cells:CellContext[]):Promise<Map<string,SettingPac
 }
 export async function ensureCell(x:number,y:number):Promise<CellPackage>{
  const cached=await readPackage<CellPackage>(cellKey(x,y));if(cached){
+  if(cached.portalRangeRevision!==2){
+   const c=cached.context;
+   if(c.occurrences){c.occurrences=retargetTeleports(c.occurrences,c.seed,x,y);c.portalDestination=c.occurrences.teleport;}
+   for(const portal of c.portalExits??[])portal.destination=teleportDestination(c.seed,x,y,'origin-exit-'+portal.direction);
+   cached.portalRangeRevision=2;
+   await db().prepare('UPDATE packages SET value=? WHERE key=? AND lease=0').bind(JSON.stringify(cached),cellKey(x,y)).run();
+  }
   if(cached.context.occurrences&&(cached.encounterRevision!==4||cached.playerDeathRevision!==1&&narrativeOutcomes(cached.context.occurrences).some(l=>l.outcome.kind==='kill')||needsDeathNarrativeRepair(cached.context.occurrences,cached.occurrenceText?.outcomes))){cached.occurrenceText=await occurrenceText(cached.context,{description:cached.scene.description,existingSetup:cached.occurrenceText?.setup});cached.encounterRevision=4;cached.playerDeathRevision=1;await db().prepare('UPDATE packages SET value=? WHERE key=? AND lease=0').bind(JSON.stringify(cached),cellKey(x,y)).run();}
   if(cached.presentationRevision!==3){
    if(cached.context.occurrences?.option)cached.context.occurrences.option.choices=limitLethalChoices(cached.context.occurrences.option.choices);
@@ -109,7 +116,7 @@ export async function ensureCell(x:number,y:number):Promise<CellPackage>{
    const counterpart=await readPackage(namespace()+'transition:'+(x+dx)+':'+(y+dy)+':'+reverse);
    if(counterpart)await db().prepare('INSERT INTO server_settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').bind(namespace()+'boundary-settled:'+edge.id,JSON.stringify({settled:true,opening:edge.opening,material:edge.material})).run();
   }
-  const packet={playerDeathRevision:1,encounterRevision:4,presentationRevision:3,optionRevision:2,context,regions,occurrenceText:prose,scene:response.result,created:Date.now(),pass2Prompt:prompt,pass2Result:{...response,version:PROMPT_VERSION},imagePackage:{enabled:true}};
+  const packet={portalRangeRevision:2,playerDeathRevision:1,encounterRevision:4,presentationRevision:3,optionRevision:2,context,regions,occurrenceText:prose,scene:response.result,created:Date.now(),pass2Prompt:prompt,pass2Result:{...response,version:PROMPT_VERSION},imagePackage:{enabled:true}};
   await scheduleInitialImage(packet);return packet;
  }));
 }
