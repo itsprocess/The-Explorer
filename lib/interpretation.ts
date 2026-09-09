@@ -10,7 +10,7 @@ export async function interpretPass(c:CellContext,category:string,prior:unknown)
  if(category==='civilization'&&!fields.some(f=>f.value>0))return {description:''};
  if(category==='variation'&&fields.every(f=>f.value<=.15))return {description:''};
  return remember(namespace()+'interpret:'+c.x+':'+c.y+':'+category,'interpretation',async()=>{
- const response=await complete<{name?:string;description:string}>('interpret_'+category,object(category==='biome'?{name:text,description:text}:{description:text}),{instructions:interpretationInstructions(category),input:JSON.stringify({coordinate:[c.x,c.y],fields,prior})});return response.result;
+ const response=await complete<{name?:string;description:string}>('interpret_'+category,object(category==='biome'||category==='civilization'?{name:text,description:text}:{description:text}),{instructions:interpretationInstructions(category),input:JSON.stringify({coordinate:[c.x,c.y],fields,...(category==='biome'?{civilizationContext:c.fieldwork.filter(f=>f.category==='civilization'&&f.present&&f.value>0)}:{}),prior})});return response.result;
  });
 }
 export async function occurrenceText(c:CellContext,setting:unknown):Promise<OccurrenceText|undefined>{

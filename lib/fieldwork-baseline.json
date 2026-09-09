@@ -1,7 +1,7 @@
 {
   "version": 3,
   "name": "Variable sandbox",
-  "seed": "oops-all-goblins-in-a-trenchcoat",
+  "seed": "the-pigeons-have-zoning-permits",
   "variables": [
     {
       "id": "natural.elevation",
@@ -1338,15 +1338,15 @@
       "id": "4c4c30b1-74a0-47c0-8d71-272314c61c38",
       "appName": "civilization.density",
       "naturalName": "Civilization Density",
-      "description": "Concentration of current organized inhabitants, human or otherwise; absence does not imply absence of past civilization.",
+      "description": "Current population density: actual living inhabitants, human or non-human, independent of infrastructure, wealth, age and advancement.",
       "color": "#e6bd74",
       "category": "civilization",
       "type": "gradient",
       "cutoff": 0.5,
       "off": "Absent",
       "on": "Present",
-      "low": "Deserted at zero; near zero, lonely wanderers or the faintest scattered habitation amid vast emptiness.",
-      "high": "A teeming metropolis or equivalent concentration: inhabitants press together in an almost unbroken flood of activity.",
+      "low": "At zero, no current residents. Near zero, occasional or widely scattered inhabitants go about daily life.",
+      "high": "Intensely populated: throngs of residents fill a bustling city, sprawling community or equally crowded setting appropriate to infrastructure.",
       "steps": [],
       "layers": [
         {
@@ -2825,8 +2825,8 @@
           "reference": "",
           "blend": "replace",
           "weight": 0.12,
-          "scaleX": 50,
-          "scaleY": 40,
+          "scaleX": 25,
+          "scaleY": 20,
           "offsetX": 0,
           "offsetY": 0,
           "rotation": 0,
@@ -2859,7 +2859,7 @@
           "bias": 0,
           "invert": false,
           "constant": 0.5,
-          "sparkCutoff": 0.992,
+          "sparkCutoff": 0.984,
           "sparkFloor": 0.5
         }
       ]
@@ -2888,8 +2888,8 @@
           "reference": "",
           "blend": "replace",
           "weight": 0.12,
-          "scaleX": 37.5,
-          "scaleY": 30,
+          "scaleX": 18.75,
+          "scaleY": 15,
           "offsetX": 0,
           "offsetY": 0,
           "rotation": 0,
@@ -2922,7 +2922,7 @@
           "bias": 0,
           "invert": false,
           "constant": 0.5,
-          "sparkCutoff": 0.992,
+          "sparkCutoff": 0.984,
           "sparkFloor": 0.5
         }
       ]
@@ -2951,8 +2951,8 @@
           "reference": "",
           "blend": "replace",
           "weight": 0.12,
-          "scaleX": 80,
-          "scaleY": 64,
+          "scaleX": 40,
+          "scaleY": 32,
           "offsetX": 0,
           "offsetY": 0,
           "rotation": 0,
@@ -2985,7 +2985,7 @@
           "bias": 0,
           "invert": false,
           "constant": 0.5,
-          "sparkCutoff": 0.992,
+          "sparkCutoff": 0.984,
           "sparkFloor": 0.5
         }
       ]
@@ -3014,8 +3014,8 @@
           "reference": "",
           "blend": "replace",
           "weight": 0.12,
-          "scaleX": 42.5,
-          "scaleY": 34,
+          "scaleX": 21.25,
+          "scaleY": 17,
           "offsetX": 0,
           "offsetY": 0,
           "rotation": 0,
@@ -3048,7 +3048,7 @@
           "bias": 0,
           "invert": false,
           "constant": 0.5,
-          "sparkCutoff": 0.992,
+          "sparkCutoff": 0.984,
           "sparkFloor": 0.5
         }
       ]
@@ -3077,8 +3077,8 @@
           "reference": "",
           "blend": "replace",
           "weight": 0.12,
-          "scaleX": 60,
-          "scaleY": 48,
+          "scaleX": 30,
+          "scaleY": 24,
           "offsetX": 0,
           "offsetY": 0,
           "rotation": 0,
@@ -3111,7 +3111,7 @@
           "bias": 0,
           "invert": false,
           "constant": 0.5,
-          "sparkCutoff": 0.992,
+          "sparkCutoff": 0.984,
           "sparkFloor": 0.5
         }
       ]
@@ -3140,8 +3140,8 @@
           "reference": "",
           "blend": "replace",
           "weight": 0.12,
-          "scaleX": 32.5,
-          "scaleY": 26,
+          "scaleX": 16.25,
+          "scaleY": 13,
           "offsetX": 0,
           "offsetY": 0,
           "rotation": 0,
@@ -3174,7 +3174,7 @@
           "bias": 0,
           "invert": false,
           "constant": 0.5,
-          "sparkCutoff": 0.992,
+          "sparkCutoff": 0.984,
           "sparkFloor": 0.5
         }
       ]
@@ -3203,8 +3203,8 @@
           "reference": "",
           "blend": "replace",
           "weight": 0.12,
-          "scaleX": 45,
-          "scaleY": 36,
+          "scaleX": 22.5,
+          "scaleY": 18,
           "offsetX": 0,
           "offsetY": 0,
           "rotation": 0,
@@ -3237,7 +3237,7 @@
           "bias": 0,
           "invert": false,
           "constant": 0.5,
-          "sparkCutoff": 0.992,
+          "sparkCutoff": 0.984,
           "sparkFloor": 0.5
         }
       ]
@@ -3266,8 +3266,8 @@
           "reference": "",
           "blend": "replace",
           "weight": 0.12,
-          "scaleX": 35,
-          "scaleY": 28,
+          "scaleX": 17.5,
+          "scaleY": 14,
           "offsetX": 0,
           "offsetY": 0,
           "rotation": 0,
@@ -3300,7 +3300,7 @@
           "bias": 0,
           "invert": false,
           "constant": 0.5,
-          "sparkCutoff": 0.992,
+          "sparkCutoff": 0.984,
           "sparkFloor": 0.5
         }
       ]
@@ -3341,7 +3341,7 @@
           "bias": 0,
           "invert": false,
           "constant": 0.5,
-          "sparkCutoff": 0.988,
+          "sparkCutoff": 0.976,
           "sparkFloor": 1
         }
       ]
@@ -3382,7 +3382,7 @@
           "bias": 0,
           "invert": false,
           "constant": 0.5,
-          "sparkCutoff": 0.98,
+          "sparkCutoff": 0.96,
           "sparkFloor": 1
         }
       ]
@@ -3423,7 +3423,7 @@
           "bias": 0,
           "invert": false,
           "constant": 0.5,
-          "sparkCutoff": 0.984,
+          "sparkCutoff": 0.968,
           "sparkFloor": 1
         }
       ]
@@ -3464,7 +3464,7 @@
           "bias": 0,
           "invert": false,
           "constant": 0.5,
-          "sparkCutoff": 0.984,
+          "sparkCutoff": 0.968,
           "sparkFloor": 1
         }
       ]
@@ -3722,7 +3722,7 @@
           "bias": 0,
           "invert": false,
           "constant": 0.5,
-          "sparkCutoff": 0.984,
+          "sparkCutoff": 0.968,
           "sparkFloor": 1
         }
       ]

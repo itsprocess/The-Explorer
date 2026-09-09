@@ -34,7 +34,7 @@
     "rateLimitPauseMs": 60000
   },
   "world": {
-    "seed": "oops-all-goblins-in-a-trenchcoat",
+    "seed": "the-pigeons-have-zoning-permits",
     "version": "world-7",
     "coordinateLimit": 1000000000
   },
@@ -209,7 +209,7 @@
     "centers": {
       "town": {
         "size": 29,
-        "radiusMultiplier": 1.0,
+        "radiusMultiplier": 1,
         "occupancyChance": 0.18
       },
       "ruins": {
@@ -219,27 +219,27 @@
       },
       "fort": {
         "size": 53,
-        "radiusMultiplier": 1.0,
+        "radiusMultiplier": 1,
         "occupancyChance": 0.3
       },
       "garden": {
         "size": 43,
-        "radiusMultiplier": 1.0,
+        "radiusMultiplier": 1,
         "occupancyChance": 0.2
       },
       "quarry": {
         "size": 39,
-        "radiusMultiplier": 1.0,
+        "radiusMultiplier": 1,
         "occupancyChance": 0.25
       },
       "fossils": {
         "size": 31,
-        "radiusMultiplier": 1.0,
+        "radiusMultiplier": 1,
         "occupancyChance": 0.2
       },
       "impact": {
         "size": 79,
-        "radiusMultiplier": 1.0,
+        "radiusMultiplier": 1,
         "occupancyChance": 0.12
       },
       "lakes": {

@@ -60,9 +60,9 @@
     "high": "The river presents an uncrossable barrier at this cell; no narrative ford or bridge overrides that constraint."
   },
   "civilization.density": {
-    "description": "Concentration of current organized inhabitants, human or otherwise; absence does not imply absence of past civilization.",
-    "low": "Deserted at zero; near zero, lonely wanderers or the faintest scattered habitation amid vast emptiness.",
-    "high": "A teeming metropolis or equivalent concentration: inhabitants press together in an almost unbroken flood of activity."
+    "description": "Current population density: actual living inhabitants, human or non-human, independent of infrastructure, wealth, age and advancement.",
+    "low": "At zero, no current residents. Near zero, occasional or widely scattered inhabitants go about daily life.",
+    "high": "Intensely populated: throngs of residents fill a bustling city, sprawling community or equally crowded setting appropriate to infrastructure."
   },
   "civilization.age": {
     "description": "How far into the past civilization impact reaches, independent of present population, sophistication or ruin condition.",

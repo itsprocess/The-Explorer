@@ -127,6 +127,13 @@
       "when": 1788914260976,
       "tag": "0017_reset_dev_goblins",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1788915842487,
+      "tag": "0018_reset_dev_pigeons",
+      "breakpoints": true
     }
   ]
 }

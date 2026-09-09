@@ -24,28 +24,43 @@ async function ensureRegions(c:CellContext):Promise<Region[]>{
  const failed=results.find(r=>r.status==='rejected');if(failed?.status==='rejected')throw failed.reason;
  return results.map(r=>(r as PromiseFulfilledResult<Region>).value);
 }
+type SettingPackage={name:string;biome:{name?:string;description:string};civilization:{name?:string;description:string};regions:Region[];population:number;infrastructure:number};
+async function ensureSetting(c:CellContext):Promise<SettingPackage>{
+ return remember(namespace()+'setting:'+c.x+':'+c.y,'setting',async()=>{
+  const adjacent=[];
+  for(const [direction,[dx,dy]] of Object.entries(directions)){
+   if(!c.connections[direction as keyof typeof directions])continue;
+   const saved=await readPackage<SettingPackage>(namespace()+'setting:'+(c.x+dx)+':'+(c.y+dy));
+   if(saved)adjacent.push({direction,coordinate:[c.x+dx,c.y+dy],name:saved.name,civilization:saved.civilization,population:saved.population,infrastructure:saved.infrastructure});
+  }
+  const biome=await interpretPass(c,'biome',{adjacent});
+  const regions=await ensureRegions(c);
+  const civilization=await interpretPass(c,'civilization',{biome,regions,adjacent});
+  const value=(id:string)=>c.fieldwork.find(f=>f.id===id&&f.present)?.value??0;
+  return {name:civilization.name?.trim()||biome.name?.trim()||c.biome,biome,civilization,regions,population:value('civilization.density'),infrastructure:value('civilization.infrastructure')};
+ });
+}
 export async function ensureCell(x:number,y:number):Promise<CellPackage>{
  const cached=await readPackage<CellPackage>(cellKey(x,y));if(cached)return cached;await assertProviderReady();
  const context=contextFor(worldSeed(),x,y);if(!context.exists)throw Error('There is no cell at those coordinates.');
  await promoteGeneration(cellKey(x,y));
  return withGenerationScope(cellKey(x,y),()=>remember(cellKey(x,y),'cell',async()=>{
-  const biome=await interpretPass(context,'biome',null);
-  if(biome.name?.trim()){context.biome=biome.name.trim();context.environment.landcover=context.biome;}
-  const regions=await ensureRegions(context);
-  const civilization=await interpretPass(context,'civilization',{biome,regions});
+  const setting=await ensureSetting(context);
+  const {biome,civilization,regions}=setting;
+  context.biome=setting.name;context.environment.landcover=setting.name;
   const variation=await interpretPass(context,'variation',{biome,civilization});
   const interpreted={biome,civilization,variation};
   const prose=await occurrenceText(context,interpreted);
 
   const stage=await remember(stageKey(x,y),'details',async()=>{return {prompt:detailPrompt(context,regions),result:preparedDetails(context),model:'local',usage:{input_tokens:0,output_tokens:0,total_tokens:0},created:Date.now()};});
-  // Commit the biome-only peek before the transition. Arrival reuses this exact interpretation.
+  // Commit the combined inhabited-setting peek before the transition. Arrival reuses this exact interpretation.
   const neighbors=[];
   for(const [direction,[dx,dy]] of Object.entries(directions)){if(!context.connections[direction as keyof typeof directions])continue;
    const saved=await readPackage<CellPackage>(cellKey(x+dx,y+dy));
    const next=saved?.context??contextFor(worldSeed(),x+dx,y+dy);
-   const nextBiome=saved?{name:saved.context.biome}:await interpretPass(next,'biome',null);
+   const nextSetting=saved?{name:saved.context.biome}:await ensureSetting(next);
    const edge=context.edges.find(e=>e.direction===direction)!;
-   edge.glimpse=nextBiome.name?.trim()||next.biome;
+   edge.glimpse=nextSetting.name;
    if(saved)neighbors.push({direction,coordinate:[next.x,next.y],biome:edge.glimpse,description:saved.scene.description,continuity_facts:saved.scene.continuity_facts,shared_exit:saved.scene.exits.find(e=>e.direction===({north:'south',south:'north',east:'west',west:'east'} as Record<string,string>)[direction])?.description});
   }
   const prompt=scenePrompt(context,regions,{details:[],regional_texture:JSON.stringify(interpreted)},neighbors);

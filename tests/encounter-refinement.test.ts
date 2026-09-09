@@ -24,7 +24,7 @@ test('civilization scales the shared event candidate drive smoothly from 1 to 3'
 });
 test('generation commits adjacent biome peeks and separates reverse scenery from shared geometry',()=>{
  const generation=readFileSync(new URL('../lib/generation.ts',import.meta.url),'utf8');
- assert.match(generation,/await interpretPass\(next,'biome',null\)/);assert.match(generation,/edge.glimpse=nextBiome.name/);
+ assert.match(generation,/await ensureSetting\(next\)/);assert.match(generation,/edge.glimpse=nextSetting.name/);
  const prompts=readFileSync(new URL('../lib/prompts.ts',import.meta.url),'utf8');assert.match(prompts,/immediately adjacent cell/);assert.match(prompts,/do not copy that view/);
  const policy=readFileSync(new URL('../lib/interpretation.ts',import.meta.url),'utf8');assert.match(policy,/Never narrate that no challenge exists/);
 });
