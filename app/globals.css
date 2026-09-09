@@ -90,3 +90,5 @@
 .badges a.badge{display:block;color:inherit;text-decoration:none}.badges a.badge:hover{border-color:var(--accent,#9eb6ff)}.badge-story{max-width:800px}.badge-story-image{width:100%;border-radius:12px}.badge-story section{margin:24px 0}.badge-story p{line-height:1.7}
 
 .auth-mode{display:flex;gap:8px;margin-bottom:24px}.auth-mode button{flex:1}.auth-mode button[aria-pressed="true"]{background:#4b62ba;border-color:#9eb6ff;color:white}
+
+.auth > button.primary{margin-top:24px}
