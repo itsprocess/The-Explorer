@@ -1,6 +1,7 @@
 export const serverStatsSQL=`SELECT
  (SELECT COUNT(*) FROM (SELECT DISTINCT x,y FROM visits)) AS locations,
  COALESCE(SUM(CAST(json_extract(value,'$.deaths') AS INTEGER)),0) AS deaths,
+ COALESCE(SUM(CAST(json_extract(value,'$.distanceTotal') AS INTEGER)),0) AS moves,
  COALESCE(MAX(CAST(json_extract(value,'$.furthest') AS REAL)),0) AS furthest,
  SUM(CASE WHEN CAST(json_extract(value,'$.furthest') AS REAL)>0 THEN 1 ELSE 0 END) AS explorers
  FROM characters`;

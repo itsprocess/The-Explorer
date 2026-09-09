@@ -11,13 +11,13 @@ import type {Character} from '../lib/rules';
 import type {CellPackage} from '../lib/generation';
 const player=():Character=>({id:'a',name:'Ari',x:0,y:0,alive:true,deaths:0,furthest:0,badges:[],consumed:[]});
 const cell=():CellPackage=>({context:{seed:'fixture',version:'1',x:1,y:0,distance:1,occurrences:{relic:true,death:false,teleport:null,gift:null,challenge:null,option:null}},scene:{title:'Hollow'},occurrenceText:{choices:[],outcomes:[{key:'relic',text:'{character_name} uncovered a memory singing in the stone.',repeatText:'{character_name} heard the familiar memory again.',badgeTitle:'',badgeDescription:'',awards:[]}]}} as unknown as CellPackage);
-test('travel accumulates route length and teleport displacement; rebirth excludes the return jump',()=>{
+test('travel counts moves and teleport once; rebirth excludes the return jump',()=>{
  const c=player();recordTravel(c,1,0);c.x=1;recordTravel(c,0,0);c.x=0;
  c.pendingTransport={token:'t',destination:{x:3,y:4},narrative:'Departed.',mechanism:'teleport'};
  const moved=transferCharacter(c,'t',{x:3,y:4,distance:5,title:'Hill'}).character;
- assert.equal(moved.distanceLife,7);assert.equal(moved.distanceTotal,7);
+ assert.equal(moved.distanceLife,3);assert.equal(moved.distanceTotal,3);
  const reborn=beginLife({...moved,alive:false,relicsLife:2,relicsTotal:3});
- assert.equal(reborn.distanceLife,0);assert.equal(reborn.distanceTotal,7);assert.equal(reborn.relicsLife,0);assert.equal(reborn.relicsTotal,3);
+ assert.equal(reborn.distanceLife,0);assert.equal(reborn.distanceTotal,3);assert.equal(reborn.relicsLife,0);assert.equal(reborn.relicsTotal,3);
  assert.equal(c.distanceTotal,2);
 });
 test('relic discovery counts once per character across lives without awarding an item or badge',()=>{

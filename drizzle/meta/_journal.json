@@ -204,6 +204,13 @@
       "when": 1788968480887,
       "tag": "0028_dev_unlock",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "6",
+      "when": 1788968480888,
+      "tag": "0029_move_counts",
+      "breakpoints": true
     }
   ]
 }

@@ -43,6 +43,7 @@ The stack contains biome, civilization, variation and occurrence fields. River i
 - AI compiles variables into a cohesive setting; peeks expose terrain, infrastructure and enclosure. Directional transitions preserve neighboring geometry.
 - Text and calculations gate travel; images load asynchronously. Saved images are reused. Only unlocked Dev controls can force regeneration.
 - Options pause travel. Automatic challenges use the actual trait, possession, status or standing. Failed checks cannot award achievement badges. Teleport Continue/Wait controls are UI, not lore; Wait allows inspection and markers, while attempted travel reopens the encounter.
+- Travel totals count completed moves (teleports count once), with life/lifetime counters and a global all-character sum; geometric distance from origin remains separate. See [move counts](docs/MOVE-COUNTS.md).
 - Personal markers and three minimap tones distinguish unexplored, others’ discoveries and your visits. Discoverer credits, relic records and occasional lasting traces make the world shared.
 - Badges are unique achievements and open shareable image/story pages without coordinates. Death preserves permanent progression, defining trait and affiliation standings; temporary possessions/statuses follow their lifetime rules. Give up is available on the profile.
 - Dev travel remains isolated until Return to normal; it does not discover locations or advance the real run.

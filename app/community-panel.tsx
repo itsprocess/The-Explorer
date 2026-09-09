@@ -10,5 +10,5 @@ export default function CommunityPanel({x,y}:{x:number;y:number}){
  },[x,y]);
  const number=(v:number|undefined)=>v==null?'—':v.toLocaleString(undefined,{maximumFractionDigits:1});
  return <aside className="community-panel"><section className="community-card"><h2>Players Here</h2>{data?data.nearby.length?<ul>{data.nearby.map((p:any)=><li key={p.id}><PlayerMark/><a href={appPath('/profile/')+p.id}>{p.name}</a></li>)}</ul>:<p className="muted">No other players here.</p>:<p className="muted">—</p>}</section>
- <section className="community-card"><h2>World</h2><dl>{[['Locations Visited',data?.stats.locations],['Total Deaths',data?.stats.deaths],['Furthest Distance',data?.stats.furthest],['Explorers',data?.stats.explorers??(data?0:undefined)]].map(([label,value])=><div key={label}><dt>{label}</dt><dd>{number(value)}</dd></div>)}</dl></section></aside>;
+ <section className="community-card"><h2>World</h2><dl>{[['Locations Visited',data?.stats.locations],['Total Moves',data?.stats.moves],['Total Deaths',data?.stats.deaths],['Furthest Distance',data?.stats.furthest],['Explorers',data?.stats.explorers??(data?0:undefined)]].map(([label,value])=><div key={label}><dt>{label}</dt><dd>{number(value)}</dd></div>)}</dl></section></aside>;
 }

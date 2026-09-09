@@ -1,8 +1,8 @@
 import type {Character} from './rules';
 
-/** Cell units along the route, including displacement through a teleport. */
-export function recordTravel(c:Character,x:number,y:number){
- const distance=Math.hypot(x-c.x,y-c.y);
+/** One completed travel operation, regardless of displacement. Respawn and Dev travel do not count. */
+export function recordTravel(c:Character,_x:number,_y:number){
+ const distance=1;
  c.distanceLife=(c.distanceLife??0)+distance;
  c.distanceTotal=(c.distanceTotal??0)+distance;
 }
