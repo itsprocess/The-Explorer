@@ -12,7 +12,7 @@ export async function GET(request:Request){try{
  return Response.json(await imageStatus(c.x,c.y),{headers:{'Cache-Control':'no-store'}});
 }catch(e){return errorResponse(e);}}
 export async function POST(request:Request){try{
- checkOrigin(request);await requireOwner();const session=await requireCharacter(request);
+ checkOrigin(request);await requireOwner(request);const session=await requireCharacter(request);
  const body:any=await request.json(),real=JSON.parse((await characterRow(session.owner,session.id)).value),c=real.devState??real;
  if(body.force!==true||body.x!==c.x||body.y!==c.y)throw new AppError('Explicit Dev regeneration for the current cell is required.',403);
  const p=real.devState||!c.alive?await devCell(c.x,c.y):await readPackage<CellPackage>(cellKey(c.x,c.y));if(!p)throw new AppError('Load the location first.',409);

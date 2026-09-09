@@ -10,10 +10,10 @@ export async function reserveLegacyNames(){
   await db().prepare('INSERT OR IGNORE INTO character_credentials(character,name_key,password_hash,created) VALUES(?,?,NULL,?)').bind(row.id,key,Date.now()).run();
  }
 }
-function cookieToken(request:Request){return request.headers.get('cookie')?.split(';').map(s=>s.trim()).find(s=>s.startsWith(COOKIE+'='))?.slice(COOKIE.length+1)||'';}
+export function cookieToken(request:Request){return request.headers.get('cookie')?.split(';').map(s=>s.trim()).find(s=>s.startsWith(COOKIE+'='))?.slice(COOKIE.length+1)||'';}
 export async function characterSession(request:Request){
  const token=cookieToken(request);if(!/^[0-9a-f]{64}$/.test(token))return null;
- return db().prepare('SELECT c.id,c.owner FROM character_sessions s JOIN characters c ON c.id=s.character WHERE s.token_hash=? AND s.expires>?').bind(await tokenHash(token),Date.now()).first<{id:string;owner:string}>();
+ return db().prepare('SELECT c.id,c.owner,s.dev_unlocked FROM character_sessions s JOIN characters c ON c.id=s.character WHERE s.token_hash=? AND s.expires>?').bind(await tokenHash(token),Date.now()).first<{id:string;owner:string;dev_unlocked:number}>();
 }
 export async function requireCharacter(request:Request){const session=await characterSession(request);if(!session)throw new AppError('Log in to a character.',401);return session;}
 export async function newSession(character:string,request:Request){
