@@ -1,0 +1,1 @@
+Variety distance escalation uses reach 100 (formerly 200), with power 0.5 unchanged. The eight variation fields now reach the former intensity at half the distance from origin. Origin values and spatial noise shapes are unchanged. Existing generated scenes and images remain saved; no world reset accompanies this adjustment.

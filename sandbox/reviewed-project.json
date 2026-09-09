@@ -3744,7 +3744,7 @@
   "uniquenessRevision": 3,
   "uniquenessEscalation": {
     "enabled": true,
-    "reach": 200,
+    "reach": 100,
     "power": 0.5
   },
   "occurrenceCivilizationBoost": 3
