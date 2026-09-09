@@ -96,11 +96,12 @@ export async function ensureCell(x:number,y:number):Promise<CellPackage>{
   const prompt=scenePrompt(context,regions,{details:[],regional_texture:JSON.stringify(interpreted)},neighbors);
   const sceneInput=JSON.parse(prompt.input);
   delete sceneInput.context.ratings;delete sceneInput.context.environment;
-  if(!context.event&&!context.stateRule&&!context.hostilityPolicy.enforcesForeignHonors)prompt.instructions=sceneInstructionsFor(context)+(context.protectedOrigin?originBrief:'');
+  if(!context.event&&!context.stateRule&&!context.hostilityPolicy.enforcesForeignHonors)prompt.instructions=sceneInstructionsFor(context)+(context.protectedOrigin?originBrief:'')+(context.portalExits.length?' This sealed origin has four authorized teleporter exits. Describe and illustrate all four as active departures through the surrounding barrier, not walkable passages or sealed doors. Their destinations are nonadjacent and unknown; do not use neighboring terrain as their destination peek.':'');
   prompt.input=JSON.stringify({...sceneInput,interpreted,occurrence_setup:prose?.setup??null});let response=await complete<Scene>('canonical_scene',sceneSchemaFor(context),prompt);
   response.result=compileScene(response.result);
   try{assertScene(response.result,context);}catch(e){prompt.instructions+=' Correction required: '+(e as Error).message+' Regenerate the complete scene satisfying the schema and every narrative constraint.';response=await complete<Scene>('canonical_scene',sceneSchemaFor(context),prompt);response.result=compileScene(response.result);try{assertScene(response.result,context);}catch(finalError){await db().prepare("INSERT INTO server_settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").bind(cellKey(x,y)+':diagnostic',JSON.stringify({at:Date.now(),message:(finalError as Error).message})).run();throw finalError;}}
   for(const exit of response.result.exits){
+   if(context.portalExits.some(p=>p.direction===exit.direction))continue;
    const edge=context.edges.find(e=>e.direction===exit.direction)!;
    await remember(namespace()+'transition:'+x+':'+y+':'+exit.direction,'transition',async()=>({from:[x,y],direction:exit.direction,boundary:edge.id,opening:edge.opening,material:edge.material,description:exit.description,created:Date.now()}));
    const [dx,dy]=directions[exit.direction],reverse=({north:'south',south:'north',east:'west',west:'east'} as const)[exit.direction];

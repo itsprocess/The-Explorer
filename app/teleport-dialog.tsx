@@ -1,8 +1,8 @@
 "use client";
 import {useEffect,useRef} from 'react';
 import {Orbit} from 'lucide-react';
-export default function TeleportDialog({setup,pending,onConfirm}:{setup?:string;pending:{token:string;mechanism:string;narrative?:string};onConfirm:()=>void}){
+export default function TeleportDialog({setup,pending,onConfirm,onGiveUp}:{setup?:string;pending:{token:string;mechanism:string;narrative?:string};onGiveUp?:()=>void;onConfirm:()=>void}){
  const dialog=useRef<HTMLDialogElement>(null);
  useEffect(()=>{dialog.current?.showModal();return()=>dialog.current?.close();},[]);
- return <dialog ref={dialog} className="about-dialog teleport-dialog" aria-labelledby="teleport-title" onCancel={e=>e.preventDefault()}><div className="about-content"><Orbit size={40} aria-hidden="true"/><h2 id="teleport-title">An unexpected journey</h2>{(setup||pending.narrative)&&<p>{setup||pending.narrative}</p>}<p>You’ll be transported when you click OK.</p><button autoFocus className="primary" onClick={e=>{e.currentTarget.disabled=true;onConfirm();}}>Continue</button></div></dialog>;
+ return <dialog ref={dialog} className="about-dialog teleport-dialog" aria-labelledby="teleport-title" onCancel={e=>e.preventDefault()}><div className="about-content"><Orbit size={40} aria-hidden="true"/><h2 id="teleport-title">An unexpected journey</h2>{(setup||pending.narrative)&&<p>{setup||pending.narrative}</p>}<p>You’ll be transported when you click OK.</p><button autoFocus className="primary" onClick={e=>{e.currentTarget.disabled=true;onConfirm();}}>Continue</button>{onGiveUp&&<button className="give-up" onClick={onGiveUp}>Give up this life</button>}</div></dialog>;
 }
