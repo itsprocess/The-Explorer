@@ -40,7 +40,7 @@ export async function snapshot(owner:string,id?:string,offset=0){
  const known=(await db().prepare('SELECT DISTINCT x,y FROM visits WHERE x BETWEEN ? AND ? AND y BETWEEN ? AND ?').bind(x-5,x+5,y-5,y+5).all<{x:number;y:number}>()).results;
  const personal=c?(await db().prepare('SELECT DISTINCT x,y FROM visits WHERE character=? AND x BETWEEN ? AND ? AND y BETWEEN ? AND ?').bind(c.id,x-5,x+5,y-5,y+5).all<{x:number;y:number}>()).results:[];
  const ownSet=new Set(personal.map(r=>cellKey(r.x,r.y)));
- const tags=c?(await db().prepare('SELECT value FROM server_settings WHERE key LIKE ?').bind(tileTagPrefix(c.id)+'%').all<{value:string}>()).results.map(r=>JSON.parse(r.value)):[];
+ const tags=c?(await db().prepare('SELECT value FROM server_settings WHERE key >= ? AND key < ?').bind(tileTagPrefix(c.id),tileTagPrefix(c.id)+'~').all<{value:string}>()).results.map(r=>JSON.parse(r.value)):[];
  const knownSet=new Set(known.map(r=>cellKey(r.x,r.y)));const map=[];
  for(let dy=-5;dy<=5;dy++)for(let dx=-5;dx<=5;dx++){const a=x+dx,b=y+dy;map.push({x:a,y:b,exists:Math.abs(a)<=LIMIT&&Math.abs(b)<=LIMIT&&exists(worldSeed(),a,b),generated:knownSet.has(cellKey(a,b)),visited:ownSet.has(cellKey(a,b)),icon:tags.find(t=>t.x===a&&t.y===b)?.icon??null});}
  const history=c?(await db().prepare('SELECT id,x,y,value,at FROM visits WHERE character=? ORDER BY at DESC,id DESC LIMIT 26 OFFSET ?').bind(c.id,offset).all<{id:string;x:number;y:number;value:string;at:number}>()).results:[];

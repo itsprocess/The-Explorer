@@ -5,7 +5,7 @@ import {checkCoordinate} from '../../../lib/world';
 import {tileIcons,tileTagPrefix} from '../../../lib/tile-tags';
 export async function GET(request:Request){try{
  const c=await requireCharacter(request);
- const rows=(await db().prepare('SELECT value FROM server_settings WHERE key LIKE ?').bind(tileTagPrefix(c.id)+'%').all<{value:string}>()).results;
+ const rows=(await db().prepare('SELECT value FROM server_settings WHERE key >= ? AND key < ?').bind(tileTagPrefix(c.id),tileTagPrefix(c.id)+'~').all<{value:string}>()).results;
  return Response.json({tags:rows.map(r=>JSON.parse(r.value))},{headers:{'Cache-Control':'private, no-store'}});
 }catch(e){return errorResponse(e);}}
 export async function POST(request:Request){try{

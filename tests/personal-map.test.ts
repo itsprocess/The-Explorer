@@ -1,3 +1,4 @@
+import {DatabaseSync} from 'node:sqlite';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {previewResult} from '../lib/dev-travel-state';
@@ -15,4 +16,13 @@ test('private marker keys separate characters and the API obtains ownership excl
  const code=readFileSync(new URL('../app/api/tags/route.ts',import.meta.url),'utf8');assert.match(code,/requireCharacter\(request\)/);assert.match(code,/tileTagPrefix\(c.id\)/);assert.match(code,/private, no-store/);assert.doesNotMatch(code,/body.character|body.owner|searchParams.get\('character'\)/);
  const dev=readFileSync(new URL('../lib/dev-travel.ts',import.meta.url),'utf8');assert.doesNotMatch(dev,/INSERT.*(?:visits|claims|presence)/);
  const route=readFileSync(new URL('../app/api/game/route.ts',import.meta.url),'utf8');assert.match(route,/await requireOwner\(\);return generationStream\(\(\)=>awaitGenerated\(\(\)=>devTravel/);
+});
+
+test('marker range handles full character IDs and excludes other players',()=>{
+ const db=new DatabaseSync(':memory:');db.exec('CREATE TABLE server_settings(key TEXT PRIMARY KEY,value TEXT);');
+ const a='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',b='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaab';
+ for(const [owner,coords] of [[a,'-100:200'],[a,'0:0'],[b,'0:0']])db.prepare('INSERT INTO server_settings VALUES(?,?)').run(tileTagPrefix(owner)+coords,owner);
+ const rows=db.prepare('SELECT value FROM server_settings WHERE key >= ? AND key < ?').all(tileTagPrefix(a),tileTagPrefix(a)+'~');
+ assert.equal(rows.length,2);assert.ok(rows.every(r=>r.value===a));db.close();
+ for(const name of ['lib/game.ts','app/api/tags/route.ts']){const code=readFileSync(new URL('../'+name,import.meta.url),'utf8');assert.doesNotMatch(code,/key LIKE/);assert.match(code,/key >= \? AND key < \?/);}
 });
