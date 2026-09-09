@@ -9,7 +9,7 @@ import {withGenerationScope} from './generation-scope';
 import {contextFor,directions,type CellContext} from './world';
 import {db,remember,readPackage,namespace,worldSeed} from './server';
 import {complete} from './openai';
-import {savedImage} from './location-images';
+import {savedImage,scheduleInitialImage} from './location-images';
 import {entitySchema,sceneSchemaFor,compileScene,detailPrompt,scenePrompt,assertScene,preparedDetails,PROMPT_VERSION,type Scene,type Region} from './prompts';
 export type CellPackage={optionRevision?:number;occurrenceText?:OccurrenceText;context:CellContext;regions:Region[];scene:Scene;created:number;pass2Prompt:unknown;pass2Result:unknown;imagePackage:unknown};
 export const cellKey=(x:number,y:number)=>namespace()+'cell:'+x+':'+y;
@@ -95,7 +95,8 @@ export async function ensureCell(x:number,y:number):Promise<CellPackage>{
    const counterpart=await readPackage(namespace()+'transition:'+(x+dx)+':'+(y+dy)+':'+reverse);
    if(counterpart)await db().prepare('INSERT INTO server_settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').bind(namespace()+'boundary-settled:'+edge.id,JSON.stringify({settled:true,opening:edge.opening,material:edge.material})).run();
   }
-  return {optionRevision:2,context,regions,occurrenceText:prose,scene:response.result,created:Date.now(),pass2Prompt:prompt,pass2Result:{...response,version:PROMPT_VERSION},imagePackage:{enabled:true}};
+  const packet={optionRevision:2,context,regions,occurrenceText:prose,scene:response.result,created:Date.now(),pass2Prompt:prompt,pass2Result:{...response,version:PROMPT_VERSION},imagePackage:{enabled:true}};
+  await scheduleInitialImage(packet);return packet;
  }));
 }
 export async function workshopData(x:number,y:number){const derived=contextFor(worldSeed(),x,y),saved=await readPackage<CellPackage>(cellKey(x,y)),context=saved?.context??derived,stage=await readPackage(stageKey(x,y));return {diagnostic:await db().prepare('SELECT value FROM server_settings WHERE key=?').bind(cellKey(x,y)+':diagnostic').first(),providerPause:await providerPause(),usage:await usageForCell(cellKey(x,y),context.regions.map(r=>namespace()+'entity:'+r.id)),ratings:context.ratings,context,pass1Prompt:stage?.prompt??detailPrompt(context,[]),pass1Result:stage?.result??null,pass2Prompt:saved?.pass2Prompt??null,pass2Result:saved?.pass2Result??null,imagePackage:await savedImage(x,y)??saved?.imagePackage??{enabled:true}};}
