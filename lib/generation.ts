@@ -1,3 +1,4 @@
+import {settingInput,settingInstructions,leanSceneInstructions} from './lean-generation';
 import {interpretPass,occurrenceText,type OccurrenceText} from './interpretation';
 import {assertProviderReady,providerPause} from './provider-health';
 import {usageForCell} from './usage';
@@ -25,28 +26,36 @@ async function ensureRegions(c:CellContext):Promise<Region[]>{
  return results.map(r=>(r as PromiseFulfilledResult<Region>).value);
 }
 type SettingPackage={name:string;biome:{name?:string;description:string};civilization:{name?:string;description:string};regions:Region[];population:number;infrastructure:number};
-async function ensureSetting(c:CellContext):Promise<SettingPackage>{
- return remember(namespace()+'setting:'+c.x+':'+c.y,'setting',async()=>{
-  const adjacent=[];
-  for(const [direction,[dx,dy]] of Object.entries(directions)){
-   if(!c.connections[direction as keyof typeof directions])continue;
-   const saved=await readPackage<SettingPackage>(namespace()+'setting:'+(c.x+dx)+':'+(c.y+dy));
-   if(saved)adjacent.push({direction,coordinate:[c.x+dx,c.y+dy],name:saved.name,civilization:saved.civilization,population:saved.population,infrastructure:saved.infrastructure});
-  }
-  const biome=await interpretPass(c,'biome',{adjacent});
-  const regions=await ensureRegions(c);
-  const civilization=await interpretPass(c,'civilization',{biome,regions,adjacent});
-  const value=(id:string)=>c.fieldwork.find(f=>f.id===id&&f.present)?.value??0;
-  return {name:civilization.name?.trim()||biome.name?.trim()||c.biome,biome,civilization,regions,population:value('civilization.density'),infrastructure:value('civilization.infrastructure')};
- });
+async function ensureSettings(cells:CellContext[]):Promise<Map<string,SettingPackage>>{
+ const key=(c:CellContext)=>c.x+':'+c.y,settings=new Map<string,SettingPackage>(),missing:CellContext[]=[];
+ for(const c of cells){
+  const saved=await readPackage<SettingPackage>(namespace()+'setting:'+key(c));
+  if(saved)settings.set(key(c),saved);else missing.push(c);
+ }
+ if(!missing.length)return settings;
+ const object=(properties:Record<string,unknown>)=>({type:'object',properties,required:Object.keys(properties),additionalProperties:false});
+ const text={type:'string'},part=object({name:text,description:text});
+ const schema=object({settings:{type:'array',minItems:missing.length,maxItems:missing.length,items:object({index:{type:'integer'},name:text,biome:part,civilization:part})}});
+ const adjacent=[...settings.entries()].map(([coordinate,s])=>({coordinate,name:s.name,civilization:s.civilization}));
+ const response=await complete<{settings:{index:number;name:string;biome:SettingPackage['biome'];civilization:SettingPackage['civilization']}[]}>('interpret_settings',schema,{instructions:settingInstructions,input:JSON.stringify(settingInput(missing,adjacent))});
+ if(response.result.settings.length!==missing.length||new Set(response.result.settings.map(s=>s.index)).size!==missing.length||response.result.settings.some(s=>!Number.isInteger(s.index)||s.index<0||s.index>=missing.length||!s.name.trim()||!s.biome.name?.trim()))throw Error('Incomplete setting interpretations.');
+ for(const result of response.result.settings){
+  const c=missing[result.index],value=(id:string)=>c.fieldwork.find(f=>f.id===id&&f.present)?.value??0;
+  const saved=await remember(namespace()+'setting:'+key(c),'setting',async()=>({name:result.name,biome:result.biome,civilization:result.civilization,regions:[],population:value('civilization.density'),infrastructure:value('civilization.infrastructure')}));
+  settings.set(key(c),saved);
+ }
+ return settings;
 }
 export async function ensureCell(x:number,y:number):Promise<CellPackage>{
  const cached=await readPackage<CellPackage>(cellKey(x,y));if(cached)return cached;await assertProviderReady();
  const context=contextFor(worldSeed(),x,y);if(!context.exists)throw Error('There is no cell at those coordinates.');
  await promoteGeneration(cellKey(x,y));
  return withGenerationScope(cellKey(x,y),()=>remember(cellKey(x,y),'cell',async()=>{
-  const setting=await ensureSetting(context);
-  const {biome,civilization,regions}=setting;
+  const targets=[context,...Object.entries(directions).filter(([d])=>context.connections[d as keyof typeof directions]).map(([, [dx,dy]])=>contextFor(worldSeed(),x+dx,y+dy))];
+  const settings=await ensureSettings(targets);
+  const setting=settings.get(x+':'+y)!;
+  const {biome,civilization}=setting;
+  const regions=await ensureRegions(context);
   context.biome=setting.name;context.environment.landcover=setting.name;
   const variation=await interpretPass(context,'variation',{biome,civilization});
   const interpreted={biome,civilization,variation};
@@ -58,14 +67,15 @@ export async function ensureCell(x:number,y:number):Promise<CellPackage>{
   for(const [direction,[dx,dy]] of Object.entries(directions)){if(!context.connections[direction as keyof typeof directions])continue;
    const saved=await readPackage<CellPackage>(cellKey(x+dx,y+dy));
    const next=saved?.context??contextFor(worldSeed(),x+dx,y+dy);
-   const nextSetting=saved?{name:saved.context.biome}:await ensureSetting(next);
+   const nextSetting=saved?{name:saved.context.biome}:settings.get(next.x+':'+next.y)!;
    const edge=context.edges.find(e=>e.direction===direction)!;
    edge.glimpse=nextSetting.name;
    if(saved)neighbors.push({direction,coordinate:[next.x,next.y],biome:edge.glimpse,description:saved.scene.description,continuity_facts:saved.scene.continuity_facts,shared_exit:saved.scene.exits.find(e=>e.direction===({north:'south',south:'north',east:'west',west:'east'} as Record<string,string>)[direction])?.description});
   }
   const prompt=scenePrompt(context,regions,{details:[],regional_texture:JSON.stringify(interpreted)},neighbors);
   const sceneInput=JSON.parse(prompt.input);
-  sceneInput.context.ratings=sceneInput.context.ratings.filter((r:{id:string})=>!context.fieldwork.some(f=>f.id===r.id&&f.category==='biome'));
+  delete sceneInput.context.ratings;delete sceneInput.context.environment;
+  if(!context.event&&!context.stateRule&&!context.hostilityPolicy.enforcesForeignHonors)prompt.instructions=leanSceneInstructions+(context.protectedOrigin?' Origin: safe arrival and return point; give it an original proper name.':'');
   prompt.input=JSON.stringify({...sceneInput,interpreted,occurrence_setup:prose?.setup??null});let response=await complete<Scene>('canonical_scene',sceneSchemaFor(context),prompt);
   response.result=compileScene(response.result);
   try{assertScene(response.result,context);}catch(e){prompt.instructions+=' Correction required: '+(e as Error).message+' Regenerate the complete scene satisfying the schema and every narrative constraint.';response=await complete<Scene>('canonical_scene',sceneSchemaFor(context),prompt);response.result=compileScene(response.result);try{assertScene(response.result,context);}catch(finalError){await db().prepare("INSERT INTO server_settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").bind(cellKey(x,y)+':diagnostic',JSON.stringify({at:Date.now(),message:(finalError as Error).message})).run();throw finalError;}}

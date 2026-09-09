@@ -19,8 +19,8 @@ test('activity refinement doubles point and site density without enlarging sites
  }));
 });
 test('biome compilation and previews use setting names',()=>{
- assert.equal(broadTerrain({'biome.groundcover':.8}),'grassland');
- assert.equal(broadTerrain({'biome.large_foliage':.8,'biome.moisture':.8}),'rainforest');
- assert.match(interpretationInstructions('biome'),/ONE coherent/);
- assert.match(interpretationInstructions('biome'),/20–35/);
+ assert.equal(broadTerrain({'biome.groundcover':.8}),'');
+ assert.equal(broadTerrain({'biome.large_foliage':.8,'biome.moisture':.8}),'');
+ assert.match(interpretationInstructions('biome'),/original biome label/);
+ assert.match(interpretationInstructions('biome'),/20 words/);
 });

@@ -19,8 +19,8 @@ test('frequency tuning preserves civilization shapes, quiet amplitudes and civil
 test('population and built setting are represented throughout interpretation, peeks and image prompts',()=>{
  assert.match(interpretationInstructions('civilization'),/CURRENT POPULATION DENSITY/);
  const generation=readFileSync(new URL('../lib/generation.ts',import.meta.url),'utf8');
- assert.match(generation,/const setting=await ensureSetting\(context\)/);assert.match(generation,/await ensureSetting\(next\)/);
- assert.match(generation,/civilization:saved.civilization/);
- const image=readFileSync(new URL('../lib/location-images.ts',import.meta.url),'utf8');assert.match(image,/Positive density requires visible people/);
+ assert.match(generation,/const settings=await ensureSettings\(targets\)/);assert.match(generation,/settings.get\(next.x/);
+ assert.match(generation,/civilization:s.civilization/);
+ const image=readFileSync(new URL('../lib/location-images.ts',import.meta.url),'utf8');assert.match(image,/Include inhabitants proportional to population/);
  assert.doesNotMatch(image,/never neighboring occupants/);
 });
