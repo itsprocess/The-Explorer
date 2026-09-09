@@ -1,9 +1,16 @@
-# Sites testing is the current workflow
+# Sites: the only active deployment workflow
 
-The owner explicitly requested Sites publication and deletion of all current dev accounts and world content. Use the existing project in .openai/hosting.json, build with npm run build, and publish via Sites. Do not use GoDaddy Node packaging, domain-origin secrets, or an outer site password. Character login remains part of the game; Sites retains its existing owner-only access.
+The owner confirmed Sites on 2026-09-09 and deprecated GoDaddy build and publication requests. This document supersedes all older Node, GoDaddy, cPanel, compiled-GitHub-deployment and ZIP-upload instructions. Do not ask which platform to use.
 
-The one-time 0015 migration clears dev accounts, sessions, world records and history. It schedules a gated R2 bucket cleanup before new generation. The migration ledger prevents later publications from repeating the wipe. No account-deletion UI or public reset endpoint is added.
+1. Edit application source in this web checkout. Reuse the project in .openai/hosting.json.
+2. Run npm run typecheck and focused non-generation tests appropriate to the change. Build with npm run build. Do not run paid generation or broad procedural sampling without explicit authorization.
+3. Follow the Sites hosting skill: commit the validated source, push to the Sites-provided source repository with a short-lived credential, package the build using the Sites package-site.sh helper, save the version and deploy it. Verify terminal deployment status.
+4. Preserve the existing Sites audience, production secrets, D1 and R2 bindings. Character login is separate from Sites access. No outer password or configured domain-origin secret is needed.
 
-Keep API keys as Sites secrets. Ordinary request-origin validation remains enabled and uses the actual request origin, without any configured domain secret. Legacy Node files are retained only as historical source, not the active test workflow.
+Never include secrets, local environment files, databases, accounts or generated world data in source or deployment archives. No GoDaddy Update Preview or Publish to Live step remains. Legacy runtime scripts and outputs are historical only and must not be synchronized or published.
 
-The owner requested another full dev reset for the denser activity iteration; migration 0016 repeats the gated database/image cleanup once.
+## Explicitly requested resets
+
+A normal publication does not reset data. For a user-requested world wipe, use a one-time migration that preserves character identity, defining trait, password credentials and sessions while clearing generated world content and progress. The existing gated R2 cleanup must finish before new generation. Do not add an account-deletion control.
+
+Migration 0023 implements the 2026-09-09 relic iteration wipe. Its new seed is the-stones-remember-your-footsteps; configure WORLD_SEED through Sites so an older override cannot retain the previous world. Older migrations that removed disposable dev accounts are historical authorizations, not current instructions.

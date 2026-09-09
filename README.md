@@ -2,7 +2,7 @@
 
 A procedural explorer with cached AI scenes and images, persistent characters, and deterministic world rules.
 
-**Current deployment workflow:** see [Edit and publish](docs/EDIT-AND-PUBLISH.md). Edit source here, build the Node release, push the separate compiled GitHub checkout, then use GoDaddy Update Preview and Publish to Live. The sections below describe the separate Sites development target.
+**Current deployment workflow:** [Sites only](docs/EDIT-AND-PUBLISH.md). GoDaddy, cPanel and portable Node builds are deprecated; do not use their historical instructions or outputs.
 
 The current world uses the Wild Horizons seed, expanded climate ranges, derived terrain situations, historical encounter prose and roughly one transport per eighteen traversable cells. See [Wild Horizons](docs/wild-horizons.md) for the distribution audit and reset behavior, and [frontier preloading](docs/frontier-preloading.md) for caching without discovery.
 
@@ -22,7 +22,7 @@ npm run dev
 
 Characters use globally unique, case-insensitive names and passwords. Names are normalized and limited to 2–40 ASCII letters, digits, spaces, hyphens, or underscores. Passwords are 8–128 characters, stored only as independently salted scrypt hashes (N=16384, r=8, p=5). Random session tokens are kept in HttpOnly, SameSite=Strict cookies (Secure on HTTPS); only their SHA-256 hashes are stored server-side. Login attempts are rate-limited. There is no password recovery yet.
 
-The hosted Site remains owner-private behind Sites sign-in. Character login is separate. Existing pre-password names remain reserved: their original signed-in Sites owner can use Create with the same name and a password to secure them. The Dev tab still requires Sites sign-in.
+The hosted Site retains its configured audience behind Sites sign-in. Character login is separate. Existing pre-password names remain reserved: their original signed-in Sites owner can use Create with the same name and a password to secure them. The Dev tab still requires Sites sign-in.
 
 ## Development data
 

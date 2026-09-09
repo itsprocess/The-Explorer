@@ -76,3 +76,5 @@
 .dev-controls{display:flex;flex-direction:column;align-items:flex-start;gap:18px;padding:20px;margin:0 0 28px;background:#222b35;border:1px solid #444b5b;border-radius:10px}
 .dev-controls .warp-controls{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;width:100%;max-width:none;margin:0;padding:0;border:0;background:none}.warp-controls label{display:flex;flex-direction:column;gap:8px;flex:1 1 140px;font-size:14px}.warp-controls input{width:100%;max-width:none;min-width:0}.warp-controls button{min-height:44px}
 .dev-travel-banner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin:20px auto 0;width:calc(100% - 60px)}
+
+.history-location{display:flex;align-items:center;gap:20px;flex-wrap:wrap}.history-location>a{white-space:nowrap}.history-location .tile-marker{margin:0}.relic-records{margin-top:20px;padding-top:16px;border-top:1px solid #363b46}.relic-records p{margin:8px 0}

@@ -22,13 +22,8 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
     "smoke:local": "node scripts/smoke-local.mjs",
-    "build:node": "node scripts/build-node.mjs",
     "start:sites": "wrangler dev --config dist/server/wrangler.json",
     "test:runtime": "node --test tests/runtime.test.mjs",
-    "package:node": "node scripts/package-node.mjs",
-    "smoke:node": "node scripts/smoke-node.mjs",
-    "package:cpanel": "node scripts/package-cpanel.mjs",
-    "package:godaddy-preview": "node scripts/package-godaddy-preview.mjs",
     "test:fieldwork": "tsx --test tests/fieldwork-integration.test.ts tests/sandbox.test.ts tests/traits.test.ts tests/teleport.test.ts tests/location-reveal.test.ts tests/foreground-generation.test.ts tests/passwords.test.ts tests/queue.test.ts tests/generation-request.test.ts tests/generation-packets.test.ts tests/stream-error-logging.test.ts"
   },
   "dependencies": {

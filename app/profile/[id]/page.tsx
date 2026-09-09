@@ -1,3 +1,4 @@
+import ProgressStats from '../../progress-stats';
 import {deduplicateBadges} from '../../../lib/achievement-identity';
 import {appPath} from '../../../lib/app-path';
 import TraitDisplay from '../../trait-display';
@@ -11,6 +12,6 @@ export default async function ProfilePage({params,searchParams}:{params:Promise<
  const row=await db().prepare('SELECT value FROM characters WHERE id=?').bind(id).first<{value:string}>();if(!row)return notFound();const c:Character=JSON.parse(row.value);c.badges=deduplicateBadges(c.badges);
  return <main className="public-page"><a href={appPath('/')}>Return to game</a><h1>{c.name}</h1>
  <h2>Badges</h2>{!c.badges.length&&<p className="muted">No badges yet.</p>}<div className="badges">{c.badges.map(b=><article className="badge" key={b.id}><strong>{b.title}</strong><p>{b.description}</p></article>)}</div>
- <div className="stats"><div><span>Deaths</span><strong>{c.deaths}</strong></div><div><span>Furthest Distance</span><strong>{c.furthest.toFixed(1)}</strong></div><div><span>Badges</span><strong>{c.badges.length}</strong></div></div>
+ <ProgressStats character={c} badges={c.badges.length}/>
  <TraitDisplay traits={c.traits??[]} character={id}/><HistoryBrowser character={id} initialQuery={query.q?.slice(0,160)??''} initialOffset={page*25}/></main>;
 }

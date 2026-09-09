@@ -1,4 +1,5 @@
-**Current GoDaddy workflow:** [Edit and publish](EDIT-AND-PUBLISH.md) supersedes the historical ZIP and initial-deployment instructions below. GitHub preview and live publication are now verified working.
+> DEPRECATED (2026-09-09): Historical portable hosting documentation only. Do not execute these build, upload or publication instructions. Sites is the sole active target; see [Edit and publish](EDIT-AND-PUBLISH.md).
+
 
 # Private prototype: portable Node release
 

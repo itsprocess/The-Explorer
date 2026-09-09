@@ -1,4 +1,4 @@
-export const historyFilters=['all','acquisitions','replacements','losses','uses','deaths','escapes','transport','encounters'] as const;
+export const historyFilters=['all','acquisitions','replacements','losses','uses','deaths','escapes','transport','relics','encounters'] as const;
 export function historyQuery(character:string,query='',filter='all',offset=0){
  if(query.length>160||!historyFilters.includes(filter as any)||!Number.isSafeInteger(offset)||offset<0||offset>100000)throw Error('Invalid history search.');
  const params:(string|number)[]=[character];let where='character=?';
@@ -10,6 +10,7 @@ export function historyQuery(character:string,query='',filter='all',offset=0){
  }
  const change={acquisitions:'acquired',replacements:'replaced',losses:'lost',uses:'consumed'}[filter];
  if(change){where+=" AND EXISTS(SELECT 1 FROM json_each(COALESCE(json_extract(visits.value,'$.event.stateChanges'),'[]')) changes WHERE json_extract(changes.value,'$.type')=?)";params.push(change);}
+ else if(filter==='relics'){where+=" AND json_extract(value,'$.event.relic.text') IS NOT NULL";}
  else if(filter!=='all'){const kinds={deaths:['death'],escapes:['escape'],transport:['portal','transport_pending'],encounters:['interaction','honor','treasure','acquisition']}[filter]!;where+=" AND json_extract(value,'$.event.kind') IN ("+kinds.map(()=>'?').join(',')+')';params.push(...kinds);}
  return {sql:'SELECT id,x,y,value,at FROM visits WHERE '+where+' ORDER BY at DESC,id DESC LIMIT 26 OFFSET ?',params:[...params,offset]};
 }

@@ -1,3 +1,5 @@
+> DEPRECATED (2026-09-09): Historical portable hosting documentation only. Do not execute these build, upload or publication instructions. Sites is the sole active target; see [Edit and publish](EDIT-AND-PUBLISH.md).
+
 # Precompiled cPanel release
 
 Build locally with `npm run build:node`, then `npm run package:cpanel`.

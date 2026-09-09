@@ -1,7 +1,7 @@
 {
   "version": 3,
   "name": "Variable sandbox",
-  "seed": "the-mayor-is-three-raccoons",
+  "seed": "the-stones-remember-your-footsteps",
   "variables": [
     {
       "id": "natural.elevation",
@@ -3383,6 +3383,47 @@
           "invert": false,
           "constant": 0.5,
           "sparkCutoff": 0.96,
+          "sparkFloor": 1
+        }
+      ]
+    },
+    {
+      "id": "relic-discovery-field",
+      "appName": "occurrences.relic",
+      "naturalName": "Relic uncovered",
+      "description": "A secret discovery, counted independently of badges, possessions and statuses. Half the standalone teleport frequency.",
+      "category": "occurrences",
+      "color": "#d6b9ff",
+      "type": "boolean",
+      "cutoff": 0.997,
+      "off": "No relic discovery is assigned here.",
+      "on": "A remarkable discovery matches this scene: a physical, natural or conceptual relic, never an inventory item, badge, status or power. Reveal only on arrival, not in peeks.",
+      "low": "No relic discovery is assigned here.",
+      "high": "A remarkable discovery matches this scene: a physical, natural or conceptual relic, never an inventory item, badge, status or power. Reveal only on arrival, not in peeks.",
+      "steps": [],
+      "layers": [
+        {
+          "id": "relic-discovery-sparks",
+          "name": "Isolated single-cell candidates",
+          "enabled": true,
+          "source": "sparks",
+          "channel": "occurrences-relic-points",
+          "reference": "",
+          "blend": "replace",
+          "weight": 1,
+          "scaleX": 100,
+          "scaleY": 80,
+          "offsetX": 0,
+          "offsetY": 0,
+          "rotation": 0,
+          "octaves": 3,
+          "persistence": 0.5,
+          "lacunarity": 2,
+          "gain": 1,
+          "bias": 0,
+          "invert": false,
+          "constant": 0.5,
+          "sparkCutoff": 0.9816242241659778,
           "sparkFloor": 1
         }
       ]

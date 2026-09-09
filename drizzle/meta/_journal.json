@@ -162,6 +162,13 @@
       "when": 1788962057329,
       "tag": "0022_reset_shorelines",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "6",
+      "when": 1788965454529,
+      "tag": "0023_reset_relics",
+      "breakpoints": true
     }
   ]
 }

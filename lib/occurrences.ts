@@ -4,8 +4,8 @@ export const definingTraits=['Strength','Kindness','Wit','Speed','Cunning','Char
 export type DefiningTrait=typeof definingTraits[number];
 export type Requirement=TraitCondition|{kind:'defining';value:DefiningTrait}|{kind:'affiliation';family:'faction'|'kingdom'|'religion';value:string};
 export type Outcome={kind:'give';awards:TraitSpec[];badge:boolean}|{kind:'challenge';requirement:Requirement;present:SimpleOutcome;absent:SimpleOutcome}|SimpleOutcome;
-export type SimpleOutcome={kind:'kill'}|{kind:'teleport';destination:{x:number;y:number}}|{kind:'badge'}|{kind:'none'};
-export type Occurrences={death:boolean;teleport:{x:number;y:number}|null;gift:Extract<Outcome,{kind:'give'}>|null;challenge:Extract<Outcome,{kind:'challenge'}>|null;option:{policy:'visit'|'life';choices:Outcome[]}|null};
+export type SimpleOutcome={kind:'kill'}|{kind:'teleport';destination:{x:number;y:number}}|{kind:'badge'}|{kind:'none'}|{kind:'relic'};
+export type Occurrences={relic?:boolean;death:boolean;teleport:{x:number;y:number}|null;gift:Extract<Outcome,{kind:'give'}>|null;challenge:Extract<Outcome,{kind:'challenge'}>|null;option:{policy:'visit'|'life';choices:Outcome[]}|null};
 export function teleportDestination(seed:string,x:number,y:number,channel='teleport'){
  const radius=Math.max(50,Math.hypot(x,y)),angle=random(seed,channel+':angle',x,y)*Math.PI*2,reach=Math.sqrt(random(seed,channel+':radius',x,y))*radius;
  return {x:Math.round(x+Math.cos(angle)*reach),y:Math.round(y+Math.sin(angle)*reach)};
@@ -22,7 +22,7 @@ export function occurrencesFor(seed:string,x:number,y:number,v:Record<string,num
   return {kind:'challenge',requirement,present:simple(key+'yes'),absent:simple(key+'no')};
  };
  const outcome=(key:string):Outcome=>{const kind=pick(key,['give','challenge','teleport','badge','kill'] as const);return kind==='give'?gift(key):kind==='challenge'?challenge(key):kind==='teleport'?{kind,destination:teleportDestination(seed,x,y,key)}:{kind};};
- return {death:v['occurrences.certain_death']>0,teleport:v['occurrences.teleport']>0?teleportDestination(seed,x,y):null,gift:v['occurrences.gift']>0?gift('gift'):null,challenge:v['occurrences.challenge']>0?challenge('challenge'):null,option:v['occurrences.option']>0?{policy:pick('option-policy',['visit','life'] as const),choices:limitLethalChoices(Array.from({length:pick('option-count',[2,3])},(_,i)=>outcome('option-'+i)))}:null};
+ return {relic:v['occurrences.relic']>0,death:v['occurrences.certain_death']>0,teleport:v['occurrences.teleport']>0?teleportDestination(seed,x,y):null,gift:v['occurrences.gift']>0?gift('gift'):null,challenge:v['occurrences.challenge']>0?challenge('challenge'):null,option:v['occurrences.option']>0?{policy:pick('option-policy',['visit','life'] as const),choices:limitLethalChoices(Array.from({length:pick('option-count',[2,3])},(_,i)=>i===0?{kind:'none'}:outcome('option-'+i)))}:null};
 }
 
 // Teleport can be fatal on arrival, so it counts toward the same one-choice limit.

@@ -1,3 +1,5 @@
+> DEPRECATED (2026-09-09): Historical portable hosting documentation only. Do not execute these build, upload or publication instructions. Sites is the sole active target; see [Edit and publish](EDIT-AND-PUBLISH.md).
+
 # World controls on the portable Node deployment
 
 Sign in through the outer gate as admin, then open Dev > World Administration.
