@@ -1,3 +1,4 @@
+import {civilizationEventDrive} from './encounter-refinement';
 import { clamp, perlin, random } from '../lib/noise';
 
 export const SOURCES = ['perlin', 'fbm', 'ridged', 'cellular', 'white', 'patches', 'sparks', 'constant', 'variable'] as const;
@@ -29,7 +30,7 @@ export type Variable = {
   off: string; on: string; low: string; high: string;
   steps: EnumStep[]; layers: Layer[];
 };
-export type Project = { uniquenessRevision?: number; uniquenessEscalation?: {enabled:boolean;reach:number;power:number}; version: 3; name: string; seed: string; variables: Variable[]; biomeRecipeRevision?: number; riverStudyRevision?: number; ecologyRevision?: number; climateRevision?: number; waterFissureRevision?: number; traversalRevision?: number; civilizationRevision?: number; infrastructureRevision?: number; civilizationShapeRevision?: number; civilizationImpactRevision?: number; organicCivilizationRevision?: number; riverCrossingRevision?: number; civilizationObeysTraversal?: boolean };
+export type Project = { occurrenceCivilizationBoost?: number; uniquenessRevision?: number; uniquenessEscalation?: {enabled:boolean;reach:number;power:number}; version: 3; name: string; seed: string; variables: Variable[]; biomeRecipeRevision?: number; riverStudyRevision?: number; ecologyRevision?: number; climateRevision?: number; waterFissureRevision?: number; traversalRevision?: number; civilizationRevision?: number; infrastructureRevision?: number; civilizationShapeRevision?: number; civilizationImpactRevision?: number; organicCivilizationRevision?: number; riverCrossingRevision?: number; civilizationObeysTraversal?: boolean };
 export type Trace = { id: string; source: number; adjusted: number; accumulated: number };
 export type Result = { present?: boolean; raw: number; value: number; label: string; description: string; trace: Trace[] };
 export const uid = () => globalThis.crypto.randomUUID();
@@ -190,11 +191,12 @@ export function evaluator(project: Project) {
       const v = vars.get(key); if (!v) throw new Error('Choose an existing variable for every reference layer.');
       active.add(key);
       const drive=v.category==='variation'?uniquenessDrive(project,x,y):1;
+      const sparkDrive=v.category==='occurrences'&&project.occurrenceCivilizationBoost?civilizationEventDrive(project.variables.filter(f=>f.category==='civilization'&&['civilization.density','civilization.footprint','civilization.infrastructure'].includes(f.appName)).map(f=>evaluate(f.id).value),project.occurrenceCivilizationBoost):drive;
       let value = 0;
       const trace: Trace[] = [];
       for (const layer of v.layers) {
         if (!layer.enabled) continue;
-        const source = layer.source === 'variable' ? evaluate(layer.reference).value : generateNoise(project.seed, layer, x, y,drive);
+        const source = layer.source === 'variable' ? evaluate(layer.reference).value : generateNoise(project.seed, layer, x, y,sparkDrive);
         const adjusted = adjustNoise(source,layer);
         value = blend(value, adjusted, layer.blend, layer.weight);
         trace.push({ id: layer.id, source, adjusted, accumulated: value });
@@ -275,6 +277,7 @@ export function parseProject(text: string): Project {
   const fail = () => { throw Error('Invalid sandbox project. Check the version, fields and numeric limits.'); };
   const str = (x: unknown) => typeof x === 'string' && x.length <= 8000;
   const num = (x: unknown, min: number, max: number) => typeof x === 'number' && Number.isFinite(x) && x >= min && x <= max;
+  if(p?.occurrenceCivilizationBoost!==undefined&&!num(p.occurrenceCivilizationBoost,1,10))return fail();
   if(p?.ecologyRevision!==undefined&&(!num(p.ecologyRevision,0,100)||!Number.isInteger(p.ecologyRevision)))return fail();
   if(p?.waterFissureRevision!==undefined&&(!num(p.waterFissureRevision,0,100)||!Number.isInteger(p.waterFissureRevision)))return fail();
   if(p?.civilizationObeysTraversal!==undefined&&typeof p.civilizationObeysTraversal!=='boolean')return fail();

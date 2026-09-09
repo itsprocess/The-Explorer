@@ -34,7 +34,7 @@
     "rateLimitPauseMs": 60000
   },
   "world": {
-    "seed": "the-explorer-riverglass-20260907",
+    "seed": "oops-all-goblins-in-a-trenchcoat",
     "version": "world-7",
     "coordinateLimit": 1000000000
   },

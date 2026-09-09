@@ -1,0 +1,13 @@
+# Sites playtest review — goblins iteration
+
+Reviewed the deployed interpretation packages, directional transitions, visit history, generation usage records and recent error logs before the authorized reset. Large cell packages were truncated by the database viewer; evaluated the exact previously deployed source at the 18 visited coordinates to check the fields directly. No paid generation was run for this audit.
+
+All 18 coordinates had zero civilization density, impact footprint and animal population. There was one challenge at (0,-5), with a badge for the required trait and no state change otherwise. The saved unsuccessful narration incorrectly described no challenge at all. Reviewed generation usage records completed successfully; recent error logs showed pre-character community authentication failures, rather than generation failures.
+
+At (2,-2), east and north transitions promised woodland. The deterministic preview crossed its foliage threshold around 0.3, while the independent AI biome compilation called the destinations grassland or scrubland. Reverse exits also copied outward scenery into the opposite direction. Quiet variation repeatedly supplied negative inventories about absence of interest, which reinforced repetitive biome-only scenes.
+
+Changes: cache the adjacent biome-only interpretation before writing an exit, and reuse it on arrival; shared boundary geometry persists but its outward view is reversed. Explicitly label field intensities as 0–1. Quiet variation contributes no prose and cannot cancel an occurrence. Occurrences provide a visible setup tied to their outcome narratives; a no-state-change challenge still describes a real incident.
+
+Civilization gains an independent, offset copy of every bounded patch source, merged by maximum before existing detail and traversal masks. This doubles candidate sites without increasing their diameters and avoids aligning every source on the origin grid seams. Each occurrence cutoff doubles candidate probability. All occurrence channels additionally use cutoff raised to a civilization drive of 1 + 2 * max(density, footprint, infrastructure), giving 1x in empty terrain, 2x halfway and 3x at full strength. Local maximum suppression still keeps sparks isolated, so realized rates are approximate and no short route guarantees an event. Sandbox exposes the maximum multiplier. Biome traversal stays unchanged.
+
+New seed: oops-all-goblins-in-a-trenchcoat. Migration 0017 clears disposable characters and world records and schedules the existing gated image purge. This reset is explicitly requested for this iteration and does not recur on ordinary publication.

@@ -38,15 +38,20 @@ export async function ensureCell(x:number,y:number):Promise<CellPackage>{
   const prose=await occurrenceText(context,interpreted);
 
   const stage=await remember(stageKey(x,y),'details',async()=>{return {prompt:detailPrompt(context,regions),result:preparedDetails(context),model:'local',usage:{input_tokens:0,output_tokens:0,total_tokens:0},created:Date.now()};});
+  // Commit the biome-only peek before the transition. Arrival reuses this exact interpretation.
   const neighbors=[];
   for(const [direction,[dx,dy]] of Object.entries(directions)){if(!context.connections[direction as keyof typeof directions])continue;
    const saved=await readPackage<CellPackage>(cellKey(x+dx,y+dy));
-   if(saved)neighbors.push({direction,description:saved.scene.description,continuity_facts:saved.scene.continuity_facts,shared_exit:saved.scene.exits.find(e=>e.direction===({north:'south',south:'north',east:'west',west:'east'} as Record<string,string>)[direction])?.description});
+   const next=saved?.context??contextFor(worldSeed(),x+dx,y+dy);
+   const nextBiome=saved?{name:saved.context.biome}:await interpretPass(next,'biome',null);
+   const edge=context.edges.find(e=>e.direction===direction)!;
+   edge.glimpse=nextBiome.name?.trim()||next.biome;
+   if(saved)neighbors.push({direction,coordinate:[next.x,next.y],biome:edge.glimpse,description:saved.scene.description,continuity_facts:saved.scene.continuity_facts,shared_exit:saved.scene.exits.find(e=>e.direction===({north:'south',south:'north',east:'west',west:'east'} as Record<string,string>)[direction])?.description});
   }
   const prompt=scenePrompt(context,regions,{details:[],regional_texture:JSON.stringify(interpreted)},neighbors);
   const sceneInput=JSON.parse(prompt.input);
   sceneInput.context.ratings=sceneInput.context.ratings.filter((r:{id:string})=>!context.fieldwork.some(f=>f.id===r.id&&f.category==='biome'));
-  prompt.input=JSON.stringify({...sceneInput,interpreted});let response=await complete<Scene>('canonical_scene',sceneSchemaFor(context),prompt);
+  prompt.input=JSON.stringify({...sceneInput,interpreted,occurrence_setup:prose?.setup??null});let response=await complete<Scene>('canonical_scene',sceneSchemaFor(context),prompt);
   response.result=compileScene(response.result);
   try{assertScene(response.result,context);}catch(e){prompt.instructions+=' Correction required: '+(e as Error).message+' Regenerate the complete scene satisfying the schema and every narrative constraint.';response=await complete<Scene>('canonical_scene',sceneSchemaFor(context),prompt);response.result=compileScene(response.result);try{assertScene(response.result,context);}catch(finalError){await db().prepare("INSERT INTO server_settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").bind(cellKey(x,y)+':diagnostic',JSON.stringify({at:Date.now(),message:(finalError as Error).message})).run();throw finalError;}}
   for(const exit of response.result.exits){

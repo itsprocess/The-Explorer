@@ -1,3 +1,4 @@
+import {enrichEncounters} from './encounter-refinement';
 import {refineActivity} from './activity-refinement';
 import {expandInteriorOptions} from './interior-options';
 import {enrichLanguage} from './language-palette';
@@ -79,6 +80,7 @@ function App() {
       const before=localStorage.getItem(STORAGE_KEY);
       if(!localStorage.getItem(STORAGE_KEY+'-import-seven-occurrences')){
         localStorage.setItem(STORAGE_KEY+'-activity-refinement-1','1');
+        localStorage.setItem(STORAGE_KEY+'-encounter-refinement-1','1');
         const imported=expandInteriorOptions(enrichLanguage(parseProject(JSON.stringify(reviewedProject))));
         localStorage.setItem(STORAGE_KEY+'-interior-options-1','1');
         localStorage.setItem(STORAGE_KEY+'-language-palette-1','1');
@@ -165,6 +167,11 @@ function App() {
         localStorage.setItem(STORAGE_KEY+'-before-activity-refinement-1',JSON.stringify(next));
         history.current=[next];setHistoryLength(1);next=refineActivity(next);
         localStorage.setItem(STORAGE_KEY+'-activity-refinement-1','1');
+      }
+      if(!localStorage.getItem(STORAGE_KEY+'-encounter-refinement-1')){
+        localStorage.setItem(STORAGE_KEY+'-before-encounter-refinement-1',JSON.stringify(next));
+        history.current=[next];setHistoryLength(1);next=enrichEncounters(next);
+        localStorage.setItem(STORAGE_KEY+'-encounter-refinement-1','1');
       }
       setProject(next);setCanRestore(!!localStorage.getItem(STORAGE_KEY+'-before-river-study'));
       if(window.location.search)window.history.replaceState(null,'',window.location.pathname);
@@ -283,6 +290,7 @@ function App() {
       <main className="map-column">
         <div className="map-heading"><div><span className="eyebrow">{CATEGORIES[category].toUpperCase()}</span><h1>{view==="list"?CATEGORIES[category]+" components":stage==='overall'?'Overall map':variable?.naturalName || "Your first field starts here"}</h1></div><span className="local-badge"><i/> Sandbox</span></div>
         <p className="hint">{CATEGORY_DESCRIPTIONS[category]}</p>
+        {category==='occurrences'&&<NumberField label="Maximum civilization frequency multiplier" value={project.occurrenceCivilizationBoost??1} min={1} max={10} step={.1} onChange={occurrenceCivilizationBoost=>commit({...project,occurrenceCivilizationBoost})}/>}
         {category==='civilization'&&<label className="check-field"><input type="checkbox" checked={project.civilizationObeysTraversal??false} onChange={e=>commit({...project,civilizationObeysTraversal:e.target.checked})}/> All Civilization fields obey biome traversability</label>}{category==='variation'&&<details className="viewport-settings" open><summary>Uniqueness · shared distance escalation</summary><label className="check-field"><input type="checkbox" checked={project.uniquenessEscalation?.enabled??false} onChange={e=>commit({...project,uniquenessEscalation:{reach:200,power:.5,...project.uniquenessEscalation,enabled:e.target.checked}})}/> Escalate with distance from 0,0</label><div className="form-grid"><NumberField label="Distance reach · cells" value={project.uniquenessEscalation?.reach??200} min={1} max={1000000} onChange={reach=>commit({...project,uniquenessEscalation:{enabled:true,power:.5,...project.uniquenessEscalation,reach}})}/><NumberField label="Escalation power" value={project.uniquenessEscalation?.power??.5} min={.01} max={2} step={.01} onChange={power=>commit({...project,uniquenessEscalation:{enabled:true,reach:200,...project.uniquenessEscalation,power}})}/></div><p className="hint">Drive = (1 + distance / reach)^power. Strength = base^(1 / drive); zero stays zero. Spark candidates pass at cutoff^drive, with adjacent candidates suppressed.</p><p className="hint">A base of 10% becomes {[0,100,1000,10000].map(d=>d+' cells: '+(growUniqueness(.1,uniquenessDrive(project,d,0))*100).toFixed(1)+'%').join(' · ')}.</p></details>}<div className="review-switch"><Button aria-pressed={stage==='overall'&&view==='map'} onClick={()=>{setView('map');setStage('overall');}}>Overall map</Button>{category==='civilization'&&<Button aria-pressed={stage==='civilization'&&view==='map'} onClick={()=>{setView('map');setStage('civilization');}}>Combined civilization</Button>}<Button aria-pressed={view==="list"} onClick={()=>setView("list")}>Component list</Button><Button disabled={!variable} aria-pressed={view==="map"} onClick={()=>setView("map")}>Inspect map</Button></div>
         {view==="list" ? <ComponentList variables={visibleVariables} project={project} inspect={id=>{select(id);setView("map");setTab("signal");}}/> : <>
         {stage==='overall'&&<label className="check-field"><input type="checkbox" checked={showCivilization} onChange={e=>setShowCivilization(e.target.checked)}/> Show Civilization overlay</label>}<div className="map-toolbar"><TextField label="Seed" value={project.seed} onChange={seed => commit({...project,seed})}/>
