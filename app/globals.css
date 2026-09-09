@@ -86,3 +86,5 @@
 .game-guide{max-width:620px}.game-guide .about-content{display:grid;gap:22px;padding:28px}.game-guide .dialog-heading{align-items:flex-start;gap:18px}.game-guide .dialog-heading small{display:block;color:#a6baff;font-size:13px;margin-bottom:7px}.game-guide h2,.game-guide p{margin:0}.game-guide h3{display:flex;align-items:center;gap:10px;margin:0 0 8px;font-size:17px}.game-guide h3 svg{color:#a6baff;flex-shrink:0}.game-guide section{padding-top:18px;border-top:1px solid #363c48}.game-guide .guide-close{justify-self:start;min-height:44px}.game-guide .dialog-heading button{min-width:40px;min-height:40px}.game-guide .guide-intro{color:#e0e4ec}@media(max-width:480px){.game-guide .about-content{padding:22px;gap:18px}}
 
 .dev-unlock{display:grid;gap:16px;max-width:420px}.dev-unlock h1,.dev-unlock p{margin:0}.dev-unlock input{width:100%}.teleport-dialog .buttons{display:flex;gap:12px;margin-top:20px}
+
+.badges a.badge{display:block;color:inherit;text-decoration:none}.badges a.badge:hover{border-color:var(--accent,#9eb6ff)}.badge-story{max-width:800px}.badge-story-image{width:100%;border-radius:12px}.badge-story section{margin:24px 0}.badge-story p{line-height:1.7}

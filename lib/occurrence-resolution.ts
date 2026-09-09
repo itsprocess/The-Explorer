@@ -12,7 +12,7 @@ export function resolveOccurrences(original:Character,p:CellPackage,visit:string
  const c=structuredClone(original);c.badges=deduplicateBadges(c.badges);c.awardClaims??=[];c.traits??=[];c.optionConsumed??=[];c.x=p.context.x;c.y=p.context.y;c.furthest=Math.max(c.furthest,p.context.distance);
  for(const ref of p.context.regions??[]){if(ref.enumId&&affiliationFamilies.includes(ref.kind as any)){const name=p.regions?.find(r=>r.id===ref.id)?.name;changeStanding(c,{family:ref.kind as any,value:ref.enumId,delta:0},name?[name]:[]);}}
  const o=p.context.occurrences!,t=p.occurrenceText,key=p.context.seed+':'+p.context.version+':'+c.x+':'+c.y;
- const event:{text:string;newBadge:string|null;kind:string;relic?:{text:string};imprint?:string;stateChanges:StateChange[]}={text:c.name+' arrived at '+p.scene.title+'.',newBadge:null,kind:'arrival',stateChanges:[]};
+ const event:{text:string;newBadge:string|null;kind:string;choice?:string;relic?:{text:string};imprint?:string;stateChanges:StateChange[]}={text:c.name+' arrived at '+p.scene.title+'.',newBadge:null,kind:'arrival',stateChanges:[]};
  const say=(s?:string)=>{if(s)event.text=fillCharacter(s,c.name);};
  let requirementName='',narrative=t?.outcomes?.find(n=>n.key==='death');
  const badge=(id:string,kind:Badge['kind'])=>{if(!c.badges.some(b=>b.id===id)){const b={id,title:fillCharacter(narrative?.badgeTitle||t?.badgeTitle||p.scene.title,c.name),description:fillCharacter(narrative?.badgeDescription||t?.badgeDescription||event.text,c.name),kind};const unique=deduplicateBadges([...c.badges,b]);if(unique.length>c.badges.length){c.badges=unique;event.newBadge=b.title;}}};
@@ -33,7 +33,7 @@ export function resolveOccurrences(original:Character,p:CellPackage,visit:string
  };
  if(selected!==undefined){
   if(!o.option||!c.pendingOption||c.pendingOption.key!==key||!Number.isInteger(selected)||selected<0||selected>=o.option.choices.length)throw Error('This option is not available.');
-  const choice=t?.choices[selected];say(choice?.result);apply(o.option.choices[selected],'option-'+selected,choice?.present,choice?.absent);if(c.alive&&o.option.policy==='life')c.optionConsumed.push(key);delete c.pendingOption;
+  const choice=t?.choices[selected];if(choice?.label)event.choice=fillCharacter(choice.label,c.name);say(choice?.result);apply(o.option.choices[selected],'option-'+selected,choice?.present,choice?.absent);if(c.alive&&o.option.policy==='life')c.optionConsumed.push(key);delete c.pendingOption;
  }else{
   delete c.pendingOption;
   if(o.death){say(narrative?.text||t?.death);kill();}

@@ -1,0 +1,10 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {badgeLink,badgeToken,badgeProse} from '../lib/badge-link';
+import {encounterPrompt} from '../lib/encounter-prompt';
+const read=(p:string)=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+test('badge links are stable, distinct and do not contain source coordinates',()=>{const id='seed:fieldwork-1:34:-11:option-1';assert.equal(badgeToken(id),badgeToken(id));assert.match(badgeToken(id),/^[a-f0-9]{64}$/);assert.notEqual(badgeToken(id),badgeToken(id+'x'));assert.doesNotMatch(badgeLink('player',id),/34|-11|fieldwork/);assert.equal(badgeProse('Arrived at (34, -11).'),'Arrived at an undisclosed place.');});
+test('badge page/image use opaque routes and never invoke generation',()=>{const page=read('app/badge/[character]/[token]/page.tsx'),image=read('app/api/badge-image/[character]/[token]/route.ts');assert.doesNotMatch(page,/api\/image\/|cell\//);assert.match(page,/api\/badge-image/);assert.doesNotMatch(image,/ensureImage|scheduleInitialImage|complete\(/);});
+test('automatic challenges are explicitly distinguished from selectable options',()=>{const p=encounterPrompt({death:false,teleport:null,gift:null,option:null,challenge:{kind:'challenge',requirement:{kind:'defining',value:'Wit'},present:{kind:'badge'},absent:{kind:'none'}}},{seed:'s',x:1,y:1},{});assert.match(p.instructions,/There is no player choice/);assert.match(p.instructions,/never call them unseen or invisible/);assert.match(p.instructions,/UI controls are not story events/);});
+test('teleport dialog prefers its resolved incident and leaves timing to buttons',()=>{const s=read('app/teleport-dialog.tsx');assert.match(s,/pending.narrative\|\|setup/);assert.doesNotMatch(s,/Continue when|wait here|look around/);});

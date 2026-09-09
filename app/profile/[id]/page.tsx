@@ -1,3 +1,4 @@
+import {badgeLink} from '../../../lib/badge-link';
 import AffiliationDisplay from '../../affiliation-display';
 import ProgressStats from '../../progress-stats';
 import {deduplicateBadges} from '../../../lib/achievement-identity';
@@ -12,7 +13,7 @@ export default async function ProfilePage({params,searchParams}:{params:Promise<
  const {id}=await params,query=await searchParams,page=Math.max(0,Math.min(100000,Math.floor(Number(query.page)||0)));
  const row=await db().prepare('SELECT value FROM characters WHERE id=?').bind(id).first<{value:string}>();if(!row)return notFound();const c:Character=JSON.parse(row.value);c.badges=deduplicateBadges(c.badges);
  return <main className="public-page"><a href={appPath('/')}>Return to game</a><h1>{c.name}</h1>
- <h2>Badges</h2>{!c.badges.length&&<p className="muted">No badges yet.</p>}<div className="badges">{c.badges.map(b=><article className="badge" key={b.id}><strong>{b.title}</strong><p>{b.description}</p></article>)}</div>
+ <h2>Badges</h2>{!c.badges.length&&<p className="muted">No badges yet.</p>}<div className="badges">{c.badges.map(b=><a className="badge" key={b.id} href={badgeLink(id,b.id)}><strong>{b.title}</strong><p>{b.description}</p></a>)}</div>
  <ProgressStats character={c} badges={c.badges.length}/>
  <AffiliationDisplay standings={c.standings}/><TraitDisplay traits={c.traits??[]} character={id}/><HistoryBrowser character={id} initialQuery={query.q?.slice(0,160)??''} initialOffset={page*25}/></main>;
 }
