@@ -1,3 +1,4 @@
+import {fillCharacter} from './character-text';
 import {resolveOccurrences} from './occurrence-resolution';
 import {deathTraits} from './traits';
 import {complete} from './openai';
@@ -37,7 +38,7 @@ export async function snapshot(owner:string,id?:string,offset=0){
  const history=c?(await db().prepare('SELECT id,x,y,value,at FROM visits WHERE character=? ORDER BY at DESC,id DESC LIMIT 26 OFFSET ?').bind(c.id,offset).all<{id:string;x:number;y:number;value:string;at:number}>()).results:[];
  const first=c?await db().prepare('SELECT value FROM visits WHERE character=? ORDER BY at DESC,id DESC LIMIT 1').bind(c.id).first<{value:string}>():null;
  const lastEvent=first?JSON.parse(first.value).event:null;
- return {optionChoices:c?.pendingOption?saved?.occurrenceText?.choices.map(({label})=>({label})):undefined,canInspect:false,character:c?{id:c.id,name:c.name,definingTrait:c.definingTrait,pendingOption:c.pendingOption,x:c.x,y:c.y,alive:c.alive,deaths:c.deaths,furthest:c.furthest,pendingTransport:c.pendingTransport?{token:c.pendingTransport.token,mechanism:c.pendingTransport.mechanism}:null}:null,characters:rows.map(r=>({id:r.id,name:JSON.parse(r.value).name})),cell:publicCell(saved,(await savedImage(x,y))?.url),map,connections:connections(worldSeed(),x,y),badges:c?.badges??[],traits:c?.traits??[],history:history.slice(0,25).map(h=>({id:h.id,x:h.x,y:h.y,at:h.at,...JSON.parse(h.value).event})),historyHasMore:history.length>25,historyOffset:offset,lastEvent};
+ return {optionChoices:c?.pendingOption?saved?.occurrenceText?.choices.map(({label})=>({label:fillCharacter(label,c.name)})):undefined,canInspect:false,character:c?{id:c.id,name:c.name,definingTrait:c.definingTrait,pendingOption:c.pendingOption,x:c.x,y:c.y,alive:c.alive,deaths:c.deaths,furthest:c.furthest,pendingTransport:c.pendingTransport?{token:c.pendingTransport.token,mechanism:c.pendingTransport.mechanism}:null}:null,characters:rows.map(r=>({id:r.id,name:JSON.parse(r.value).name})),cell:publicCell(saved,(await savedImage(x,y))?.url,c?.name),map,connections:connections(worldSeed(),x,y),badges:c?.badges??[],traits:c?.traits??[],history:history.slice(0,25).map(h=>({id:h.id,x:h.x,y:h.y,at:h.at,...JSON.parse(h.value).event})),historyHasMore:history.length>25,historyOffset:offset,lastEvent};
 }
 export async function moveCharacter(owner:string,id:string,requestId:string,direction:Direction|'return'){
  const op=owner+':'+requestId;

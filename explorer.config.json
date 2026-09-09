@@ -34,7 +34,7 @@
     "rateLimitPauseMs": 60000
   },
   "world": {
-    "seed": "the-pigeons-have-zoning-permits",
+    "seed": "the-mayor-is-three-raccoons",
     "version": "world-7",
     "coordinateLimit": 1000000000
   },

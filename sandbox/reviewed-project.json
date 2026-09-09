@@ -1,7 +1,7 @@
 {
   "version": 3,
   "name": "Variable sandbox",
-  "seed": "the-pigeons-have-zoning-permits",
+  "seed": "the-mayor-is-three-raccoons",
   "variables": [
     {
       "id": "natural.elevation",
@@ -1373,7 +1373,7 @@
           "patchMinDiameter": 8,
           "patchMaxDiameter": 32,
           "patchSpacing": 34,
-          "patchChance": 0.7526041666666667,
+          "patchChance": 0.37630208333333337,
           "patchRoughness": 0.85
         },
         {
@@ -1400,7 +1400,7 @@
           "patchMinDiameter": 8,
           "patchMaxDiameter": 32,
           "patchSpacing": 34,
-          "patchChance": 0.7526041666666667,
+          "patchChance": 0.37630208333333337,
           "patchRoughness": 0.85
         },
         {
@@ -1427,7 +1427,7 @@
           "patchMinDiameter": 2,
           "patchMaxDiameter": 9,
           "patchSpacing": 14.14213562373095,
-          "patchChance": 0.4999999999999999,
+          "patchChance": 0.24999999999999994,
           "patchRoughness": 0.85
         },
         {
@@ -1454,7 +1454,7 @@
           "patchMinDiameter": 2,
           "patchMaxDiameter": 9,
           "patchSpacing": 14.14213562373095,
-          "patchChance": 0.4999999999999999,
+          "patchChance": 0.24999999999999994,
           "patchRoughness": 0.85
         },
         {
@@ -1481,7 +1481,7 @@
           "patchMinDiameter": 1,
           "patchMaxDiameter": 3,
           "patchSpacing": 7.071067811865475,
-          "patchChance": 0.24999999999999994,
+          "patchChance": 0.12499999999999997,
           "patchRoughness": 0.85
         },
         {
@@ -1508,7 +1508,7 @@
           "patchMinDiameter": 1,
           "patchMaxDiameter": 3,
           "patchSpacing": 7.071067811865475,
-          "patchChance": 0.24999999999999994,
+          "patchChance": 0.12499999999999997,
           "patchRoughness": 0.85
         },
         {
@@ -2280,7 +2280,7 @@
           "patchMinDiameter": 6,
           "patchMaxDiameter": 38,
           "patchSpacing": 42.426406871192846,
-          "patchChance": 0.6499999999999999,
+          "patchChance": 0.32499999999999996,
           "patchRoughness": 0.85
         },
         {
@@ -2307,7 +2307,7 @@
           "patchMinDiameter": 6,
           "patchMaxDiameter": 38,
           "patchSpacing": 42.426406871192846,
-          "patchChance": 0.6499999999999999,
+          "patchChance": 0.32499999999999996,
           "patchRoughness": 0.85
         },
         {
@@ -3341,7 +3341,7 @@
           "bias": 0,
           "invert": false,
           "constant": 0.5,
-          "sparkCutoff": 0.976,
+          "sparkCutoff": 0.952,
           "sparkFloor": 1
         }
       ]
@@ -3464,7 +3464,7 @@
           "bias": 0,
           "invert": false,
           "constant": 0.5,
-          "sparkCutoff": 0.968,
+          "sparkCutoff": 0.9039999999999999,
           "sparkFloor": 1
         }
       ]
@@ -3722,7 +3722,7 @@
           "bias": 0,
           "invert": false,
           "constant": 0.5,
-          "sparkCutoff": 0.968,
+          "sparkCutoff": 0.9039999999999999,
           "sparkFloor": 1
         }
       ]

@@ -1,3 +1,4 @@
+import {fillCharacter} from './character-text';
 import {resolveOccurrences} from './occurrence-resolution';
 import {findTrait,grantTrait,useTrait,deathTraits,type Trait,type StateChange} from './traits';
 import type {CellPackage} from './generation';
@@ -5,7 +6,7 @@ export type Badge={id:string;title:string;description:string;entityId?:string;ki
 export type Character={id:string;name:string;definingTrait?:import('./occurrences').DefiningTrait;optionConsumed?:string[];pendingOption?:{key:string;visit:string};affiliations?:Record<string,string[]>;x:number;y:number;alive:boolean;deaths:number;furthest:number;badges:Badge[];consumed:string[];traits?:Trait[];pendingTransport?:{token:string;destination:{x:number;y:number};narrative:string;mechanism:string}};
 
 type EventRecord={text:string;newBadge:string|null;kind:string;stateChanges?:StateChange[]};
-export const fill=(text:string,name:string)=>text.replaceAll('{character_name}',name);
+export const fill=(text:string,name:string)=>fillCharacter(text,name);
 export function awardDistanceBadges(c:Character){for(const mark of [10,50,100,500,1000,10000])if(c.furthest>=mark&&!c.badges.some(b=>b.id==='distance:'+mark))c.badges.push({id:'distance:'+mark,title:mark+' from the origin',description:'Reached a distance of '+mark+' cells.',kind:'distance'});}
 export function resolveArrival(original:Character,p:CellPackage,globalConsumed=false,visitId=''){
  if(p.context.occurrences&&!p.context.event)return resolveOccurrences(original,p,visitId);

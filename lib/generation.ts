@@ -1,3 +1,4 @@
+import {fillCharacter} from './character-text';
 import {settingInput,settingInstructions,leanSceneInstructions} from './lean-generation';
 import {interpretPass,occurrenceText,type OccurrenceText} from './interpretation';
 import {assertProviderReady,providerPause} from './provider-health';
@@ -90,4 +91,4 @@ export async function ensureCell(x:number,y:number):Promise<CellPackage>{
  }));
 }
 export async function workshopData(x:number,y:number){const derived=contextFor(worldSeed(),x,y),saved=await readPackage<CellPackage>(cellKey(x,y)),context=saved?.context??derived,stage=await readPackage(stageKey(x,y));return {diagnostic:await db().prepare('SELECT value FROM server_settings WHERE key=?').bind(cellKey(x,y)+':diagnostic').first(),providerPause:await providerPause(),usage:await usageForCell(cellKey(x,y),context.regions.map(r=>namespace()+'entity:'+r.id)),ratings:context.ratings,context,pass1Prompt:stage?.prompt??detailPrompt(context,[]),pass1Result:stage?.result??null,pass2Prompt:saved?.pass2Prompt??null,pass2Result:saved?.pass2Result??null,imagePackage:await savedImage(x,y)??saved?.imagePackage??{enabled:true}};}
-export const publicCell=(p:CellPackage|null,imageUrl?:string)=>p?{scene:{title:p.scene.title,description:p.scene.description,exits:p.scene.exits.map(e=>({...e,glimpse:p.context.edges.find(n=>n.direction===e.direction)?.glimpse})),blocked:p.context.blocked},imageUrl,regions:p.regions.map(r=>({id:r.id,name:r.name,kind:r.kind})),x:p.context.x,y:p.context.y}:null;
+export const publicCell=(p:CellPackage|null,imageUrl?:string,characterName='the visitor')=>p?{scene:{title:fillCharacter(p.scene.title,characterName),description:fillCharacter(p.scene.description,characterName),exits:p.scene.exits.map(e=>({...e,description:fillCharacter(e.description,characterName),glimpse:p.context.edges.find(n=>n.direction===e.direction)?.glimpse})),blocked:p.context.blocked},imageUrl,regions:p.regions.map(r=>({id:r.id,name:r.name,kind:r.kind})),x:p.context.x,y:p.context.y}:null;

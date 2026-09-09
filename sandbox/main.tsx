@@ -1,3 +1,4 @@
+import {tuneEncounterBalance} from './encounter-balance';
 import {enlivenWorld} from './living-settings';
 import {enrichEncounters} from './encounter-refinement';
 import {refineActivity} from './activity-refinement';
@@ -83,6 +84,7 @@ function App() {
         localStorage.setItem(STORAGE_KEY+'-activity-refinement-1','1');
         localStorage.setItem(STORAGE_KEY+'-encounter-refinement-1','1');
         localStorage.setItem(STORAGE_KEY+'-living-settings-1','1');
+        localStorage.setItem(STORAGE_KEY+'-encounter-balance-1','1');
         const imported=expandInteriorOptions(enrichLanguage(parseProject(JSON.stringify(reviewedProject))));
         localStorage.setItem(STORAGE_KEY+'-interior-options-1','1');
         localStorage.setItem(STORAGE_KEY+'-language-palette-1','1');
@@ -179,6 +181,11 @@ function App() {
         localStorage.setItem(STORAGE_KEY+'-before-living-settings-1',JSON.stringify(next));
         history.current=[next];setHistoryLength(1);next=enlivenWorld(next);
         localStorage.setItem(STORAGE_KEY+'-living-settings-1','1');
+      }
+      if(!localStorage.getItem(STORAGE_KEY+'-encounter-balance-1')){
+        localStorage.setItem(STORAGE_KEY+'-before-encounter-balance-1',JSON.stringify(next));
+        history.current=[next];setHistoryLength(1);next=tuneEncounterBalance(next);
+        localStorage.setItem(STORAGE_KEY+'-encounter-balance-1','1');
       }
       setProject(next);setCanRestore(!!localStorage.getItem(STORAGE_KEY+'-before-river-study'));
       if(window.location.search)window.history.replaceState(null,'',window.location.pathname);
