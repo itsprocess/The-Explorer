@@ -94,3 +94,11 @@
 .auth > button.primary{margin-top:24px}
 
 .option-dialog .option-wait{margin-top:20px}
+
+button.map-cell{padding:0;min-width:0;min-height:0;border:0;border-radius:2px;line-height:1;cursor:pointer}
+button.map-cell:hover{outline:1px solid var(--text,#fff);outline-offset:1px}
+button.map-cell:focus-visible{outline:2px solid #b5c7ff;outline-offset:2px;z-index:2}
+.explorers-list{list-style:none;padding:0;display:grid;gap:12px}
+.explorers-list a{display:flex;justify-content:space-between;gap:16px;padding:18px;border:1px solid #343840;border-radius:10px;text-decoration:none;flex-wrap:wrap}
+.explorers-list a:hover{background:#252830}
+.masthead nav{flex-wrap:wrap}

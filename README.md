@@ -73,3 +73,9 @@ Water/void tuning (September 9): inland basin candidate rates are 2.5x with unch
 Portal reach is sampled within a disk centered on departure with radius `max(100, 10 × distance from origin)`, rounded to tile coordinates. Cached portals refresh their destinations without regenerating prose or images; already-pending journeys retain their committed destination. No reset is required.
 
 Constructed interiors omit regional groundcover from AI setting inputs and use architecture to interpret the floor. Natural caves and outdoor neighbor peeks retain their own groundcover. Raw noise values and traversal are unchanged. Interior setting caches use a separate revision; saved scenes/images are not automatically regenerated.
+
+### History and community
+
+History has its own authenticated tab; it is absent from personal and shared profile views. The history API enforces the signed-in character. Personally visited minimap cells open History filtered to that coordinate; other cells remain noninteractive. The Explorers tab pages through all characters and links to their public profiles. World statistics include total relics uncovered, summed from lifetime character totals.
+
+Encounter narration uses required properties keyed by the engine's assigned outcome leaves, preventing a duplicated leaf from replacing another branch. Semantic validation runs before provider responses can be cached as complete, with one repair attempt for invalid prose. Occurrence text cache revision 7 bypasses previously cached malformed drafts; completed scenes and existing world progress are preserved. No generation or world reset is required for deployment.

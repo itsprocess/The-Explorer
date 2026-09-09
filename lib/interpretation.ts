@@ -1,7 +1,7 @@
 import {constructedInterior,environmentPromptFields} from './prompt-environment';
 import {encounterPrompt} from './encounter-prompt';
 import {leavesMark} from './reward-direction';
-import {outcomeNarrativeSchema,validateOutcomeNarratives,normalizeOutcomeNarratives,type OutcomeNarrative} from './occurrence-narrative';
+import {keyedOutcomeNarrativeSchema,validateOutcomeNarratives,decodeOutcomeNarratives,type OutcomeNarrative} from './occurrence-narrative';
 import {remember,namespace} from './server';
 import {complete} from './openai';
 import {interpretationInstructions} from './interpretation-policy';
@@ -20,18 +20,20 @@ export async function interpretPass(c:CellContext,category:string,prior:unknown)
 }
 export async function occurrenceText(c:CellContext,setting:unknown):Promise<OccurrenceText|undefined>{
  const o=c.occurrences;if(!o||!o.relic&&!o.death&&!o.teleport&&!o.gift&&!o.challenge&&!o.option)return;
- return remember(namespace()+(constructedInterior(c)?'occurrence-text-interior-v6:':'occurrence-text-v6:')+c.x+':'+c.y,'occurrence',async()=>{
- const schema=object({outcomes:outcomeNarrativeSchema(o,leavesMark(c.seed,c.x,c.y)),setup:text,choices:{type:'array',items:object({label:text}),minItems:o.option?.choices.length??0,maxItems:o.option?.choices.length??0}});
+ return remember(namespace()+(constructedInterior(c)?'occurrence-text-interior-v7:':'occurrence-text-v7:')+c.x+':'+c.y,'occurrence',async()=>{
+ const schema=object({outcomes:keyedOutcomeNarrativeSchema(o,leavesMark(c.seed,c.x,c.y)),setup:text,choices:{type:'array',items:object({label:text}),minItems:o.option?.choices.length??0,maxItems:o.option?.choices.length??0}});
  const prompt=encounterPrompt(o,c,setting);
  for(let attempt=0;attempt<2;attempt++){
- const response=await complete<OccurrenceText>('occurrence_narratives',schema,prompt);
+ let draft:(Omit<OccurrenceText,'outcomes'>&{outcomes:Record<string,Partial<OutcomeNarrative>>})|undefined;
  try{
- response.result.outcomes=normalizeOutcomeNarratives(response.result.outcomes??[]);
- if(!response.result.setup?.trim()||response.result.choices.some(c=>!c.label.trim()))throw Error('Missing encounter setup or option label.');
- if(response.result.choices.length!==(o.option?.choices.length??0))throw Error('Incorrect option choice count.');
- validateOutcomeNarratives(o,response.result.outcomes??[]);
- return response.result;
- }catch(error){if(attempt===1)throw error;prompt.instructions+=' Repair the previous invalid response. Preserve its incident and all valid prose; correct the assigned victim, outcome and any missing metadata. Validation: '+(error as Error).message;prompt.input=JSON.stringify({request:JSON.parse(prompt.input),draft:response.result});}
+ const response=await complete<NonNullable<typeof draft>>('occurrence_narratives',schema,prompt,result=>{
+ draft=result;
+ if(!result.setup?.trim()||result.choices.some(c=>!c.label.trim()))throw Error('Missing encounter setup or option label.');
+ if(result.choices.length!==(o.option?.choices.length??0))throw Error('Incorrect option choice count.');
+ validateOutcomeNarratives(o,decodeOutcomeNarratives(result.outcomes));
+ });
+ return {...response.result,outcomes:decodeOutcomeNarratives(response.result.outcomes)};
+ }catch(error){if(attempt===1||!draft)throw error;prompt.instructions+=' Repair the previous invalid response. Preserve its incident and all valid prose; correct the assigned victim, outcome and any missing metadata. Validation: '+(error as Error).message;prompt.input=JSON.stringify({request:JSON.parse(prompt.input),draft});}
  }
  throw Error('Encounter narration could not be completed.');
  });

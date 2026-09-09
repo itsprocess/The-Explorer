@@ -22,6 +22,15 @@ export function outcomeNarrativeSchema(o:Occurrences,sharedMark=true){
   return object({...(outcome.kind==='kill'?{rescueText:nonempty}:{}),...(sharedMark?{imprint:text}:{}),key:{type:'string',enum:[key]},text:nonempty,...(outcome.kind==='give'||outcome.kind==='badge'||outcome.kind==='relic'?{repeatText:nonempty}:{}),...(badge?{badgeTitle:nonempty,badgeDescription:nonempty}:{}),...(count?{awards:{type:'array',minItems:count,maxItems:count,items:object({name:nonempty,description:nonempty})}}:{})});
  })}};
 }
+// Fixed properties ensure every assigned branch occurs exactly once in provider output.
+export function keyedOutcomeNarrativeSchema(o:Occurrences,sharedMark=true){
+ const variants=outcomeNarrativeSchema(o,sharedMark).items.anyOf;
+ const properties=Object.fromEntries(variants.map((v,i)=>{const {key,...fields}=v.properties;return [narrativeOutcomes(o)[i].key,{type:'object',properties:fields,required:Object.keys(fields),additionalProperties:false}];}));
+ return {type:'object',properties,required:Object.keys(properties),additionalProperties:false};
+}
+export function decodeOutcomeNarratives(rows:Record<string,Partial<OutcomeNarrative>>){
+ return normalizeOutcomeNarratives(Object.entries(rows).map(([key,value])=>({...value,key})));
+}
 export function validateOutcomeNarratives(o:Occurrences,rows:OutcomeNarrative[]){
  const expected=narrativeOutcomes(o);
  if(rows.length!==expected.length||new Set(rows.map(r=>r.key)).size!==rows.length)throw Error('Incomplete encounter narratives.');
