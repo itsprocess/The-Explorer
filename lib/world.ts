@@ -12,9 +12,15 @@ export function checkCoordinate(x:number,y:number){if(!Number.isSafeInteger(x)||
 export function exists(seed:string,x:number,y:number){checkCoordinate(x,y);return x===0&&y===0||fieldworkAt(seed,x,y).explorable;}
 export function connections(seed:string,x:number,y:number){const here=exists(seed,x,y);return Object.fromEntries(Object.entries(directions).map(([d,[dx,dy]])=>[d,Math.abs(x+dx)<=LIMIT&&Math.abs(y+dy)<=LIMIT&&here&&exists(seed,x+dx,y+dy)])) as Record<Direction,boolean>;}
 export type RegionRef={id:string;kind:string;anchorX:number;anchorY:number;influence:number;band:number;enumId?:string};
-export function broadTerrain(v:Record<string,number>){return v['biome.void']?'void':v['biome.chasms']?'chasm':v['natural.ocean']?'ocean':v['biome.lakes_ponds']>0?'lake':v['civilization.inside']?'built interior':v['biome.underground']?'natural underground':v['biome.river']>0?'river':v['biome.large_foliage']>.5?'dense foliage':v['biome.exposed_rock']>.5?'exposed rock':v['biome.groundcover']>.5?'thick groundcover':'open terrain';}
+export function broadTerrain(v:Record<string,number>){
+ if(v['biome.void'])return 'the Void';if(v['biome.chasms'])return 'chasm';if(v['natural.ocean'])return 'ocean';if(v['biome.lakes_ponds']>0)return 'lake';
+ if(v['civilization.inside'])return 'built interior';if(v['biome.underground'])return 'caverns';
+ const trees=v['biome.large_foliage']??0,wet=v['biome.moisture']??0,cover=v['biome.groundcover']??0,rock=v['biome.exposed_rock']??0;
+ const land=trees>.6?(wet>.65?'rainforest':'forest'):trees>.3?'woodland':rock>.6?'rocky uplands':cover>.45?'grassland':wet<.25?'arid scrubland':'open plains';
+ return v['biome.river']>0?'river through '+land:land;
+}
 export function terrainPreview(s:string,x:number,y:number){return broadTerrain(fieldworkAt(s,x,y).values);}
-export function blockedReason(terrain:string){return /ocean|lake|river/.test(terrain)?'Water blocks exploration here.':/void|chasm/.test(terrain)?'An open gulf leaves no crossing.':'The biome provides no traversable route here.';}
+export function blockedReason(terrain:string){return /ocean|lake|river/.test(terrain)?'Water blocks exploration here.':/void|chasm/i.test(terrain)?'An open gulf leaves no crossing.':'The biome provides no traversable route here.';}
 export function regionalRefs(s:string,x:number,y:number):RegionRef[]{return fieldworkAt(s,x,y).fields.filter(f=>f.enumId&&f.present).map(f=>{const kind=f.id.split('.')[1],ax=Math.floor(x/96)*96,ay=Math.floor(y/96)*96;return {id:kind+':'+ax+':'+ay+':'+f.enumId,kind,anchorX:ax,anchorY:ay,influence:f.value,band:0,enumId:f.enumId};});}
 export function contextFor(seed:string,x:number,y:number){
  checkCoordinate(x,y);const stack=fieldworkAt(seed,x,y),v=stack.values,ratings=deriveRatings(seed,x,y),open=connections(seed,x,y),refs=regionalRefs(seed,x,y),safe=x===0&&y===0;

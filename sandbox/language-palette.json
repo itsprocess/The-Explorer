@@ -15,14 +15,14 @@
     "high": "The full heart of a great river dominates the terrain, its channel commanding the scene."
   },
   "biome.void": {
-    "description": "Presence of an open void replacing terrain.",
+    "description": "A void replaces the ground. Interpret as a physical abyss or, where the setting supports it, the Void beyond ordinary reality.",
     "low": "No void breaks the ground here.",
-    "high": "The ground gives way to a vast, fathomless absence: a black gulf where a landscape should be."
+    "high": "An abyss interrupts the world; in a fantastic setting this may be the Void itself, an absence beyond ordinary space."
   },
   "biome.groundcover": {
-    "description": "Abundance of low vegetation, independent of trees and moisture.",
+    "description": "Abundance of basic low vegetation: grasses, herbs, ferns, low shrubs and other plants appropriate to the compiled biome.",
     "low": "Almost naked ground, with scarcely a blade, tuft or creeping shoot.",
-    "high": "An extravagant carpet of low growth crowds every available surface in thick mats and tangled layers."
+    "high": "Thick, vigorous ground vegetation characteristic of this biome: lush grass, abundant herbs or dense low shrubs as the setting warrants."
   },
   "biome.large_foliage": {
     "description": "Abundance of trees and other large plants; species and form follow the surrounding setting.",

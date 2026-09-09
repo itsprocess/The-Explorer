@@ -1,3 +1,4 @@
+import {refineActivity} from './activity-refinement';
 import {expandInteriorOptions} from './interior-options';
 import {enrichLanguage} from './language-palette';
 import {expandUniqueness} from './uniqueness-expansion';
@@ -77,6 +78,7 @@ function App() {
     try {
       const before=localStorage.getItem(STORAGE_KEY);
       if(!localStorage.getItem(STORAGE_KEY+'-import-seven-occurrences')){
+        localStorage.setItem(STORAGE_KEY+'-activity-refinement-1','1');
         const imported=expandInteriorOptions(enrichLanguage(parseProject(JSON.stringify(reviewedProject))));
         localStorage.setItem(STORAGE_KEY+'-interior-options-1','1');
         localStorage.setItem(STORAGE_KEY+'-language-palette-1','1');
@@ -158,6 +160,11 @@ function App() {
         localStorage.setItem(STORAGE_KEY+'-before-interior-options-1',JSON.stringify(next));
         history.current=[next];setHistoryLength(1);next=expandInteriorOptions(next);
         localStorage.setItem(STORAGE_KEY+'-interior-options-1','1');
+      }
+      if(!localStorage.getItem(STORAGE_KEY+'-activity-refinement-1')){
+        localStorage.setItem(STORAGE_KEY+'-before-activity-refinement-1',JSON.stringify(next));
+        history.current=[next];setHistoryLength(1);next=refineActivity(next);
+        localStorage.setItem(STORAGE_KEY+'-activity-refinement-1','1');
       }
       setProject(next);setCanRestore(!!localStorage.getItem(STORAGE_KEY+'-before-river-study'));
       if(window.location.search)window.history.replaceState(null,'',window.location.pathname);

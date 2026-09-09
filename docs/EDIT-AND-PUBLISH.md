@@ -5,3 +5,5 @@ The owner explicitly requested Sites publication and deletion of all current dev
 The one-time 0015 migration clears dev accounts, sessions, world records and history. It schedules a gated R2 bucket cleanup before new generation. The migration ledger prevents later publications from repeating the wipe. No account-deletion UI or public reset endpoint is added.
 
 Keep API keys as Sites secrets. Ordinary request-origin validation remains enabled and uses the actual request origin, without any configured domain secret. Legacy Node files are retained only as historical source, not the active test workflow.
+
+The owner requested another full dev reset for the denser activity iteration; migration 0016 repeats the gated database/image cleanup once.

@@ -30,6 +30,7 @@ export async function ensureCell(x:number,y:number):Promise<CellPackage>{
  await promoteGeneration(cellKey(x,y));
  return withGenerationScope(cellKey(x,y),()=>remember(cellKey(x,y),'cell',async()=>{
   const biome=await interpretPass(context,'biome',null);
+  if(biome.name?.trim()){context.biome=biome.name.trim();context.environment.landcover=context.biome;}
   const regions=await ensureRegions(context);
   const civilization=await interpretPass(context,'civilization',{biome,regions});
   const variation=await interpretPass(context,'variation',{biome,civilization});
@@ -43,7 +44,9 @@ export async function ensureCell(x:number,y:number):Promise<CellPackage>{
    if(saved)neighbors.push({direction,description:saved.scene.description,continuity_facts:saved.scene.continuity_facts,shared_exit:saved.scene.exits.find(e=>e.direction===({north:'south',south:'north',east:'west',west:'east'} as Record<string,string>)[direction])?.description});
   }
   const prompt=scenePrompt(context,regions,{details:[],regional_texture:JSON.stringify(interpreted)},neighbors);
-  prompt.input=JSON.stringify({...JSON.parse(prompt.input),interpreted});let response=await complete<Scene>('canonical_scene',sceneSchemaFor(context),prompt);
+  const sceneInput=JSON.parse(prompt.input);
+  sceneInput.context.ratings=sceneInput.context.ratings.filter((r:{id:string})=>!context.fieldwork.some(f=>f.id===r.id&&f.category==='biome'));
+  prompt.input=JSON.stringify({...sceneInput,interpreted});let response=await complete<Scene>('canonical_scene',sceneSchemaFor(context),prompt);
   response.result=compileScene(response.result);
   try{assertScene(response.result,context);}catch(e){prompt.instructions+=' Correction required: '+(e as Error).message+' Regenerate the complete scene satisfying the schema and every narrative constraint.';response=await complete<Scene>('canonical_scene',sceneSchemaFor(context),prompt);response.result=compileScene(response.result);try{assertScene(response.result,context);}catch(finalError){await db().prepare("INSERT INTO server_settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").bind(cellKey(x,y)+':diagnostic',JSON.stringify({at:Date.now(),message:(finalError as Error).message})).run();throw finalError;}}
   for(const exit of response.result.exits){
