@@ -23,7 +23,7 @@ export function occurrencesFor(seed:string,x:number,y:number,v:Record<string,num
  const challenge=(key:string):Extract<Outcome,{kind:'challenge'}>=>{
   const t=spec(key),mode=social.length&&random(seed,key+'devotion-check',x,y)<.15+.7*devotion?'affiliation':pick(key+'require',['trait','state'] as const);
   const requirement:Requirement=mode==='trait'?{kind:'defining',value:pick(key+'trait',definingTraits)}:mode==='affiliation'&&social.length?{kind:'affiliation',family:pick(key+'social',social).id.split('.')[1] as 'faction'|'kingdom'|'religion',value:pick(key+'social',social).enumId!,minimum:10+Math.round(devotion*40)}:t.kind==='status'?{kind:'status',family:t.family,value:t.value}:{kind:'possession',purpose:t.purpose,affinity:t.affinity};
-  return {kind:'challenge',requirement,present:{...simple(key+'yes'),standing:shift(key+'yes')},absent:{...simple(key+'no'),standing:shift(key+'no')}};
+  return {kind:'challenge',requirement,present:{...simple(key+'yes'),standing:shift(key+'yes')},absent:challengeFailure({...simple(key+'no'),standing:shift(key+'no')})};
  };
  const outcome=(key:string):Outcome=>{const kind=pick(key,['give','challenge','teleport','badge','kill'] as const);return kind==='give'?gift(key):kind==='challenge'?challenge(key):kind==='teleport'?{kind,destination:teleportDestination(seed,x,y,key),standing:shift(key)}:{kind,standing:shift(key)};};
  return {relic:v['occurrences.relic']>0,death:v['occurrences.certain_death']>0,teleport:v['occurrences.teleport']>0?teleportDestination(seed,x,y):null,gift:v['occurrences.gift']>0?gift('gift'):null,challenge:v['occurrences.challenge']>0?challenge('challenge'):null,option:v['occurrences.option']>0?{policy:pick('option-policy',['visit','life'] as const),choices:limitLethalChoices(Array.from({length:pick('option-count',[2,3])},(_,i)=>i===0?{kind:'none'}:outcome('option-'+i)))}:null};
@@ -32,3 +32,5 @@ export function occurrencesFor(seed:string,x:number,y:number,v:Record<string,num
 // Teleport can be fatal on arrival, so it counts toward the same one-choice limit.
 export function canCauseDeath(outcome:Outcome):boolean{return outcome.kind==='kill'||outcome.kind==='teleport'||outcome.kind==='challenge'&&(canCauseDeath(outcome.present)||canCauseDeath(outcome.absent));}
 export function limitLethalChoices(choices:Outcome[]):Outcome[]{let retained=false;return choices.map(choice=>{if(!canCauseDeath(choice))return choice;if(!retained){retained=true;return choice;}return {kind:'badge'};});}
+
+export function challengeFailure(outcome:SimpleOutcome):SimpleOutcome{return outcome.kind==='badge'?{...outcome,kind:'none'}:outcome;}

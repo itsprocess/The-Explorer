@@ -5,6 +5,7 @@ import {fillCharacter} from './character-text';
 import {findTrait,grantTrait,deathTraits,type StateChange} from './traits';
 import {awardDistanceBadges,type Character,type Badge} from './rules';
 import type {CellPackage} from './generation';
+import {challengeFailure} from './occurrences';
 import type {Outcome,Requirement} from './occurrences';
 export function requirementPresent(c:Character,r:Requirement){return r.kind==='defining'?c.definingTrait===r.value:r.kind==='affiliation'?standingScore(c,r.family,r.value)>=(r.minimum??1):!!findTrait(c.traits??[],r);}
 export function resolveOccurrences(original:Character,p:CellPackage,visit:string,selected?:number){
@@ -18,7 +19,7 @@ export function resolveOccurrences(original:Character,p:CellPackage,visit:string
  const kill=()=>{if(!c.alive)return;c.alive=false;c.deaths++;c.optionConsumed=[];delete c.pendingOption;delete c.pendingTransport;const lost=deathTraits(c.traits!);c.traits=lost.traits;event.stateChanges.push(...lost.changes);event.kind='death';badge('death:'+key,'death');};
  const apply=(r:Outcome,label:string,yes?:string,no?:string)=>{
   if(!c.alive)return;
-  if(r.kind==='challenge'){const matched=requirementPresent(c,r.requirement);requirementName=r.requirement.kind==='defining'?r.requirement.value:r.requirement.kind==='affiliation'?(c.standings?.find(s=>s.family===(r.requirement as Extract<Requirement,{kind:'affiliation'}>).family&&s.value===(r.requirement as Extract<Requirement,{kind:'affiliation'}>).value)?.names.join(', ')||r.requirement.family):findTrait(c.traits!,r.requirement)?.name??'';say(matched?yes:no);apply(matched?r.present:r.absent,label+(matched?':present':':absent'));return;}
+  if(r.kind==='challenge'){const matched=requirementPresent(c,r.requirement);requirementName=r.requirement.kind==='defining'?r.requirement.value:r.requirement.kind==='affiliation'?(c.standings?.find(s=>s.family===(r.requirement as Extract<Requirement,{kind:'affiliation'}>).family&&s.value===(r.requirement as Extract<Requirement,{kind:'affiliation'}>).value)?.names.join(', ')||r.requirement.family):findTrait(c.traits!,r.requirement)?.name??'';say(matched?yes:no);apply(matched?r.present:challengeFailure(r.absent),label+(matched?':present':':absent'));return;}
   narrative=t?.outcomes?.find(n=>n.key===label);say(narrative?.text?.replaceAll('{requirement_name}',()=>requirementName));
   if(r.standing){c.standingClaims??=[];const claim=key+':'+label+':life:'+c.deaths;if(!c.standingClaims.includes(claim)){changeStanding(c,r.standing);c.standingClaims.push(claim);}}
   if(r.kind==='kill'){kill();return;}

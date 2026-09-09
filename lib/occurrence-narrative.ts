@@ -1,8 +1,9 @@
+import {challengeFailure} from './occurrences';
 import type {Occurrences,Outcome} from './occurrences';
 export type OutcomeNarrative={key:string;text:string;imprint?:string;repeatText?:string;badgeTitle:string;badgeDescription:string;awards:{name:string;description:string}[]};
 export function narrativeOutcomes(o:Occurrences){
  const results:{key:string;outcome:Outcome}[]=[];
- const add=(key:string,outcome:Outcome)=>{if(outcome.kind==='challenge'){add(key+':present',outcome.present);add(key+':absent',outcome.absent);}else results.push({key,outcome});};
+ const add=(key:string,outcome:Outcome)=>{if(outcome.kind==='challenge'){add(key+':present',outcome.present);add(key+':absent',challengeFailure(outcome.absent));}else results.push({key,outcome});};
  if(o.relic)add('relic',{kind:'relic'});
  if(o.death)add('death',{kind:'kill'});
  if(o.teleport)add('teleport',{kind:'teleport',destination:o.teleport});

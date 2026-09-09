@@ -1,0 +1,12 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {resolveOccurrences} from '../lib/occurrence-resolution';
+import {narrativeOutcomes} from '../lib/occurrence-narrative';
+import {deduplicateBadges} from '../lib/achievement-identity';
+import {contextFor} from '../lib/world';
+const c:any={id:'p',name:'P',x:0,y:0,alive:true,deaths:0,furthest:0,badges:[],consumed:[],definingTrait:'Wit'};
+const o:any={death:false,teleport:null,gift:null,option:null,challenge:{kind:'challenge',requirement:{kind:'defining',value:'Strength'},present:{kind:'badge'},absent:{kind:'badge'}}};
+const p:any={context:{x:1,y:1,distance:1,seed:'fixture',version:'fieldwork-1',occurrences:o,regions:[]},regions:[],scene:{title:'Trial'},occurrenceText:{choices:[],outcomes:[{key:'challenge:present',text:'Passed.',badgeTitle:'Passed',badgeDescription:'Passed trial',awards:[]},{key:'challenge:absent',text:'Failed.',badgeTitle:'Unclaimed',badgeDescription:'Failed trial',awards:[]}]}};
+test('cached failed challenges cannot award honor; passing still earns it',()=>{const fail=resolveOccurrences(c,p,'v');assert.equal(fail.event.newBadge,null);assert.equal(fail.event.kind,'interaction');assert.equal(fail.character.badges.length,0);const pass=resolveOccurrences({...c,definingTrait:'Strength'},p,'v');assert.equal(pass.event.newBadge,'Passed');assert.equal(pass.character.badges.length,1);});
+test('narration schema normalizes legacy failure rewards; death commemorations survive',()=>{assert.equal(narrativeOutcomes(o).find(n=>n.key==='challenge:absent')?.outcome.kind,'none');const b:any={id:'fixture:fieldwork-1:1:1:challenge:absent',title:'X',description:'X',kind:'honor'};assert.equal(deduplicateBadges([b]).length,0);assert.equal(deduplicateBadges([{...b,kind:'death'}]).length,1);});
+test('reported tile has no population and no longer assigns a failure badge',()=>{const tile=contextFor('the-clouds-have-a-ground-floor',1,1);assert.equal(tile.fieldwork.find(f=>f.id==='civilization.density')?.value,0);assert.equal(tile.occurrences?.challenge?.present.kind,'badge');assert.equal(tile.occurrences?.challenge?.absent.kind,'none');});
