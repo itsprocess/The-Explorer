@@ -187,6 +187,11 @@ function App() {
         history.current=[next];setHistoryLength(1);next=tuneEncounterBalance(next);
         localStorage.setItem(STORAGE_KEY+'-encounter-balance-1','1');
       }
+      if(!localStorage.getItem(STORAGE_KEY+'-psychedelic-terrifying-1')){
+        const additions=parseProject(JSON.stringify(reviewedProject)).variables.filter(v=>['variation.psychedelic','variation.terrifying'].includes(v.appName)&&!next.variables.some(old=>old.appName===v.appName));
+        next={...next,variables:[...next.variables,...additions]};
+        localStorage.setItem(STORAGE_KEY,JSON.stringify(next));localStorage.setItem(STORAGE_KEY+'-psychedelic-terrifying-1','1');
+      }
       setProject(next);setCanRestore(!!localStorage.getItem(STORAGE_KEY+'-before-river-study'));
       if(window.location.search)window.history.replaceState(null,'',window.location.pathname);
     }
