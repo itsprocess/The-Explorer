@@ -1,3 +1,4 @@
+import {settingCachePrefix} from './prompt-environment';
 import {needsDeathNarrativeRepair,narrativeOutcomes} from './occurrence-narrative';
 import {limitLethalChoices,retargetTeleports,teleportDestination} from './occurrences';
 import {fillCharacter} from './character-text';
@@ -32,7 +33,7 @@ type SettingPackage={peek:string;name:string;biome:{name?:string;description:str
 async function ensureSettings(cells:CellContext[]):Promise<Map<string,SettingPackage>>{
  const key=(c:CellContext)=>c.x+':'+c.y,settings=new Map<string,SettingPackage>(),missing:CellContext[]=[];
  for(const c of cells){
-  const saved=await readPackage<SettingPackage>(namespace()+'setting-v2:'+key(c));
+  const saved=await readPackage<SettingPackage>(namespace()+settingCachePrefix(c)+key(c));
   if(saved)settings.set(key(c),saved);else missing.push(c);
  }
  if(!missing.length)return settings;
@@ -44,7 +45,7 @@ async function ensureSettings(cells:CellContext[]):Promise<Map<string,SettingPac
  if(response.result.settings.length!==missing.length||new Set(response.result.settings.map(s=>s.index)).size!==missing.length||response.result.settings.some(s=>!Number.isInteger(s.index)||s.index<0||s.index>=missing.length||!s.peek?.trim()||!s.name.trim()||!s.biome.name?.trim()))throw Error('Incomplete setting interpretations.');
  for(const result of response.result.settings){
   const c=missing[result.index],value=(id:string)=>c.fieldwork.find(f=>f.id===id&&f.present)?.value??0;
-  const saved=await remember(namespace()+'setting-v2:'+key(c),'setting',async()=>({peek:result.peek,name:result.name,biome:result.biome,civilization:result.civilization,regions:[],population:value('civilization.density'),infrastructure:value('civilization.infrastructure')}));
+  const saved=await remember(namespace()+settingCachePrefix(c)+key(c),'setting',async()=>({peek:result.peek,name:result.name,biome:result.biome,civilization:result.civilization,regions:[],population:value('civilization.density'),infrastructure:value('civilization.infrastructure')}));
   settings.set(key(c),saved);
  }
  return settings;
