@@ -19,7 +19,7 @@ export function outcomeNarrativeSchema(o:Occurrences,sharedMark=true){
  return {type:'array',minItems:leaves.length,maxItems:leaves.length,items:{anyOf:leaves.map(({key,outcome})=>{
   const badge=outcome.kind==='kill'||outcome.kind==='badge'||outcome.kind==='give'&&outcome.badge;
   const count=outcome.kind==='give'?outcome.awards.length:0;
-  return object({...(key==='death'?{rescueText:nonempty}:{}),...(sharedMark?{imprint:text}:{}),key:{type:'string',enum:[key]},text:nonempty,...(outcome.kind==='give'||outcome.kind==='badge'||outcome.kind==='relic'?{repeatText:nonempty}:{}),...(badge?{badgeTitle:nonempty,badgeDescription:nonempty}:{}),...(count?{awards:{type:'array',minItems:count,maxItems:count,items:object({name:nonempty,description:nonempty})}}:{})});
+  return object({...(outcome.kind==='kill'?{rescueText:nonempty}:{}),...(sharedMark?{imprint:text}:{}),key:{type:'string',enum:[key]},text:nonempty,...(outcome.kind==='give'||outcome.kind==='badge'||outcome.kind==='relic'?{repeatText:nonempty}:{}),...(badge?{badgeTitle:nonempty,badgeDescription:nonempty}:{}),...(count?{awards:{type:'array',minItems:count,maxItems:count,items:object({name:nonempty,description:nonempty})}}:{})});
  })}};
 }
 export function validateOutcomeNarratives(o:Occurrences,rows:OutcomeNarrative[]){

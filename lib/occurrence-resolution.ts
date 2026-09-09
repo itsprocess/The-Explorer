@@ -16,9 +16,16 @@ export function resolveOccurrences(original:Character,p:CellPackage,visit:string
  const say=(s?:string)=>{if(s)event.text=fillCharacter(s,c.name);};
  let requirementName='',narrative=t?.outcomes?.find(n=>n.key==='death');
  const badge=(id:string,kind:Badge['kind'])=>{if(!c.badges.some(b=>b.id===id)){const b={id,title:fillCharacter(narrative?.badgeTitle||t?.badgeTitle||p.scene.title,c.name),description:fillCharacter(narrative?.badgeDescription||t?.badgeDescription||event.text,c.name),kind};const unique=deduplicateBadges([...c.badges,b]);if(unique.length>c.badges.length){c.badges=unique;event.newBadge=b.title;}}};
- const kill=()=>{if(!c.alive)return;c.alive=false;c.deaths++;c.optionConsumed=[];delete c.pendingOption;delete c.pendingTransport;const lost=deathTraits(c.traits!);c.traits=lost.traits;event.stateChanges.push(...lost.changes);event.kind='death';badge('death:'+key,'death');};
+ let rescued=false;
+ const rescue=()=>{
+  const protection=c.traits!.find(t=>t.kind==='status'&&t.family==='death_protection'&&t.value==='reprieve');if(!protection)return false;
+  const departure=original.previousTile??{x:original.x,y:original.y};c.traits=c.traits!.filter(t=>!(t.kind==='status'&&t.family==='death_protection'));c.x=departure.x;c.y=departure.y;delete c.pendingOption;delete c.pendingTransport;
+  rescued=true;event.kind='rescued';event.text=fillCharacter(narrative?.rescueText||'{character_name} was saved from death by {protection_name}, which was spent returning them to the place they came from.',c.name).replaceAll('{protection_name}',()=>protection.name).replaceAll('{requirement_name}',()=>requirementName);
+  event.stateChanges.push({type:'consumed',trait:protection,reason:'Spent preventing death'});return true;
+ };
+ const kill=()=>{if(!c.alive||rescue())return;c.alive=false;c.deaths++;c.optionConsumed=[];delete c.pendingOption;delete c.pendingTransport;const lost=deathTraits(c.traits!);c.traits=lost.traits;event.stateChanges.push(...lost.changes);event.kind='death';badge('death:'+key,'death');};
  const apply=(r:Outcome,label:string,yes?:string,no?:string)=>{
-  if(!c.alive)return;
+  if(!c.alive||rescued)return;
   if(r.kind==='challenge'){const matched=requirementPresent(c,r.requirement);requirementName=r.requirement.kind==='defining'?r.requirement.value:r.requirement.kind==='affiliation'?(c.standings?.find(s=>s.family===(r.requirement as Extract<Requirement,{kind:'affiliation'}>).family&&s.value===(r.requirement as Extract<Requirement,{kind:'affiliation'}>).value)?.names.join(', ')||r.requirement.family):findTrait(c.traits!,r.requirement)?.name??'';say(matched?yes:no);apply(matched?r.present:challengeFailure(r.absent),label+(matched?':present':':absent'));return;}
   narrative=t?.outcomes?.find(n=>n.key===label);say(narrative?.text?.replaceAll('{requirement_name}',()=>requirementName));
   if(r.standing){c.standingClaims??=[];const claim=key+':'+label+':life:'+c.deaths;if(!c.standingClaims.includes(claim)){changeStanding(c,r.standing);c.standingClaims.push(claim);}}
@@ -36,25 +43,19 @@ export function resolveOccurrences(original:Character,p:CellPackage,visit:string
   const choice=t?.choices[selected];if(choice?.label)event.choice=fillCharacter(choice.label,c.name);say(choice?.result);apply(o.option.choices[selected],'option-'+selected,choice?.present,choice?.absent);if(c.alive&&o.option.policy==='life')c.optionConsumed.push(key);delete c.pendingOption;
  }else{
   delete c.pendingOption;
-  if(o.death){
-   const protection=c.traits.find(t=>t.kind==='status'&&t.family==='death_protection'&&t.value==='reprieve');
-   if(protection){const departure=original.previousTile??{x:original.x,y:original.y};c.traits=c.traits.filter(t=>t.id!==protection.id);c.x=departure.x;c.y=departure.y;delete c.pendingOption;delete c.pendingTransport;
-    event.kind='rescued';event.text=fillCharacter(narrative?.rescueText||'{character_name} was saved from certain death by {protection_name}, which was spent returning them to the place they came from.',c.name).replaceAll('{protection_name}',()=>protection.name);
-    event.stateChanges.push({type:'consumed',trait:protection,reason:'Spent preventing certain death'});awardDistanceBadges(c);return {character:c,event};
-   }
-   say(narrative?.text||t?.death);kill();}
+  if(o.death){say(narrative?.text||t?.death);kill();}
 
   else{
    if(o.relic)apply({kind:'relic'},'relic');
    const relicText=event.relic?.text;
    const passes=!o.challenge||requirementPresent(c,o.challenge.requirement);
    if(o.challenge)apply(o.challenge,'challenge',t?.challengePresent,t?.challengeAbsent);
-   if(c.alive&&passes&&o.gift){const previous=o.challenge?event.text+' ':'';say(t?.gift);apply(o.gift,'gift');event.text=previous+event.text;}
-   if(c.alive&&!c.pendingTransport&&o.teleport){say(t?.teleport);apply({kind:'teleport',destination:o.teleport},'teleport');}
+   if(c.alive&&!rescued&&passes&&o.gift){const previous=o.challenge?event.text+' ':'';say(t?.gift);apply(o.gift,'gift');event.text=previous+event.text;}
+   if(c.alive&&!rescued&&!c.pendingTransport&&o.teleport){say(t?.teleport);apply({kind:'teleport',destination:o.teleport},'teleport');}
    if(relicText&&event.text!==relicText)event.text=relicText+' '+event.text;
-   if(c.alive&&!c.pendingTransport&&o.option&&(o.option.policy==='visit'||!c.optionConsumed.includes(key)))c.pendingOption={key,visit};
+   if(c.alive&&!rescued&&!c.pendingTransport&&o.option&&(o.option.policy==='visit'||!c.optionConsumed.includes(key)))c.pendingOption={key,visit};
   }
  }
- if(leavesMark(p.context.seed,c.x,c.y)&&narrative?.imprint&&event.kind!=='revisit'&&event.kind!=='arrival'&&event.kind!=='transport_pending')event.imprint=fillCharacter(narrative.imprint.replaceAll('{requirement_name}',()=>requirementName),c.name);
+ if(!rescued&&leavesMark(p.context.seed,c.x,c.y)&&narrative?.imprint&&event.kind!=='revisit'&&event.kind!=='arrival'&&event.kind!=='transport_pending')event.imprint=fillCharacter(narrative.imprint.replaceAll('{requirement_name}',()=>requirementName),c.name);
  awardDistanceBadges(c);return {character:c,event};
 }
