@@ -10,6 +10,16 @@ export function narrativeOutcomes(o:Occurrences){
  o.option?.choices.forEach((r,i)=>add('option-'+i,r));
  return results;
 }
+export function outcomeNarrativeSchema(o:Occurrences){
+ const text={type:'string'},nonempty={type:'string',minLength:1};
+ const object=(properties:Record<string,unknown>)=>({type:'object',properties,required:Object.keys(properties),additionalProperties:false});
+ const leaves=narrativeOutcomes(o);
+ return {type:'array',minItems:leaves.length,maxItems:leaves.length,items:{anyOf:leaves.map(({key,outcome})=>{
+  const badge=outcome.kind==='kill'||outcome.kind==='badge'||outcome.kind==='give'&&outcome.badge;
+  const count=outcome.kind==='give'?outcome.awards.length:0;
+  return object({key:{type:'string',enum:[key]},text:nonempty,repeatText:outcome.kind==='give'||outcome.kind==='badge'?nonempty:text,badgeTitle:badge?nonempty:text,badgeDescription:badge?nonempty:text,awards:{type:'array',minItems:count,maxItems:count,items:object({name:nonempty,description:nonempty})}});
+ })}};
+}
 export function validateOutcomeNarratives(o:Occurrences,rows:OutcomeNarrative[]){
  const expected=narrativeOutcomes(o);
  if(rows.length!==expected.length||new Set(rows.map(r=>r.key)).size!==rows.length)throw Error('Incomplete encounter narratives.');

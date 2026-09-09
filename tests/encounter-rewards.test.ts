@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {resolveOccurrences} from '../lib/occurrence-resolution';
 import {deduplicateBadges} from '../lib/achievement-identity';
-import {validateOutcomeNarratives,narrativeOutcomes} from '../lib/occurrence-narrative';
+import {validateOutcomeNarratives,narrativeOutcomes,outcomeNarrativeSchema} from '../lib/occurrence-narrative';
 import type {CellPackage} from '../lib/generation';
 import type {Character} from '../lib/rules';
 const player=():Character=>({id:'a',name:'Ari',x:0,y:0,alive:true,deaths:0,furthest:0,badges:[],consumed:[]});
@@ -33,4 +33,16 @@ test('legacy duplicated cell achievements collapse without merging different cel
  const b={kind:'honor' as const,title:'Memory',description:'Remembered here'};
  const list=[{...b,id:'seed:fieldwork-1:2:3:option-0'},{...b,id:'seed:fieldwork-1:2:3:option-1'},{...b,id:'seed:fieldwork-1:2:4:option-1'}];
  assert.equal(deduplicateBadges(list).length,2);
+});
+
+test('death and nested death require badge text in the provider schema itself',()=>{
+ const o=cell().context.occurrences!;o.gift=null;o.death=true;o.challenge={kind:'challenge',requirement:{kind:'defining',value:'Faith'},present:{kind:'none'},absent:{kind:'kill'}};
+ const schema=outcomeNarrativeSchema(o) as any;
+ for(const key of ['death','challenge:absent']){
+  const leaf=schema.items.anyOf.find((s:any)=>s.properties.key.enum[0]===key);
+  assert.equal(leaf.properties.badgeTitle.minLength,1);assert.equal(leaf.properties.badgeDescription.minLength,1);
+  assert.equal(leaf.properties.awards.maxItems,0);
+ }
+ const nonAward=schema.items.anyOf.find((s:any)=>s.properties.key.enum[0]==='challenge:present');
+ assert.equal(nonAward.properties.badgeTitle.minLength,undefined);
 });
