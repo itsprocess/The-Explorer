@@ -34,3 +34,5 @@ the owner confirmed Sites publication and this wipe on 2026-09-09.
 Validation: TypeScript check, production build, focused travel/relic, encounter
 reward, teleport, feedback, marker, history, fieldwork fixture, prompt payload and
 reset tests. No paid generation or broad procedural sampling was performed.
+
+Repair: occurrence-specific scene and setup instructions are included only for assigned outcome types. Neighbor continuity carries the committed setting and shared exit, never neighboring scene prose or encounter facts. Dev previews preserve all real progress counters. Migration 0024 clears contaminated world content and progress once, preserving accounts, sessions and defining traits; seed unchanged.

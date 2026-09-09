@@ -1,6 +1,6 @@
 import {limitLethalChoices} from './occurrences';
 import {fillCharacter} from './character-text';
-import {settingInput,settingInstructions,leanSceneInstructions} from './lean-generation';
+import {settingInput,settingInstructions,sceneInstructionsFor,neighborContinuity} from './lean-generation';
 import {interpretPass,occurrenceText,type OccurrenceText} from './interpretation';
 import {assertProviderReady,providerPause} from './provider-health';
 import {usageForCell} from './usage';
@@ -91,12 +91,12 @@ export async function ensureCell(x:number,y:number):Promise<CellPackage>{
    const nextSetting=settings.get(next.x+':'+next.y)!;
    const edge=context.edges.find(e=>e.direction===direction)!;
    edge.glimpse=nextSetting.peek;
-   if(saved)neighbors.push({direction,coordinate:[next.x,next.y],biome:edge.glimpse,description:saved.scene.description,continuity_facts:saved.scene.continuity_facts,shared_exit:saved.scene.exits.find(e=>e.direction===({north:'south',south:'north',east:'west',west:'east'} as Record<string,string>)[direction])?.description});
+   if(saved)neighbors.push({direction,...neighborContinuity(next,edge.glimpse,saved.scene.exits.find(e=>e.direction===({north:'south',south:'north',east:'west',west:'east'} as Record<string,string>)[direction])?.description)});
   }
   const prompt=scenePrompt(context,regions,{details:[],regional_texture:JSON.stringify(interpreted)},neighbors);
   const sceneInput=JSON.parse(prompt.input);
   delete sceneInput.context.ratings;delete sceneInput.context.environment;
-  if(!context.event&&!context.stateRule&&!context.hostilityPolicy.enforcesForeignHonors)prompt.instructions=leanSceneInstructions+(context.protectedOrigin?' Origin: safe arrival and return point; give it an original proper name.':'');
+  if(!context.event&&!context.stateRule&&!context.hostilityPolicy.enforcesForeignHonors)prompt.instructions=sceneInstructionsFor(context)+(context.protectedOrigin?' Origin: safe arrival and return point; give it an original proper name.':'');
   prompt.input=JSON.stringify({...sceneInput,interpreted,occurrence_setup:prose?.setup??null});let response=await complete<Scene>('canonical_scene',sceneSchemaFor(context),prompt);
   response.result=compileScene(response.result);
   try{assertScene(response.result,context);}catch(e){prompt.instructions+=' Correction required: '+(e as Error).message+' Regenerate the complete scene satisfying the schema and every narrative constraint.';response=await complete<Scene>('canonical_scene',sceneSchemaFor(context),prompt);response.result=compileScene(response.result);try{assertScene(response.result,context);}catch(finalError){await db().prepare("INSERT INTO server_settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").bind(cellKey(x,y)+':diagnostic',JSON.stringify({at:Date.now(),message:(finalError as Error).message})).run();throw finalError;}}

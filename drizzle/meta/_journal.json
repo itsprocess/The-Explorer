@@ -169,6 +169,13 @@
       "when": 1788965454529,
       "tag": "0023_reset_relics",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1788966290533,
+      "tag": "0024_reset_encounter_repair",
+      "breakpoints": true
     }
   ]
 }
