@@ -1,5 +1,5 @@
 import type {Occurrences,Outcome} from './occurrences';
-export type OutcomeNarrative={key:string;text:string;repeatText?:string;badgeTitle:string;badgeDescription:string;awards:{name:string;description:string}[]};
+export type OutcomeNarrative={key:string;text:string;imprint?:string;repeatText?:string;badgeTitle:string;badgeDescription:string;awards:{name:string;description:string}[]};
 export function narrativeOutcomes(o:Occurrences){
  const results:{key:string;outcome:Outcome}[]=[];
  const add=(key:string,outcome:Outcome)=>{if(outcome.kind==='challenge'){add(key+':present',outcome.present);add(key+':absent',outcome.absent);}else results.push({key,outcome});};
@@ -17,7 +17,7 @@ export function outcomeNarrativeSchema(o:Occurrences){
  return {type:'array',minItems:leaves.length,maxItems:leaves.length,items:{anyOf:leaves.map(({key,outcome})=>{
   const badge=outcome.kind==='kill'||outcome.kind==='badge'||outcome.kind==='give'&&outcome.badge;
   const count=outcome.kind==='give'?outcome.awards.length:0;
-  return object({key:{type:'string',enum:[key]},text:nonempty,repeatText:outcome.kind==='give'||outcome.kind==='badge'?nonempty:text,badgeTitle:badge?nonempty:text,badgeDescription:badge?nonempty:text,awards:{type:'array',minItems:count,maxItems:count,items:object({name:nonempty,description:nonempty})}});
+  return object({imprint:text,key:{type:'string',enum:[key]},text:nonempty,repeatText:outcome.kind==='give'||outcome.kind==='badge'?nonempty:text,badgeTitle:badge?nonempty:text,badgeDescription:badge?nonempty:text,awards:{type:'array',minItems:count,maxItems:count,items:object({name:nonempty,description:nonempty})}});
  })}};
 }
 export function validateOutcomeNarratives(o:Occurrences,rows:OutcomeNarrative[]){

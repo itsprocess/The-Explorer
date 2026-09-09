@@ -1,3 +1,4 @@
+import {leavesMark} from './reward-direction';
 import {deduplicateBadges} from './achievement-identity';
 import {fillCharacter} from './character-text';
 import {findTrait,grantTrait,deathTraits,type StateChange} from './traits';
@@ -8,15 +9,15 @@ export function requirementPresent(c:Character,r:Requirement){return r.kind==='d
 export function resolveOccurrences(original:Character,p:CellPackage,visit:string,selected?:number){
  const c=structuredClone(original);c.badges=deduplicateBadges(c.badges);c.awardClaims??=[];c.traits??=[];c.optionConsumed??=[];c.x=p.context.x;c.y=p.context.y;c.furthest=Math.max(c.furthest,p.context.distance);
  const o=p.context.occurrences!,t=p.occurrenceText,key=p.context.seed+':'+p.context.version+':'+c.x+':'+c.y;
- const event:{text:string;newBadge:string|null;kind:string;stateChanges:StateChange[]}={text:c.name+' arrived at '+p.scene.title+'.',newBadge:null,kind:'arrival',stateChanges:[]};
+ const event:{text:string;newBadge:string|null;kind:string;imprint?:string;stateChanges:StateChange[]}={text:c.name+' arrived at '+p.scene.title+'.',newBadge:null,kind:'arrival',stateChanges:[]};
  const say=(s?:string)=>{if(s)event.text=fillCharacter(s,c.name);};
- let narrative=t?.outcomes?.find(n=>n.key==='death');
+ let requirementName='',narrative=t?.outcomes?.find(n=>n.key==='death');
  const badge=(id:string,kind:Badge['kind'])=>{if(!c.badges.some(b=>b.id===id)){const b={id,title:fillCharacter(narrative?.badgeTitle||t?.badgeTitle||p.scene.title,c.name),description:fillCharacter(narrative?.badgeDescription||t?.badgeDescription||event.text,c.name),kind};const unique=deduplicateBadges([...c.badges,b]);if(unique.length>c.badges.length){c.badges=unique;event.newBadge=b.title;}}};
  const kill=()=>{if(!c.alive)return;c.alive=false;c.deaths++;c.optionConsumed=[];delete c.pendingOption;delete c.pendingTransport;const lost=deathTraits(c.traits!);c.traits=lost.traits;event.stateChanges.push(...lost.changes);event.kind='death';badge('death:'+key,'death');};
  const apply=(r:Outcome,label:string,yes?:string,no?:string)=>{
   if(!c.alive)return;
-  if(r.kind==='challenge'){const matched=requirementPresent(c,r.requirement);say(matched?yes:no);apply(matched?r.present:r.absent,label+(matched?':present':':absent'));return;}
-  narrative=t?.outcomes?.find(n=>n.key===label);say(narrative?.text);
+  if(r.kind==='challenge'){const matched=requirementPresent(c,r.requirement);requirementName=r.requirement.kind==='defining'?r.requirement.value:r.requirement.kind==='affiliation'?findTrait(c.traits!,{kind:'status',family:r.requirement.family,value:r.requirement.value})?.name??'':findTrait(c.traits!,r.requirement)?.name??'';say(matched?yes:no);apply(matched?r.present:r.absent,label+(matched?':present':':absent'));return;}
+  narrative=t?.outcomes?.find(n=>n.key===label);say(narrative?.text?.replaceAll('{requirement_name}',()=>requirementName));
   if(r.kind==='kill'){kill();return;}
   if(r.kind==='teleport'){c.pendingTransport={token:visit+':'+label,destination:r.destination,narrative:event.text,mechanism:'teleport'};event.kind='transport_pending';return;}
   if(r.kind==='badge'){const count=c.badges.length;badge(key+':'+label,'honor');event.kind=c.badges.length>count?'honor':'revisit';if(event.kind==='revisit')say(narrative?.repeatText);return;}
@@ -39,5 +40,6 @@ export function resolveOccurrences(original:Character,p:CellPackage,visit:string
    if(c.alive&&!c.pendingTransport&&o.option&&(o.option.policy==='visit'||!c.optionConsumed.includes(key)))c.pendingOption={key,visit};
   }
  }
+ if(leavesMark(p.context.seed,c.x,c.y)&&narrative?.imprint&&event.kind!=='revisit'&&event.kind!=='arrival'&&event.kind!=='transport_pending')event.imprint=fillCharacter(narrative.imprint.replaceAll('{requirement_name}',()=>requirementName),c.name);
  awardDistanceBadges(c);return {character:c,event};
 }

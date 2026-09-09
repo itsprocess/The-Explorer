@@ -1,3 +1,4 @@
+import {rewardDirection,itemForms} from '../lib/reward-direction';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {resolveOccurrences} from '../lib/occurrence-resolution';
@@ -45,4 +46,18 @@ test('death and nested death require badge text in the provider schema itself',(
  }
  const nonAward=schema.items.anyOf.find((s:any)=>s.properties.key.enum[0]==='challenge:present');
  assert.equal(nonAward.properties.badgeTitle.minLength,undefined);
+});
+
+test('physical reward forms vary independently of the same mechanical specification',()=>{
+ const spec={kind:'possession' as const,purpose:'protection',affinity:'spirit',material:'woven',lifetime:'permanent' as const};
+ const a=rewardDirection('fixture',2,3,'gift',0,spec);
+ assert.deepEqual(a,rewardDirection('fixture',2,3,'gift',0,spec));
+ const forms=new Set(Array.from({length:16},(_,i)=>rewardDirection('fixture',2,3,'reward-'+i,0,spec).form));
+ assert.ok(forms.size>=5);assert.ok(itemForms.includes('hand tool'));assert.ok(itemForms.includes('potion or bottled preparation'));
+});
+test('a matched item challenge names the actual possession in its resolution',()=>{
+ const p=cell(),c=resolveOccurrences(player(),p,'gift').character;p.context.occurrences!.gift=null;
+ p.context.occurrences!.challenge={kind:'challenge',requirement:{kind:'possession',purpose:'protection',affinity:'water'},present:{kind:'none'},absent:{kind:'none'}};
+ p.occurrenceText!.outcomes=[{key:'challenge:present',text:'{character_name} raised {requirement_name} and the spray parted.',badgeTitle:'',badgeDescription:'',awards:[]}];
+ const r=resolveOccurrences(c,p,'challenge');assert.equal(r.event.text,'Ari raised Silver shard and the spray parted.');
 });

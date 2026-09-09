@@ -10,18 +10,20 @@ export function feedbackFor(before:any,after:any){
 }
 export function useEventFeedback(){
  const [notice,setNotice]=useState<any>(null),[muted,setMuted]=useState(false);
- const audio=useRef<AudioContext|null>(null),last=useRef<string|undefined>(undefined);
+ const audio=useRef<AudioContext|null>(null),last=useRef<string|undefined>(undefined),lastCurious=useRef<string|undefined>(undefined);
  useEffect(()=>{try{setMuted(localStorage.getItem('explorer-muted')==='1');}catch{}return ()=>{void audio.current?.close();};},[]);
 
  function unlock(){if(muted)return;try{audio.current??=new AudioContext();void audio.current.resume().catch(()=>{});}catch{}}
  function toggle(){const next=!muted;setMuted(next);try{localStorage.setItem('explorer-muted',next?'1':'0');}catch{}if(next)void audio.current?.suspend();}
+ function curious(key:string){if(lastCurious.current===key)return;lastCurious.current=key;play([392,523,622]);}
+ function play(notes:number[]){const ctx=audio.current;if(muted||!ctx||ctx.state!=='running')return;notes.forEach((hz,i)=>{const osc=ctx.createOscillator(),gain=ctx.createGain(),start=ctx.currentTime+i*.14;osc.type='sine';osc.frequency.value=hz;gain.gain.setValueAtTime(0,start);gain.gain.linearRampToValueAtTime(.05,start+.015);gain.gain.exponentialRampToValueAtTime(.001,start+.3);osc.connect(gain);gain.connect(ctx.destination);osc.start(start);osc.stop(start+.31);osc.onended=()=>{osc.disconnect();gain.disconnect();};});}
  function show(before:any,after:any){const next=feedbackFor(before,after);if(!next||!next.id||last.current===next.id)return;last.current=next.id;setNotice(next);
   const ctx=audio.current;if(muted||!ctx||ctx.state!=='running')return;
   const notes=next.event?.kind==='death'?[330,247,165]:next.badges.length?[523,659,784,1047]:[440,659];
   notes.forEach((hz,i)=>{const osc=ctx.createOscillator(),gain=ctx.createGain(),start=ctx.currentTime+i*.095;osc.type='sine';osc.frequency.value=hz;gain.gain.setValueAtTime(0,start);gain.gain.linearRampToValueAtTime(.065,start+.012);gain.gain.exponentialRampToValueAtTime(.001,start+.24);osc.connect(gain);gain.connect(ctx.destination);osc.start(start);osc.stop(start+.25);osc.onended=()=>{osc.disconnect();gain.disconnect();};});
  }
  const popup=notice&&<FeedbackDialog notice={notice} dismiss={()=>setNotice(null)}/>;
- return {unlock,show,clear:()=>setNotice(null),popup,soundButton:<button type="button" aria-pressed={muted} aria-label={muted?'Unmute event sounds':'Mute event sounds'} onClick={toggle}>{muted?'Sound off':'Sound on'}</button>};
+ return {unlock,curious,show,clear:()=>setNotice(null),popup,soundButton:<button type="button" aria-pressed={muted} aria-label={muted?'Unmute event sounds':'Mute event sounds'} onClick={toggle}>{muted?'Sound off':'Sound on'}</button>};
 }
 
 function FeedbackDialog({notice,dismiss}:{notice:any;dismiss:()=>void}){
