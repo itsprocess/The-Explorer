@@ -19,7 +19,7 @@ export function outcomeNarrativeSchema(o:Occurrences,sharedMark=true){
  return {type:'array',minItems:leaves.length,maxItems:leaves.length,items:{anyOf:leaves.map(({key,outcome})=>{
   const badge=outcome.kind==='kill'||outcome.kind==='badge'||outcome.kind==='give'&&outcome.badge;
   const count=outcome.kind==='give'?outcome.awards.length:0;
-  return object({...(outcome.kind==='kill'?{rescueText:nonempty}:{}),...(sharedMark?{imprint:text}:{}),key:{type:'string',enum:[key]},text:nonempty,...(outcome.kind==='give'||outcome.kind==='badge'||outcome.kind==='relic'?{repeatText:nonempty}:{}),...(badge?{badgeTitle:nonempty,badgeDescription:nonempty}:{}),...(count?{awards:{type:'array',minItems:count,maxItems:count,items:object({name:nonempty,description:nonempty})}}:{})});
+  return object({...(outcome.kind==='kill'?{rescueText:nonempty}:{}),...(sharedMark?{imprint:text}:{}),key:{type:'string',enum:[key]},text:outcome.kind==='kill'?{...nonempty,pattern:playerDeathPattern}:nonempty,...(outcome.kind==='give'||outcome.kind==='badge'||outcome.kind==='relic'?{repeatText:nonempty}:{}),...(badge?{badgeTitle:nonempty,badgeDescription:nonempty}:{}),...(count?{awards:{type:'array',minItems:count,maxItems:count,items:object({name:nonempty,description:nonempty})}}:{})});
  })}};
 }
 export function validateOutcomeNarratives(o:Occurrences,rows:OutcomeNarrative[]){
@@ -28,6 +28,7 @@ export function validateOutcomeNarratives(o:Occurrences,rows:OutcomeNarrative[])
  for(const {key,outcome} of expected){
   const r=rows.find(r=>r.key===key);
   if(!r?.text.trim())throw Error('Missing outcome narrative: '+key);
+  if(outcome.kind==='kill'){assertPlayerDeath(r.text);if(!r.rescueText?.includes('{character_name}')||!r.rescueText.includes('{protection_name}'))throw Error('Missing player rescue narrative: '+key);}
   const badge=outcome.kind==='kill'||outcome.kind==='badge'||outcome.kind==='give'&&outcome.badge;
   if(badge&&(!r.badgeTitle.trim()||!r.badgeDescription.trim()))throw Error('Missing achievement description: '+key);
   if((outcome.kind==='give'||outcome.kind==='badge'||outcome.kind==='relic')&&!r.repeatText?.trim())throw Error('Missing repeat encounter narrative: '+key);
@@ -37,3 +38,12 @@ export function validateOutcomeNarratives(o:Occurrences,rows:OutcomeNarrative[])
 }
 
 export function normalizeOutcomeNarratives(rows:Partial<OutcomeNarrative>[]):OutcomeNarrative[]{return rows.map(r=>({key:'',text:'',imprint:'',repeatText:'',badgeTitle:'',badgeDescription:'',awards:[],...r}));}
+
+// An explicit grammatical subject prevents kill-opponent prose from authorizing player death.
+export const playerDeathPattern=String.raw`^\{character_name\} (?:died|was killed)\b`;
+export function assertPlayerDeath(text:string|undefined){
+ if(!text||!new RegExp(playerDeathPattern).test(text.trim()))throw Error('Player death must begin with {character_name} died or {character_name} was killed, followed by the cause; killing an opponent is not player death.');
+}
+export function needsDeathNarrativeRepair(o:Occurrences,rows:OutcomeNarrative[]=[]){
+ return narrativeOutcomes(o).some(({key,outcome})=>outcome.kind==='kill'&&(!rows.find(r=>r.key===key)?.rescueText?.trim()||!new RegExp(playerDeathPattern).test(rows.find(r=>r.key===key)?.text.trim()??'')));
+}

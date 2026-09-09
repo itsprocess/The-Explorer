@@ -21,8 +21,8 @@ test('replaced or consumed awards cannot be farmed within the same life',()=>{
 });
 test('nested challenge death uses the selected leaf narration',()=>{
  const p=cell();p.context.occurrences!.gift=null;p.context.occurrences!.challenge={kind:'challenge',requirement:{kind:'defining',value:'Faith'},present:{kind:'none'},absent:{kind:'kill'}};
- p.occurrenceText!.outcomes=[{key:'challenge:absent',text:'The collapsing arch crushed {character_name}, ending their life.',badgeTitle:'Under the arch',badgeDescription:'Fell beneath the arch.',awards:[]}];
- const result=resolveOccurrences(player(),p,'a');assert.equal(result.character.alive,false);assert.match(result.event.text,/crushed Ari/);
+ p.occurrenceText!.outcomes=[{key:'challenge:absent',text:'{character_name} was killed when the collapsing arch crushed them.',badgeTitle:'Under the arch',badgeDescription:'Fell beneath the arch.',awards:[]}];
+ const result=resolveOccurrences(player(),p,'a');assert.equal(result.character.alive,false);assert.match(result.event.text,/Ari was killed/);
 });
 test('missing nested award or death text is rejected before caching',()=>{
  const p=cell(),o=p.context.occurrences!;assert.deepEqual(narrativeOutcomes(o).map(r=>r.key),['gift']);

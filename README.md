@@ -61,3 +61,9 @@ npm run build:sandbox
 These focused checks do not invoke AI. Do not run paid generation or broad procedural sampling without authorization. Generated content remains cached across prompt updates. No reset is part of normal maintenance, building or publishing. A specifically requested wipe follows the owner’s documented scope and seed policy.
 
 Current implementation notes: [token economy](docs/TOKEN-ECONOMY.md), [Dev unlock and Wait](docs/DEV-UNLOCK.md), [river identity](docs/RIVER-IDENTITY.md), [challenge rewards](docs/CHALLENGE-REWARDS.md), [badge sharing](docs/BADGE-SHARING.md), [variation extensions](docs/VARIATION-EXTENSIONS.md). Older dated design notes are historical and may describe superseded seeds or mechanics.
+
+### Encounter outcome guarantees
+
+The AI receives `player_death` with the player explicitly identified as victim. Fatal history must begin with `{character_name} died` or `{character_name} was killed` and explain the cause; option labels describe attempts, not promised successes. Validation and resolution reject opponent-killing prose for a player death. Existing lethal encounters refresh their AI narration once when loaded under this contract, preserving terrain, images, assigned outcomes and recorded history.
+
+Relics are world-wide first discoveries. Movement, teleport arrivals and option resolution atomically commit the unique cell claim with the character and visit. Later visitors receive the revisit narration and no relic count; pre-existing discovery history also blocks a fresh claim. The location credits only its earliest finder. Dev travel never writes these claims. Historical records and previously credited totals are retained.

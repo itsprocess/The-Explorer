@@ -9,7 +9,7 @@ type EventRecord={text:string;newBadge:string|null;kind:string;stateChanges?:Sta
 export const fill=(text:string,name:string)=>fillCharacter(text,name);
 export function awardDistanceBadges(c:Character){for(const mark of [10,50,100,500,1000,10000])if(c.furthest>=mark&&!c.badges.some(b=>b.id==='distance:'+mark))c.badges.push({id:'distance:'+mark,title:mark+' from the origin',description:'Reached a distance of '+mark+' cells.',kind:'distance'});}
 export function resolveArrival(original:Character,p:CellPackage,globalConsumed=false,visitId=''){
- if(p.context.occurrences&&!p.context.event)return resolveOccurrences(original,p,visitId);
+ if(p.context.occurrences&&!p.context.event)return resolveOccurrences(original,p,visitId,undefined,globalConsumed);
  const c:Character=structuredClone(original);delete c.pendingOption;c.traits??=[];c.x=p.context.x;c.y=p.context.y;c.furthest=Math.max(c.furthest,p.context.distance);
  let event:EventRecord={text:c.name+' arrived at '+p.scene.title+'.',newBadge:null,kind:'arrival'};
  const award=(b:Badge)=>{if(!c.badges.some(old=>old.id===b.id)){c.badges.push(b);event.newBadge=b.title;}};

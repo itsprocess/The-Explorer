@@ -1,3 +1,4 @@
+import {actionStatements,type ActionResult} from './action-commit';
 import {endLife} from './give-up';
 import {recordTravel,beginLife} from './progress';
 import {devCell} from './dev-cell';
@@ -61,14 +62,10 @@ export async function moveCharacter(owner:string,id:string,requestId:string,dire
  if(direction==='return'){winner.event={text:original.name+' returned to '+p.scene.title+', carrying every story.',kind:'return',newBadge:null};loser=winner;}
  // Enter and record the source first. Only an explicit confirmation can transfer position.
  winner=deferTransport(winner,p,op);loser=deferTransport(loser,p,op);
- const isGlobal=p.context.event?.mode==='once_ever'&&winner.event.kind!=='death';const claimKey=cellKey(x,y)+':'+p.context.event?.id;
- const now=Date.now(),queries:D1PreparedStatement[]=[];
- if(isGlobal)queries.push(db().prepare('INSERT OR IGNORE INTO claims(key,character,operation,at) SELECT ?,?,?,? WHERE EXISTS(SELECT 1 FROM characters WHERE id=? AND owner=? AND revision=?)').bind(claimKey,id,op,now,id,owner,row.revision));
- const condition=isGlobal?'EXISTS(SELECT 1 FROM claims WHERE key=? AND operation=?)':'1=1';
- const params=isGlobal?[claimKey,op]:[];
- queries.push(db().prepare('UPDATE characters SET value=CASE WHEN '+condition+' THEN ? ELSE ? END,revision=revision+1,last_op=?,updated=? WHERE id=? AND owner=? AND revision=?').bind(...params,JSON.stringify(winner.character),JSON.stringify(loser.character),op,now,id,owner,row.revision));
- queries.push(db().prepare('INSERT OR IGNORE INTO visits(id,character,x,y,value,at) SELECT ?,?,?,?,CASE WHEN '+condition+' THEN ? ELSE ? END,? WHERE EXISTS(SELECT 1 FROM characters WHERE id=? AND last_op=? AND revision=?)').bind(op,id,x,y,...params,JSON.stringify({event:winner.event}),JSON.stringify({event:loser.event}),now,id,op,row.revision+1));
- const results=await db().batch(queries);const updated=results[isGlobal?1:0];
+ const relic=!!(winner.event as ActionResult['event']).relic;
+ const isGlobal=relic||p.context.event?.mode==='once_ever'&&winner.event.kind!=='death';
+ const commit=actionStatements(db(),{id,owner,revision:row.revision,op,now:Date.now(),x,y,winner,loser,claim:isGlobal?{key:cellKey(x,y)+':'+(relic?'relic':p.context.event?.id),relic}:undefined});
+ const results=await db().batch(commit.queries),updated=results[commit.updateIndex];
  if(!updated.meta.changes){const applied=await db().prepare('SELECT id FROM visits WHERE id=?').bind(op).first();if(!applied)throw new AppError('This character moved in another window. Refresh before taking another step.',409);}
  return snapshot(owner,id);
 }
@@ -80,7 +77,7 @@ export async function confirmTransport(owner:string,id:string,requestId:string,t
  const row=await characterRow(owner,id),original:Character=JSON.parse(row.value);
  if(!original.pendingTransport||original.pendingTransport.token!==token)throw new AppError('This teleport is no longer waiting. Refresh the page.',409);
  const d=original.pendingTransport.destination;
- let result:{character:Character;event:{kind:string;text:string;newBadge:string|null}};
+ let result:ActionResult,loser:ActionResult|undefined;
  const valid=Math.abs(d.x)<=LIMIT&&Math.abs(d.y)<=LIMIT&&exists(worldSeed(),d.x,d.y);
  if(!valid){
   const destination=Math.abs(d.x)<=LIMIT&&Math.abs(d.y)<=LIMIT?await devCell(d.x,d.y):null;
@@ -92,14 +89,13 @@ export async function confirmTransport(owner:string,id:string,requestId:string,t
   result={character:c,event:{kind:'death',text:fillCharacter(prose.text,c.name),newBadge:fresh?badge.title:null}};
  }else{
   const p=await ensureCell(d.x,d.y),moved=transferCharacter(original,token,{x:d.x,y:d.y,distance:p.context.distance,title:p.scene.title});
-  result=resolveArrival(moved.character,p,false,op+':landing');if(result.event.kind==='arrival'){result.event.kind='teleport';result.event.text=moved.event.text;}else result.event.text=moved.event.text+' '+result.event.text;
+  result=resolveArrival(moved.character,p,false,op+':landing');loser=resolveArrival(moved.character,p,true,op+':landing');
+  for(const r of [result,loser]){if(r.event.kind==='arrival'){r.event.kind='teleport';r.event.text=moved.event.text;}else r.event.text=moved.event.text+' '+r.event.text;}
  }
- awardDistanceBadges(result.character);const now=Date.now();
- const results=await db().batch([
-  db().prepare('UPDATE characters SET value=?,revision=revision+1,last_op=?,updated=? WHERE id=? AND owner=? AND revision=?').bind(JSON.stringify(result.character),op,now,id,owner,row.revision),
-  db().prepare('INSERT OR IGNORE INTO visits(id,character,x,y,value,at) SELECT ?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM characters WHERE id=? AND last_op=? AND revision=?)').bind(op,id,result.character.x,result.character.y,JSON.stringify({event:result.event}),now,id,op,row.revision+1),
- ]);
- if(!results[0].meta.changes&&!await db().prepare('SELECT id FROM visits WHERE id=?').bind(op).first())throw new AppError('This character moved in another window. Refresh to continue.',409);
+ awardDistanceBadges(result.character);if(loser)awardDistanceBadges(loser.character);
+ const commit=actionStatements(db(),{id,owner,revision:row.revision,op,now:Date.now(),x:d.x,y:d.y,winner:result,loser,claim:result.event.relic?{key:cellKey(d.x,d.y)+':relic',relic:true}:undefined});
+ const results=await db().batch(commit.queries);
+ if(!results[commit.updateIndex].meta.changes&&!await db().prepare('SELECT id FROM visits WHERE id=?').bind(op).first())throw new AppError('This character moved in another window. Refresh to continue.',409);
  return snapshot(owner,id);
 }
 
@@ -110,12 +106,10 @@ export async function chooseOption(owner:string,id:string,requestId:string,visit
  if(!c.alive||c.pendingTransport||!c.pendingOption||c.pendingOption.visit!==visit)throw new AppError('This choice is no longer available.',409);
  const p=await ensureCell(c.x,c.y);
  if(!Number.isInteger(choice)||choice<0||choice>=(p.context.occurrences?.option?.choices.length??0))throw new AppError('Invalid choice.');
- const result=resolveOccurrences(c,p,op,choice),now=Date.now();
- const updates=await db().batch([
-  db().prepare('UPDATE characters SET value=?,revision=revision+1,last_op=?,updated=? WHERE id=? AND owner=? AND revision=?').bind(JSON.stringify(result.character),op,now,id,owner,row.revision),
-  db().prepare('INSERT OR IGNORE INTO visits(id,character,x,y,value,at) SELECT ?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM characters WHERE id=? AND last_op=? AND revision=?)').bind(op,id,c.x,c.y,JSON.stringify({event:result.event}),now,id,op,row.revision+1),
- ]);
- if(!updates[0].meta.changes&&!await db().prepare('SELECT id FROM visits WHERE id=?').bind(op).first())throw new AppError('Another action already resolved this choice.',409);
+ const result=resolveOccurrences(c,p,op,choice),loser=resolveOccurrences(c,p,op,choice,true);
+ const commit=actionStatements(db(),{id,owner,revision:row.revision,op,now:Date.now(),x:c.x,y:c.y,winner:result,loser,claim:result.event.relic?{key:cellKey(c.x,c.y)+':relic',relic:true}:undefined});
+ const updates=await db().batch(commit.queries);
+ if(!updates[commit.updateIndex].meta.changes&&!await db().prepare('SELECT id FROM visits WHERE id=?').bind(op).first())throw new AppError('Another action already resolved this choice.',409);
  return snapshot(owner,id);
 }
 

@@ -19,7 +19,7 @@ export async function interpretPass(c:CellContext,category:string,prior:unknown)
 }
 export async function occurrenceText(c:CellContext,setting:unknown):Promise<OccurrenceText|undefined>{
  const o=c.occurrences;if(!o||!o.relic&&!o.death&&!o.teleport&&!o.gift&&!o.challenge&&!o.option)return;
- return remember(namespace()+'occurrence-text-v5:'+c.x+':'+c.y,'occurrence',async()=>{
+ return remember(namespace()+'occurrence-text-v6:'+c.x+':'+c.y,'occurrence',async()=>{
  const schema=object({outcomes:outcomeNarrativeSchema(o,leavesMark(c.seed,c.x,c.y)),setup:text,choices:{type:'array',items:object({label:text}),minItems:o.option?.choices.length??0,maxItems:o.option?.choices.length??0}});
  const prompt=encounterPrompt(o,c,setting);
  for(let attempt=0;attempt<2;attempt++){
@@ -30,7 +30,7 @@ export async function occurrenceText(c:CellContext,setting:unknown):Promise<Occu
  if(response.result.choices.length!==(o.option?.choices.length??0))throw Error('Incorrect option choice count.');
  validateOutcomeNarratives(o,response.result.outcomes??[]);
  return response.result;
- }catch(error){if(attempt===1)throw error;prompt.instructions+=' Repair the previous incomplete response. Preserve its incident and all valid prose; supply the missing required metadata. Validation: '+(error as Error).message;prompt.input=JSON.stringify({request:JSON.parse(prompt.input),draft:response.result});}
+ }catch(error){if(attempt===1)throw error;prompt.instructions+=' Repair the previous invalid response. Preserve its incident and all valid prose; correct the assigned victim, outcome and any missing metadata. Validation: '+(error as Error).message;prompt.input=JSON.stringify({request:JSON.parse(prompt.input),draft:response.result});}
  }
  throw Error('Encounter narration could not be completed.');
  });
