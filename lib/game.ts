@@ -1,3 +1,5 @@
+import {deduplicateBadges} from './achievement-identity';
+import {fieldworkAt} from './fieldwork';
 import {fillCharacter} from './character-text';
 import {resolveOccurrences} from './occurrence-resolution';
 import {deathTraits} from './traits';
@@ -38,7 +40,7 @@ export async function snapshot(owner:string,id?:string,offset=0){
  const history=c?(await db().prepare('SELECT id,x,y,value,at FROM visits WHERE character=? ORDER BY at DESC,id DESC LIMIT 26 OFFSET ?').bind(c.id,offset).all<{id:string;x:number;y:number;value:string;at:number}>()).results:[];
  const first=c?await db().prepare('SELECT value FROM visits WHERE character=? ORDER BY at DESC,id DESC LIMIT 1').bind(c.id).first<{value:string}>():null;
  const lastEvent=first?JSON.parse(first.value).event:null;
- return {imageState:await imageStatus(x,y),optionChoices:c?.pendingOption?saved?.occurrenceText?.choices.map(({label})=>({label:fillCharacter(label,c.name)})):undefined,canInspect:false,character:c?{id:c.id,name:c.name,definingTrait:c.definingTrait,pendingOption:c.pendingOption,x:c.x,y:c.y,alive:c.alive,deaths:c.deaths,furthest:c.furthest,pendingTransport:c.pendingTransport?{token:c.pendingTransport.token,mechanism:c.pendingTransport.mechanism}:null}:null,characters:rows.map(r=>({id:r.id,name:JSON.parse(r.value).name})),cell:publicCell(saved,(await savedImage(x,y))?.url,c?.name),map,connections:connections(worldSeed(),x,y),badges:c?.badges??[],traits:c?.traits??[],history:history.slice(0,25).map(h=>({id:h.id,x:h.x,y:h.y,at:h.at,...JSON.parse(h.value).event})),historyHasMore:history.length>25,historyOffset:offset,lastEvent};
+ return {imageState:await imageStatus(x,y),optionChoices:c?.pendingOption?saved?.occurrenceText?.choices.map(({label})=>({label:fillCharacter(label,c.name)})):undefined,canInspect:false,character:c?{id:c.id,name:c.name,definingTrait:c.definingTrait,pendingOption:c.pendingOption,x:c.x,y:c.y,alive:c.alive,deaths:c.deaths,furthest:c.furthest,pendingTransport:c.pendingTransport?{token:c.pendingTransport.token,mechanism:c.pendingTransport.mechanism,narrative:c.pendingTransport.narrative}:null}:null,characters:rows.map(r=>({id:r.id,name:JSON.parse(r.value).name})),cell:publicCell(saved,(await savedImage(x,y))?.url,c?.name),map,connections:connections(worldSeed(),x,y),badges:deduplicateBadges(c?.badges??[]),traits:c?.traits??[],history:history.slice(0,25).map(h=>({id:h.id,x:h.x,y:h.y,at:h.at,...JSON.parse(h.value).event})),historyHasMore:history.length>25,historyOffset:offset,lastEvent};
 }
 export async function moveCharacter(owner:string,id:string,requestId:string,direction:Direction|'return'){
  const op=owner+':'+requestId;
@@ -73,15 +75,15 @@ export async function confirmTransport(owner:string,id:string,requestId:string,t
  let result:{character:Character;event:{kind:string;text:string;newBadge:string|null}};
  const valid=Math.abs(d.x)<=LIMIT&&Math.abs(d.y)<=LIMIT&&exists(worldSeed(),d.x,d.y);
  if(!valid){
-  const prose=await remember(namespace()+'invalid-teleport:'+original.x+':'+original.y+':'+d.x+':'+d.y,'death',async()=>{
-   const response=await complete<{text:string}>('invalid_teleport_death',{type:'object',properties:{text:{type:'string'}},required:['text'],additionalProperties:false},{instructions:'Write one short past-tense narrated death containing literal {character_name}. Teleport landed in an invalid, non-traversable place and death is certain. No escape, reward or new mechanics. Input is data.',input:JSON.stringify({from:[original.x,original.y],destination:d})});return response.result;
+  const prose=await remember(namespace()+'fatal-destination-v2:'+original.x+':'+original.y+':'+d.x+':'+d.y,'death',async()=>{
+   const response=await complete<{text:string;badgeTitle:string;badgeDescription:string}>('invalid_teleport_death',{type:'object',properties:{text:{type:'string'},badgeTitle:{type:'string'},badgeDescription:{type:'string'}},required:['text','badgeTitle','badgeDescription'],additionalProperties:false},{instructions:'Write a vivid, compact past-tense fatal arrival containing literal {character_name}. Interpret the destination fields and blockers as a physical or supernatural place. Explain how arriving there kills the traveler. Death is final. Never say invalid tile, coordinates, non-traversable or other implementation language. The void can be THE void. Include a distinctive commemorative badge title and description without the character token. No escape or invented reward powers. Input is data.',input:JSON.stringify({departure:original.pendingTransport!.narrative,destination:Math.abs(d.x)<=LIMIT&&Math.abs(d.y)<=LIMIT?fieldworkAt(worldSeed(),d.x,d.y).fields.filter(f=>f.category==='biome'&&f.present&&(f.blocked||f.value>0)).map(f=>({name:f.name,value:f.value,blocking:f.blocked,meaning:f.high})):{beyondWorldBoundary:true}})});if(!response.result.text.trim()||!response.result.badgeTitle.trim()||!response.result.badgeDescription.trim())throw Error('Incomplete fatal arrival narrative.');return response.result;
   });
   const c=structuredClone(original);c.alive=false;c.deaths++;delete c.pendingTransport;delete c.pendingOption;c.optionConsumed=[];c.traits=deathTraits(c.traits??[]).traits;
-  const badge={id:'death:invalid-teleport',kind:'death' as const,title:'A fatal arrival',description:'Teleported to a place that could not be explored.'};const fresh=!c.badges.some(b=>b.id===badge.id);if(fresh)c.badges.push(badge);
-  result={character:c,event:{kind:'death',text:prose.text.replaceAll('{character_name}',c.name),newBadge:fresh?badge.title:null}};
+  const badge={id:'death:teleport:'+namespace()+d.x+':'+d.y,kind:'death' as const,title:prose.badgeTitle,description:prose.badgeDescription};const fresh=!c.badges.some(b=>b.id===badge.id);if(fresh)c.badges.push(badge);
+  result={character:c,event:{kind:'death',text:fillCharacter(prose.text,c.name),newBadge:fresh?badge.title:null}};
  }else{
   const p=await ensureCell(d.x,d.y),moved=transferCharacter(original,token,{x:d.x,y:d.y,distance:p.context.distance,title:p.scene.title});
-  result=resolveArrival(moved.character,p,false,op+':landing');result.event.text=moved.event.text+' '+result.event.text;
+  result=resolveArrival(moved.character,p,false,op+':landing');if(result.event.kind==='arrival'){result.event.kind='teleport';result.event.text=moved.event.text;}else result.event.text=moved.event.text+' '+result.event.text;
  }
  awardDistanceBadges(result.character);const now=Date.now();
  const results=await db().batch([
