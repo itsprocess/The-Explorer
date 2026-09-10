@@ -34,7 +34,7 @@
     "rateLimitPauseMs": 60000
   },
   "world": {
-    "seed": "the-world-has-other-plans",
+    "seed": "lanterns-on-the-long-road",
     "version": "world-7",
     "coordinateLimit": 1000000000
   },

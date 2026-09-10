@@ -1,7 +1,7 @@
 {
   "version": 3,
   "name": "Variable sandbox",
-  "seed": "the-world-has-other-plans",
+  "seed": "lanterns-on-the-long-road",
   "variables": [
     {
       "id": "natural.elevation",

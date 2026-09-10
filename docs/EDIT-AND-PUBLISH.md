@@ -13,7 +13,7 @@ Never include secrets, local environment files, databases, accounts or generated
 
 Normal maintenance and publication preserve data and the seed. Current AGENTS.md rules are authoritative: a requested wipe resets the world and character progress and changes WORLD_SEED, preserving accounts, passwords, sessions and defining traits. Do not add account-deletion controls. Historical reset migrations record earlier authorized operations and are not instructions to repeat them.
 
-Migration 0031 is the explicitly requested encounter/barrier rebalance world reset; it preserves identity and sessions. Production secrets (including DEV_PASSWORD) remain in Sites. Local setup forwards locally supplied values into ignored .dev.vars and uses explorer.config.json for provider/seed defaults.
+Migration 0032 is the explicitly requested new-seed world reset; it preserves identity and sessions. Production secrets (including DEV_PASSWORD) remain in Sites. Local setup forwards locally supplied values into ignored .dev.vars and uses explorer.config.json for provider/seed defaults.
 
 ## Current source map
 

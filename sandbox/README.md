@@ -12,11 +12,11 @@ Variation gradients: Whimsy, Chaos, Fantasticness, Unexpectedness, Interestingne
 
 Occurrence signals select actual gameplay events. Descriptive variation cannot create extra occurrences, change traversal or invent rewards. The schema/default and distance-escalation checks are in `../tests/sky-weather.test.ts`; these are focused non-generation tests.
 
-Water/void tuning (September 9): inland basin candidate rates are 2.5x with unchanged 12–44 cell diameters and the existing altitude, erosion and exclusion masks. Void district/core scales are divided by sqrt(2), doubling spatial frequency per area; the cutoff is eased from 0.72 to 0.65 for greater coverage. Independent 3–9 cell void pockets are combined before the ocean mask. Overlap and masks determine actual coverage; these are recipe rates, not measured coverage ratios. Default seed: `the-world-has-other-plans`.
+Water/void tuning (September 9): inland basin candidate rates are 2.5x with unchanged 12–44 cell diameters and the existing altitude, erosion and exclusion masks. Void district/core scales are divided by sqrt(2), doubling spatial frequency per area; the cutoff is eased from 0.72 to 0.65 for greater coverage. Independent 3–9 cell void pockets are combined before the ocean mask. Overlap and masks determine actual coverage; these are recipe rates, not measured coverage ratios. Default seed: `lanterns-on-the-long-road`.
 
 ### Encounter and barrier rebalance (September 9)
 
-The current default seed is `the-world-has-other-plans`. Each non-portal occurrence (challenge, option, gift, certain death and relic) has two independent candidate patterns instead of one, approximately doubling opportunities; overlaps and civilization boosts affect realized rates. Portal points are halved at baseline after accounting for the nine-cell local-maximum rule. Portal jump radius is `max(50, 5 × distance from origin)`.
+The current default seed is `lanterns-on-the-long-road`. Each non-portal occurrence (challenge, option, gift, certain death and relic) has two independent candidate patterns instead of one, approximately doubling opportunities; overlaps and civilization boosts affect realized rates. Portal points are halved at baseline after accounting for the nine-cell local-maximum rule. Portal jump radius is `max(50, 5 × distance from origin)`.
 
 Option encounters have a 5% portal gate on their first active response; other option branches, including nested challenges, cannot independently introduce portals. Automatic challenge branches also use a 5% portal roll. Remaining outcomes use the other existing mechanisms. Standing-result chance doubles to `min(1, 2 × (0.15 + 0.7 × devoutness))`; point amounts are unchanged.
 

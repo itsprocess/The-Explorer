@@ -225,6 +225,13 @@
       "when": 1789000000000,
       "tag": "0031_reset_encounter_balance",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "6",
+      "when": 1789001011028,
+      "tag": "0032_reset_new_seed",
+      "breakpoints": true
     }
   ]
 }
