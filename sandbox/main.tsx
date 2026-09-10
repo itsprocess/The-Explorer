@@ -192,6 +192,11 @@ function App() {
         next={...next,variables:[...next.variables,...additions]};
         localStorage.setItem(STORAGE_KEY,JSON.stringify(next));localStorage.setItem(STORAGE_KEY+'-psychedelic-terrifying-1','1');
       }
+      if(!next.variables.some(v=>v.appName==='variation.surreal')&&next.variables.length<MAX_VARIABLES){
+        const surreal=parseProject(JSON.stringify(reviewedProject)).variables.find(v=>v.appName==='variation.surreal')!;
+        next={...next,variables:[...next.variables,surreal]};
+        localStorage.setItem(STORAGE_KEY,JSON.stringify(next));
+      }
       setProject(next);setCanRestore(!!localStorage.getItem(STORAGE_KEY+'-before-river-study'));
       if(window.location.search)window.history.replaceState(null,'',window.location.pathname);
     }
