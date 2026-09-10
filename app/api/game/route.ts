@@ -7,7 +7,7 @@ import {generationStream,awaitGenerated} from '../../../lib/generation-stream';
 import {checkOrigin,errorResponse,canInspect,canAccessDev} from '../../../lib/auth';
 import {characterSession,requireCharacter} from '../../../lib/character-auth';
 import {AppError} from '../../../lib/server';
-import {snapshot,giveUp,moveCharacter,confirmTransport,chooseOption,selectDefiningTrait} from '../../../lib/game';
+import {snapshot,unlockLocation,giveUp,moveCharacter,confirmTransport,chooseOption,selectDefiningTrait} from '../../../lib/game';
 import {directions,type Direction} from '../../../lib/world';
 export async function GET(request:Request){try{
  const inspect=await canInspect(request),devAccess=await canAccessDev();
@@ -26,6 +26,7 @@ export async function POST(request:Request){try{
  if(body.character&&body.character!==session.id)throw new AppError('Log in to that character.',403);
  if(body.action==='intro'){await db().prepare("UPDATE characters SET value=json_set(value,'$.introSeen',json('true')),revision=revision+1 WHERE id=? AND owner=?").bind(session.id,session.owner).run();return generationStream(()=>snapshot(session.owner,session.id).then(data=>({...data,canInspect:inspect,canAccessDev:devAccess})),request);}
  if(body.action==='dev_warp'||body.action==='dev_exit'||JSON.parse((await characterRow(session.owner,session.id)).value).devState){await requireOwner(request);return generationStream(()=>awaitGenerated(()=>devTravel(session.owner,session.id,body)).then(data=>({...data,canInspect:inspect,canAccessDev:devAccess})),request);}
+ if(body.action==='unlock')return generationStream(()=>awaitGenerated(()=>unlockLocation(session.owner,session.id,body.requestId)).then(data=>({...data,canInspect:inspect,canAccessDev:devAccess})),request);
  if(body.action==='give_up')return generationStream(()=>giveUp(session.owner,session.id,body.requestId).then(data=>({...data,canInspect:inspect,canAccessDev:devAccess})),request);
  if(body.action==='trait'){if(!definingTraits.includes(body.trait))throw new AppError('Choose a valid defining trait.');return generationStream(()=>selectDefiningTrait(session.owner,session.id,body.trait),request);}
  if(body.action==='option'){if(typeof body.visit!=='string'||body.visit.length>200||!Number.isInteger(body.choice))throw new AppError('Invalid option request.');return generationStream(()=>awaitGenerated(()=>chooseOption(session.owner,session.id,body.requestId,body.visit,body.choice)).then(data=>({...data,canInspect:inspect,canAccessDev:devAccess})),request);}

@@ -1,3 +1,4 @@
+import {unlockPersonal} from './personal-locks';
 import {endLife} from './give-up';
 import {originTeleports} from './world';
 import {worldSeed} from './server';
@@ -17,6 +18,7 @@ export async function devTravel(owner:string,id:string,body:any){
   let c:Character=structuredClone(real.devState??real);delete c.devState;delete c.devEvent;delete c.devOperation;
   let result;
   if(body.action==='give_up'){result=endLife(c);}
+  else if(body.action==='unlock'){result=unlockPersonal(c,await devCell(c.x,c.y),body.requestId);}
   else if(body.action==='option'){
    if(!Number.isInteger(body.choice)||body.choice<0)throw new AppError('Invalid preview choice.');
    if(c.pendingOption?.visit!==body.visit)throw new AppError('This preview choice is no longer available.',409);

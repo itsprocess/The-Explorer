@@ -27,7 +27,7 @@ test('requested reset clears progress, preserves credentials/session/trait, and 
  db.exec('CREATE TABLE characters(id TEXT PRIMARY KEY,owner TEXT,value TEXT,revision INTEGER,last_op TEXT);CREATE TABLE server_settings(key TEXT PRIMARY KEY,value TEXT);');
  for(const t of ['visits','claims','generation_jobs','generation_usage','packages','character_presence','character_credentials','character_sessions']){db.exec(`CREATE TABLE ${t}(id TEXT);INSERT INTO ${t} VALUES('keep-or-clear');`);}
  db.prepare('INSERT INTO characters VALUES(?,?,?,?,?)').run('p','p',JSON.stringify({id:'p',name:'Ari',definingTrait:'Faith',deaths:9,standings:[{}],devState:{},pendingOption:{},traits:[{}],relicsTotal:8}),4,'old');
- db.exec(readFileSync(new URL('../drizzle/0032_reset_new_seed.sql',import.meta.url),'utf8'));
+ db.exec(readFileSync(new URL('../drizzle/0033_reset_adventure_economy.sql',import.meta.url),'utf8'));
  const c=JSON.parse(db.prepare('SELECT value FROM characters').get()!.value as string);assert.equal(c.name,'Ari');assert.equal(c.definingTrait,'Faith');assert.equal(c.deaths,0);assert.equal(c.relicsTotal,0);assert.equal(c.devState,undefined);assert.equal(c.pendingOption,undefined);assert.equal(c.standings,undefined);
  for(const t of ['visits','claims','generation_jobs','generation_usage','packages','character_presence'])assert.equal(db.prepare(`SELECT count(*) n FROM ${t}`).get()!.n,0);
  for(const t of ['character_credentials','character_sessions'])assert.equal(db.prepare(`SELECT count(*) n FROM ${t}`).get()!.n,1);

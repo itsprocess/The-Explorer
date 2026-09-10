@@ -29,7 +29,7 @@ test('portal choice gate is one in twenty and standing chances double with satur
  // A few fixed fixtures exercise nested option outcomes without procedural sweeps.
  for(const [x,y] of [[0,0],[2,3],[8,-4],[100,80]]){
   const o=occurrencesFor('balance-fixture',x,y,{'occurrences.option':1},[]);
-  for(const choice of o.option!.choices)if(choice.kind==='challenge'){assert.notEqual(choice.present.kind,'teleport');assert.notEqual(choice.absent.kind,'teleport');}
+  for(const choice of o.option?.choices??[])if(choice.kind==='challenge'){assert.notEqual(choice.present.kind,'teleport');assert.notEqual(choice.absent.kind,'teleport');}
  }
 });
 

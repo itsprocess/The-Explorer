@@ -19,7 +19,7 @@ export type RegionRef={id:string;kind:string;anchorX:number;anchorY:number;influ
 export function broadTerrain(_v:Record<string,number>){return '';}
 export function terrainPreview(_s:string,_x:number,_y:number){return '';}
 export function blockedReason(_terrain:string){return 'Not traversable.';}
-export function regionalRefs(s:string,x:number,y:number):RegionRef[]{return fieldworkAt(s,x,y).fields.filter(f=>f.enumId&&f.present).map(f=>{const kind=f.id.split('.')[1],ax=Math.floor(x/96)*96,ay=Math.floor(y/96)*96;return {id:kind+':'+ax+':'+ay+':'+f.enumId,kind,anchorX:ax,anchorY:ay,influence:f.value,band:0,enumId:f.enumId};});}
+export function regionalRefs(s:string,x:number,y:number):RegionRef[]{return fieldworkAt(s,x,y).fields.filter(f=>f.enumId&&f.present).map(f=>{const kind=f.id.split('.')[1],ax=Math.floor(x/96)*96,ay=Math.floor(y/96)*96;return {id:kind+':'+f.enumId,kind,anchorX:0,anchorY:0,influence:f.value,band:0,enumId:f.enumId};});}
 export function contextFor(seed:string,x:number,y:number){
  checkCoordinate(x,y);const stack=fieldworkAt(seed,x,y),v=stack.values,ratings=deriveRatings(seed,x,y),open=connections(seed,x,y),refs=regionalRefs(seed,x,y),safe=x===0&&y===0;
  const surroundings=Object.entries(directions).map(([direction,[dx,dy]])=>{const nx=x+dx,ny=y+dy,within=Math.abs(nx)<=LIMIT&&Math.abs(ny)<=LIMIT;const values=within?fieldworkAt(seed,nx,ny).values:{};return {direction:direction as Direction,dx,dy,values,glimpse:within?broadTerrain(values):'world boundary',visibleFeatures:[]};});

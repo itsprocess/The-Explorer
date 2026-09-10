@@ -1,7 +1,7 @@
 {
   "version": 3,
   "name": "Variable sandbox",
-  "seed": "lanterns-on-the-long-road",
+  "seed": "keys-beneath-the-lanterns",
   "variables": [
     {
       "id": "natural.elevation",
@@ -2089,50 +2089,20 @@
         {
           "id": "f16e5aa4-a673-4cb1-93a0-7d6d6a73a4c5",
           "name": "Faction 01",
-          "cutoff": 0,
+          "cutoff": 0.0,
           "description": "Abstract Faction Affiliation identity slot 1. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
         },
         {
           "id": "512ebe32-506a-4260-b819-0066afe24812",
           "name": "Faction 02",
-          "cutoff": 0.125,
+          "cutoff": 0.3333333333333333,
           "description": "Abstract Faction Affiliation identity slot 2. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
         },
         {
           "id": "2d2be325-e2d7-4701-b86b-aa54434aab1e",
           "name": "Faction 03",
-          "cutoff": 0.25,
+          "cutoff": 0.6666666666666666,
           "description": "Abstract Faction Affiliation identity slot 3. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
-        },
-        {
-          "id": "a941b6f8-8ad0-423f-b555-eefc21c6a1fc",
-          "name": "Faction 04",
-          "cutoff": 0.375,
-          "description": "Abstract Faction Affiliation identity slot 4. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
-        },
-        {
-          "id": "ee5f9113-1799-4b95-ae04-2b8e53ed69a6",
-          "name": "Faction 05",
-          "cutoff": 0.5,
-          "description": "Abstract Faction Affiliation identity slot 5. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
-        },
-        {
-          "id": "d72990f5-6da4-4ec2-9fb9-01058bfed7d8",
-          "name": "Faction 06",
-          "cutoff": 0.625,
-          "description": "Abstract Faction Affiliation identity slot 6. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
-        },
-        {
-          "id": "acd806cb-3c86-42e8-b3fa-1e3d71ab9a07",
-          "name": "Faction 07",
-          "cutoff": 0.75,
-          "description": "Abstract Faction Affiliation identity slot 7. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
-        },
-        {
-          "id": "7cd2f515-a090-4117-98ae-cebb4df4232f",
-          "name": "Faction 08",
-          "cutoff": 0.875,
-          "description": "Abstract Faction Affiliation identity slot 8. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
         }
       ],
       "layers": [
@@ -2178,50 +2148,20 @@
         {
           "id": "03f4d795-7505-493b-b7b0-f6337a1ff926",
           "name": "Kingdom 01",
-          "cutoff": 0,
+          "cutoff": 0.0,
           "description": "Abstract Kingdom Affiliation identity slot 1. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
         },
         {
           "id": "51fceb75-2ca1-4001-a927-7774adbc5184",
           "name": "Kingdom 02",
-          "cutoff": 0.125,
+          "cutoff": 0.3333333333333333,
           "description": "Abstract Kingdom Affiliation identity slot 2. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
         },
         {
           "id": "a87c1414-a521-47f1-96a7-9f41460fa782",
           "name": "Kingdom 03",
-          "cutoff": 0.25,
+          "cutoff": 0.6666666666666666,
           "description": "Abstract Kingdom Affiliation identity slot 3. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
-        },
-        {
-          "id": "8534387c-461c-482a-92ca-96d3295d2af5",
-          "name": "Kingdom 04",
-          "cutoff": 0.375,
-          "description": "Abstract Kingdom Affiliation identity slot 4. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
-        },
-        {
-          "id": "8adf2ca6-2dc7-4eb5-a471-f59e125cd1fd",
-          "name": "Kingdom 05",
-          "cutoff": 0.5,
-          "description": "Abstract Kingdom Affiliation identity slot 5. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
-        },
-        {
-          "id": "3d958dfd-1879-4c51-89e6-200eebe73585",
-          "name": "Kingdom 06",
-          "cutoff": 0.625,
-          "description": "Abstract Kingdom Affiliation identity slot 6. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
-        },
-        {
-          "id": "b8d0c933-d172-4697-a4bd-4ff3a4dbde78",
-          "name": "Kingdom 07",
-          "cutoff": 0.75,
-          "description": "Abstract Kingdom Affiliation identity slot 7. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
-        },
-        {
-          "id": "e047ecdf-edd9-44ba-b7b2-87dffa3537cd",
-          "name": "Kingdom 08",
-          "cutoff": 0.875,
-          "description": "Abstract Kingdom Affiliation identity slot 8. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
         }
       ],
       "layers": [
@@ -2267,50 +2207,20 @@
         {
           "id": "d9894935-4e7b-46c8-84ba-a9eb992f6f8b",
           "name": "Religious 01",
-          "cutoff": 0,
+          "cutoff": 0.0,
           "description": "Abstract Religious Affiliation identity slot 1. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
         },
         {
           "id": "6e63352d-119d-4b7f-b9f3-c896ed0ff076",
           "name": "Religious 02",
-          "cutoff": 0.125,
+          "cutoff": 0.3333333333333333,
           "description": "Abstract Religious Affiliation identity slot 2. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
         },
         {
           "id": "57614917-f7d1-4a6e-a449-4eb65e2ec8a6",
           "name": "Religious 03",
-          "cutoff": 0.25,
+          "cutoff": 0.6666666666666666,
           "description": "Abstract Religious Affiliation identity slot 3. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
-        },
-        {
-          "id": "526f4b6a-5b60-45ca-a818-8cbd8a98bf7d",
-          "name": "Religious 04",
-          "cutoff": 0.375,
-          "description": "Abstract Religious Affiliation identity slot 4. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
-        },
-        {
-          "id": "19100acd-4828-4ac1-a8ff-d6275d10ae8b",
-          "name": "Religious 05",
-          "cutoff": 0.5,
-          "description": "Abstract Religious Affiliation identity slot 5. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
-        },
-        {
-          "id": "1cc45fba-1d96-419e-8557-a0fab092195a",
-          "name": "Religious 06",
-          "cutoff": 0.625,
-          "description": "Abstract Religious Affiliation identity slot 6. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
-        },
-        {
-          "id": "79b60293-7f80-428a-b471-16508e0c7301",
-          "name": "Religious 07",
-          "cutoff": 0.75,
-          "description": "Abstract Religious Affiliation identity slot 7. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
-        },
-        {
-          "id": "6167b0c9-09f6-454a-8693-6a476d42a929",
-          "name": "Religious 08",
-          "cutoff": 0.875,
-          "description": "Abstract Religious Affiliation identity slot 8. Create a richly specific local identity through names, symbols, practices and history, grounded in the other fields. This slot implies no fixed temperament, morality or rank; preserve its mechanical identity."
         }
       ],
       "layers": [

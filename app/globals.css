@@ -102,3 +102,5 @@ button.map-cell:focus-visible{outline:2px solid #b5c7ff;outline-offset:2px;z-ind
 .explorers-list a{display:flex;justify-content:space-between;gap:16px;padding:18px;border:1px solid #343840;border-radius:10px;text-decoration:none;flex-wrap:wrap}
 .explorers-list a:hover{background:#252830}
 .masthead nav{flex-wrap:wrap}
+
+.bonus-label,.option-cost{display:block;font-size:13px;color:#b6cbff;margin:4px 0}.personal-lock{border:1px solid #8c7851;border-radius:10px;padding:20px;margin:20px 0}

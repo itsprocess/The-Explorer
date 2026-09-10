@@ -17,7 +17,7 @@ export function outcomeNarrativeSchema(o:Occurrences,sharedMark=true){
  const object=(properties:Record<string,unknown>)=>({type:'object',properties,required:Object.keys(properties),additionalProperties:false});
  const leaves=narrativeOutcomes(o);
  return {type:'array',minItems:leaves.length,maxItems:leaves.length,items:{anyOf:leaves.map(({key,outcome})=>{
-  const badge=outcome.kind==='kill'||outcome.kind==='badge'||outcome.kind==='give'&&outcome.badge;
+  const badge=outcome.kind==='badge'||outcome.kind==='give'&&outcome.badge;
   const count=outcome.kind==='give'?outcome.awards.length:0;
   return object({...(outcome.kind==='kill'?{rescueText:nonempty}:{}),...(sharedMark?{imprint:text}:{}),key:{type:'string',enum:[key]},text:nonempty,...(outcome.kind==='give'||outcome.kind==='badge'||outcome.kind==='relic'?{repeatText:nonempty}:{}),...(badge?{badgeTitle:nonempty,badgeDescription:nonempty}:{}),...(count?{awards:{type:'array',minItems:count,maxItems:count,items:object({name:nonempty,description:nonempty})}}:{})});
  })}};
@@ -38,7 +38,7 @@ export function validateOutcomeNarratives(o:Occurrences,rows:OutcomeNarrative[])
   const r=rows.find(r=>r.key===key);
   if(!r?.text.trim())throw Error('Missing outcome narrative: '+key);
   if(outcome.kind==='kill'){assertPlayerDeath(r.text);if(!r.rescueText?.includes('{character_name}')||!r.rescueText.includes('{protection_name}'))throw Error('Missing player rescue narrative: '+key);}
-  const badge=outcome.kind==='kill'||outcome.kind==='badge'||outcome.kind==='give'&&outcome.badge;
+  const badge=outcome.kind==='badge'||outcome.kind==='give'&&outcome.badge;
   if(badge&&(!r.badgeTitle.trim()||!r.badgeDescription.trim()))throw Error('Missing achievement description: '+key);
   if((outcome.kind==='give'||outcome.kind==='badge'||outcome.kind==='relic')&&!r.repeatText?.trim())throw Error('Missing repeat encounter narrative: '+key);
   const count=outcome.kind==='give'?outcome.awards.length:0;

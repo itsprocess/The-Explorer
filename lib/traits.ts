@@ -3,14 +3,19 @@ const affiliationValues=(family:string)=>baseline.variables.find(v=>v.appName===
 import {random} from './noise';
 export const statusFamilies={death_protection:['reprieve'],faction:affiliationValues('faction'),kingdom:affiliationValues('kingdom'),religion:affiliationValues('religion'),social_rank:['commoner','artisan','noble','royalty'],blessing:['speed','ward','luck'],burden:['exposure','illness','haunting'],reputation:['trusted','feared','disgraced'],attunement:['flame','tide','stone','wind']} as const;
 export const possessionDimensions={purpose:['protection','passage','perception','craft'],affinity:['stone','water','air','spirit'],material:['mineral','organic','metal','woven']} as const;
+export const itemTypes=['tools','gear','consumables','valuables','key'] as const;
+export const rarities=['common','rare','legendary'] as const;
+export type Rarity=typeof rarities[number];
+export const rarityForRoll=(roll:number):Rarity=>roll<.82?'common':roll<.96?'rare':'legendary';
+export const rarityMeets=(have:Rarity='common',need:Rarity='common')=>rarities.indexOf(have)>=rarities.indexOf(need);
 export const lifetimes=['permanent','until_death','single_use'] as const;
 export type Lifetime=typeof lifetimes[number];
-export type TraitSpec={kind:'status';family:keyof typeof statusFamilies;value:string;lifetime:Lifetime}|{kind:'possession';purpose:string;affinity:string;material:string;lifetime:Lifetime};
+export type TraitSpec={kind:'status';family:keyof typeof statusFamilies;value:string;lifetime:Lifetime}|{kind:'possession';purpose:string;affinity:string;material:string;lifetime:Lifetime;rarity?:Rarity;survivesDeath?:boolean};
 export type Trait=TraitSpec&{id:string;name:string;description:string;source:{x:number;y:number;title:string;world:string;visitId:string}};
-export type TraitCondition={kind:'status';family:keyof typeof statusFamilies;value:string}|{kind:'possession';purpose:string;affinity:string};
+export type TraitCondition={kind:'status';family:keyof typeof statusFamilies;value:string}|{kind:'possession';purpose:string;affinity?:string;rarity?:Rarity};
 export type StateRule={kind:'grant';spec:TraitSpec}|{kind:'check';condition:TraitCondition;onMatch:'avoid_death'|'alternate'};
 export type StateChange={type:'acquired'|'replaced'|'consumed'|'lost';trait:Trait;reason:string};
-export function validTrait(spec:TraitSpec){return (!(spec.kind==='status'&&spec.family==='death_protection')||spec.lifetime==='single_use')&&lifetimes.includes(spec.lifetime)&&(spec.kind==='status'?(statusFamilies[spec.family] as readonly string[]|undefined)?.includes(spec.value):spec.kind==='possession'&&Object.entries(possessionDimensions).every(([k,v])=>(v as readonly string[]).includes((spec as any)[k])));}
+export function validTrait(spec:TraitSpec){return (!(spec.kind==='status'&&spec.family==='death_protection')||spec.lifetime==='single_use')&&lifetimes.includes(spec.lifetime)&&(spec.kind==='status'?(statusFamilies[spec.family] as readonly string[]|undefined)?.includes(spec.value):spec.kind==='possession'&&(itemTypes.includes(spec.purpose as any)?!!spec.rarity&&rarities.includes(spec.rarity)&&spec.lifetime==='single_use':Object.entries(possessionDimensions).every(([k,v])=>(v as readonly string[]).includes((spec as any)[k]))));}
 const choose=<T>(seed:string,id:string,x:number,y:number,values:readonly T[])=>values[Math.floor(random(seed,id,x,y)*values.length)];
 export function stateRuleFor(seed:string,x:number,y:number,event:{kind:string;cause?:string|null}|null,v:Record<string,number>):StateRule|null{
  if(Math.abs(x)+Math.abs(y)<=2||!event)return null;
@@ -31,7 +36,7 @@ export function stateRuleFor(seed:string,x:number,y:number,event:{kind:string;ca
  }
  return null;
 }
-export function findTrait(traits:Trait[],condition:TraitCondition){return traits.find(t=>t.kind===condition.kind&&(t.kind==='status'&&condition.kind==='status'?t.family===condition.family&&t.value===condition.value:t.kind==='possession'&&condition.kind==='possession'&&t.purpose===condition.purpose&&t.affinity===condition.affinity));}
+export function findTrait(traits:Trait[],condition:TraitCondition){return [...traits].sort((a,b)=>(a.kind==='possession'?rarities.indexOf(a.rarity??'common'):0)-(b.kind==='possession'?rarities.indexOf(b.rarity??'common'):0)).find(t=>t.kind===condition.kind&&(t.kind==='status'&&condition.kind==='status'?t.family===condition.family&&t.value===condition.value:t.kind==='possession'&&condition.kind==='possession'&&t.purpose===condition.purpose&&(!condition.affinity||t.affinity===condition.affinity)&&rarityMeets(t.rarity,condition.rarity)));}
 export function grantTrait(traits:Trait[],trait:Trait):{traits:Trait[];changes:StateChange[]}{
  if(!validTrait(trait))throw Error('Invalid trait specification.');
  if(traits.some(t=>t.id===trait.id))return {traits,changes:[]};
@@ -39,5 +44,5 @@ export function grantTrait(traits:Trait[],trait:Trait):{traits:Trait[];changes:S
  return {traits:[...traits.filter(t=>!replaced.includes(t)),trait],changes:[...replaced.map(t=>({type:'replaced' as const,trait:t,reason:'Replaced by '+trait.name})),{type:'acquired',trait,reason:'Acquired at '+trait.source.title}]};
 }
 export function useTrait(traits:Trait[],trait:Trait){return trait.lifetime==='single_use'?{traits:traits.filter(t=>t.id!==trait.id),changes:[{type:'consumed' as const,trait,reason:'Used by an encounter'}]}:{traits,changes:[]};}
-export function deathTraits(traits:Trait[]){return {traits:traits.filter(t=>t.lifetime==='permanent'),changes:traits.filter(t=>t.lifetime!=='permanent').map(trait=>({type:'lost' as const,trait,reason:'Lost on death'}))};}
+export function deathTraits(traits:Trait[]){return {traits:traits.filter(t=>t.lifetime==='permanent'||t.kind==='possession'&&t.survivesDeath),changes:traits.filter(t=>t.lifetime!=='permanent'&&!(t.kind==='possession'&&t.survivesDeath)).map(trait=>({type:'lost' as const,trait,reason:'Lost on death'}))};}
 export const traitLabel=(s:string)=>s.replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase());

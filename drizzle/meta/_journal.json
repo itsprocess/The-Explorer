@@ -232,6 +232,13 @@
       "when": 1789001011028,
       "tag": "0032_reset_new_seed",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "6",
+      "when": 1789081010085,
+      "tag": "0033_reset_adventure_economy",
+      "breakpoints": true
     }
   ]
 }

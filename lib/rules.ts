@@ -3,7 +3,7 @@ import {resolveOccurrences} from './occurrence-resolution';
 import {findTrait,grantTrait,useTrait,deathTraits,type Trait,type StateChange} from './traits';
 import type {CellPackage} from './generation';
 export type Badge={id:string;title:string;description:string;entityId?:string;kind:'death'|'honor'|'treasure'|'distance'};
-export type Character={previousTile?:{x:number;y:number};standings?:import('./affiliations').Standing[];standingClaims?:string[];distanceLife?:number;distanceTotal?:number;relicsLife?:number;relicsTotal?:number;relicClaims?:string[];introSeen?:boolean;devState?:Character;devEvent?:{text:string;kind:string;newBadge:string|null};devOperation?:string;id:string;name:string;definingTrait?:import('./occurrences').DefiningTrait;optionConsumed?:string[];awardClaims?:string[];pendingOption?:{key:string;visit:string};affiliations?:Record<string,string[]>;x:number;y:number;alive:boolean;deaths:number;furthest:number;badges:Badge[];consumed:string[];traits?:Trait[];pendingTransport?:{token:string;destination:{x:number;y:number};narrative:string;mechanism:string}};
+export type Character={unlocked?:string[];previousTile?:{x:number;y:number};standings?:import('./affiliations').Standing[];standingClaims?:string[];distanceLife?:number;distanceTotal?:number;relicsLife?:number;relicsTotal?:number;relicClaims?:string[];introSeen?:boolean;devState?:Character;devEvent?:{text:string;kind:string;newBadge:string|null};devOperation?:string;id:string;name:string;definingTrait?:import('./occurrences').DefiningTrait;optionConsumed?:string[];awardClaims?:string[];pendingOption?:{key:string;visit:string};affiliations?:Record<string,string[]>;x:number;y:number;alive:boolean;deaths:number;furthest:number;badges:Badge[];consumed:string[];traits?:Trait[];pendingTransport?:{token:string;destination:{x:number;y:number};narrative:string;mechanism:string}};
 
 type EventRecord={text:string;newBadge:string|null;kind:string;stateChanges?:StateChange[]};
 export const fill=(text:string,name:string)=>fillCharacter(text,name);
@@ -12,7 +12,7 @@ export function resolveArrival(original:Character,p:CellPackage,globalConsumed=f
  if(p.context.occurrences&&!p.context.event)return resolveOccurrences(original,p,visitId,undefined,globalConsumed);
  const c:Character=structuredClone(original);delete c.pendingOption;c.traits??=[];c.x=p.context.x;c.y=p.context.y;c.furthest=Math.max(c.furthest,p.context.distance);
  let event:EventRecord={text:c.name+' arrived at '+p.scene.title+'.',newBadge:null,kind:'arrival'};
- const award=(b:Badge)=>{if(!c.badges.some(old=>old.id===b.id)){c.badges.push(b);event.newBadge=b.title;}};
+ const award=(b:Badge)=>{if(!c.badges.some(old=>old.id===b.id)){if(b.kind!=='death'){c.badges.push(b);event.newBadge=b.title;}}};
  const region=p.regions.find(r=>r.kind==='kingdom'),faction=p.regions.find(r=>r.kind==='faction');
  const hostile=!p.context.safeApproach&&p.context.hostilityPolicy.enforcesForeignHonors&&c.badges.some(b=>b.kind==='honor'&&b.entityId?.startsWith('faction:')&&b.entityId!==faction?.id);
  if(hostile){c.alive=false;c.deaths++;event={text:fill(p.scene.hostility_narrative||'The kingdom’s sentries recognize a rival’s honor. Your journey ends here.',c.name),kind:'death',newBadge:null};award({id:'death:kos:'+region?.id,title:'Unwelcome in '+region?.name,description:'Executed for carrying a rival faction’s honor.',kind:'death'});}
