@@ -1,8 +1,8 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {teleportRange,teleportDestination,retargetTeleports,type Occurrences} from '../lib/occurrences';
-test('portal radius starts at 100 and scales to ten times origin distance',()=>{
- assert.equal(teleportRange(0,0),100);assert.equal(teleportRange(3,4),100);assert.equal(teleportRange(30,40),500);assert.equal(teleportRange(600,800),10000);
+test('portal radius starts at 50 and scales to five times origin distance',()=>{
+ assert.equal(teleportRange(0,0),50);assert.equal(teleportRange(3,4),50);assert.equal(teleportRange(30,40),250);assert.equal(teleportRange(600,800),5000);
  for(const [x,y] of [[0,0],[3,4],[30,40],[600,800]]){const d=teleportDestination('fixture',x,y);assert.ok(Math.hypot(d.x-x,d.y-y)<=teleportRange(x,y)+Math.SQRT1_2);assert.deepEqual(d,teleportDestination('fixture',x,y));}
 });
 test('cached direct, option and challenge portals use their original random channels',()=>{

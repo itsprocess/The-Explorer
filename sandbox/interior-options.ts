@@ -21,10 +21,10 @@ export function expandInteriorOptions(p:Project):Project {
     variables.push(v);
   }
   if(!find('biome.underground')&&footprint){
-    const v=make('biome.underground','Underground','biome','No natural underground setting is assigned; interpret the other environmental fields normally.','Beneath the earth in a natural cavern or winding passage: enclosing stone replaces the open sky, with depths and chambers shaped by the surrounding biome.');
-    v.description='Natural underground setting in veins and small pockets, excluded wherever civilization footprint is positive. Descriptive only: does not make blocked terrain passable or create a separate vertical map.';
+    const v=make('biome.underground','Underground','biome','Not below ground; interpret enclosure and elevation from the other fields.','Beneath the earth, with rock overhead. Natural caves and tunnels are possible; where infrastructure and Inside are present, the place may be a dungeon, mineshaft, cellar, crypt or constructed subterranean hall. Let the other fields determine its form.');
+    v.description='Below-ground setting in veins and small pockets, independent of civilization and Inside. Descriptive only: does not make blocked terrain passable or create a separate vertical map.';
     v.color='#877b9d';v.traversal={mode:'passable'};
-    v.layers=[...shapes('biome-underground'),layer('underground-outside-civ',{name:'Outside civilization footprint',source:'variable',reference:footprint.id,referenceMode:'at-most',referenceCutoff:0,blend:'multiply',weight:1})];variables.push(v);
+    v.layers=[...shapes('biome-underground')];variables.push(v);
   }
   if(!find('occurrences.option')){
     const v=make('occurrences.option','Option','occurrences','No structured choice occurrence is assigned here.','A distinct fork in possibility: two or three memorable choices offer app-assigned outcomes, expressed through the character of this place.');
