@@ -14,13 +14,13 @@ export async function interpretPass(c:CellContext,category:string,prior:unknown)
  if(category==='civilization'&&!fields.some(f=>f.value>0))return {description:''};
  if(category==='variation'&&fields.every(f=>f.value<=.15))return {description:''};
  return remember(namespace()+(constructedInterior(c)?'interpret-interior-v1:':'interpret:')+c.x+':'+c.y+':'+category,'interpretation',async()=>{
- const response=await complete<{name?:string;description:string}>('interpret_'+category,object(category==='biome'||category==='civilization'?{name:text,description:text}:{description:text}),{instructions:interpretationInstructions(category),input:JSON.stringify({coordinate:[c.x,c.y],fields:fields.map(f=>({name:f.name,value:Math.round(f.value*1000)/1000,low:f.low,high:f.high})),prior})});
+ const response=await complete<{name?:string;description:string}>('interpret_'+category,object(category==='biome'||category==='civilization'?{name:text,description:text}:{description:text}),{instructions:interpretationInstructions(category),input:JSON.stringify({coordinate:[c.x,c.y],fields:fields.map(f=>({name:f.name,value:Math.round(f.value*1000)/1000,...(f.value<.85?{low:f.low}:{}),...(f.value>.15?{high:f.high}:{})})),prior})});
  return response.result;
  });
 }
 export async function occurrenceText(c:CellContext,setting:unknown):Promise<OccurrenceText|undefined>{
  const o=c.occurrences;if(!o||!o.relic&&!o.death&&!o.teleport&&!o.gift&&!o.challenge&&!o.option)return;
- return remember(namespace()+(constructedInterior(c)?'occurrence-text-interior-v7:':'occurrence-text-v7:')+c.x+':'+c.y,'occurrence',async()=>{
+ return remember(namespace()+(constructedInterior(c)?'occurrence-text-interior-v8:':'occurrence-text-v8:')+c.x+':'+c.y,'occurrence',async()=>{
  const schema=object({outcomes:keyedOutcomeNarrativeSchema(o,leavesMark(c.seed,c.x,c.y)),setup:text,choices:{type:'array',items:object({label:text}),minItems:o.option?.choices.length??0,maxItems:o.option?.choices.length??0}});
  const prompt=encounterPrompt(o,c,setting);
  for(let attempt=0;attempt<2;attempt++){

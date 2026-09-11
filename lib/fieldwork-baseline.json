@@ -3831,8 +3831,8 @@
           "invert": false,
           "constant": 0.5,
           "noiseTransform": "band",
-          "bandLow": 0.43,
-          "bandHigh": 0.57
+          "bandLow": 0.44,
+          "bandHigh": 0.56
         },
         {
           "id": "e6157d0c-87e7-45d5-a8af-cd58d0b069bb",
@@ -3856,7 +3856,7 @@
           "invert": false,
           "constant": 0.5,
           "patchSpacing": 8.48528137423857,
-          "patchChance": 0.3999999999999999,
+          "patchChance": 0.35,
           "patchMinDiameter": 1,
           "patchMaxDiameter": 4,
           "patchRoughness": 0.75
@@ -4193,13 +4193,13 @@
       "layers": [
         {
           "id": "vibrance-0",
-          "name": "Quiet regional background · at most 12%",
+          "name": "Quiet regional background · at most 10%",
           "enabled": true,
           "source": "fbm",
           "channel": "vibrance-0",
           "reference": "",
           "blend": "replace",
-          "weight": 0.12,
+          "weight": 0.1,
           "scaleX": 25,
           "scaleY": 20,
           "offsetX": 0,
@@ -4251,18 +4251,18 @@
       "off": "Absent",
       "on": "Present",
       "low": "Crisp, stable and plainly perceived: colors, forms and sensations remain grounded and unambiguous.",
-      "high": "Overwhelming sensory transformation: prismatic patterns, fluid geometry and mingling sensations saturate the world with dreamlike intensity.",
+      "high": "Overwhelming sensory transformation: shifting sensory patterns, fluid geometry and mingling sensations saturate the world with dreamlike intensity.",
       "steps": [],
       "layers": [
         {
           "id": "4dfd6a78-fe32-44d3-8037-0b09114a4e9d",
-          "name": "Quiet regional background · at most 12%",
+          "name": "Quiet regional background · at most 10%",
           "enabled": true,
           "source": "fbm",
           "channel": "uniqueness-psychedelic-base",
           "reference": "",
           "blend": "replace",
-          "weight": 0.12,
+          "weight": 0.1,
           "scaleX": 25,
           "scaleY": 20,
           "offsetX": 0,

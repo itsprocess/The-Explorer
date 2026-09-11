@@ -36,7 +36,7 @@ export function occurrencesFor(seed:string,x:number,y:number,v:Record<string,num
  const option=v['occurrences.option']>0;
  const bonus=requirement('bonus',true);
  const lock=option&&random(seed,'personal-lock',x,y)<.2?{rarity:rarityForRoll(random(seed,'lock-tier',x,y)),kind:random(seed,'lock-kind',x,y)<.4?'tile' as const:'object' as const}:undefined;
- return {lock,relic:v['occurrences.relic']>0,death:!lock&&v['occurrences.certain_death']>0,teleport:v['occurrences.teleport']>0?teleportDestination(seed,x,y):null,gift:lock?gift('lock-reward',true,lock.rarity):v['occurrences.gift']>0?gift('gift'):null,challenge:!option&&v['occurrences.challenge']>0?challenge('challenge'):null,option:option&&!lock?{policy:'character',bonusRequirement:bonus,choices:[{kind:'none'},challenge('option-1'),success('option-2',bonus)]}:null};
+ return separateAutomaticOutcomes({lock,relic:v['occurrences.relic']>0,death:!lock&&v['occurrences.certain_death']>0,teleport:v['occurrences.teleport']>0?teleportDestination(seed,x,y):null,gift:lock?gift('lock-reward',true,lock.rarity):v['occurrences.gift']>0?gift('gift'):null,challenge:!option&&v['occurrences.challenge']>0?challenge('challenge'):null,option:option&&!lock?{policy:'character',bonusRequirement:bonus,choices:[{kind:'none'},challenge('option-1'),success('option-2',bonus)]}:null},seed,x,y);
 }
 
 // Teleport can be fatal on arrival, so it counts toward the same one-choice limit.
@@ -56,4 +56,23 @@ export function retargetTeleports(o:Occurrences,seed:string,x:number,y:number):O
  if(next.challenge)update(next.challenge,'challenge');
  next.option?.choices.forEach((choice,i)=>update(choice,'option-'+i));
  return next;
+}
+
+/** Automatic incidents resolve one consequence; choices retain their explicit tradeoffs. */
+export function separateAutomaticOutcomes(o:Occurrences,seed:string,x:number,y:number):Occurrences{
+ const n=structuredClone(o);
+ if(n.death)return {...n,lock:undefined,relic:false,teleport:null,gift:null,challenge:null,option:null};
+ if(n.option||n.lock)return n;
+ if(n.challenge){
+  n.gift=null;n.teleport=null;n.relic=false;
+  const single=(r:SimpleOutcome,branch:string):SimpleOutcome=>{
+   if(r.kind==='kill'){const {standing,...death}=r;return death;}
+   if(r.standing&&r.kind!=='none'&&random(seed,'automatic-standing:'+branch,x,y)<.5)return {kind:'none',standing:r.standing};
+   if(r.kind==='none')return r;
+   const {standing,...result}=r;return result;
+  };
+  n.challenge.present=single(n.challenge.present,'present');n.challenge.absent=single(n.challenge.absent,'absent');delete n.challenge.standing;
+ }else if(n.teleport){n.gift=null;n.relic=false;}
+ else if(n.gift){delete n.gift.standing;n.relic=false;}
+ return n;
 }

@@ -1,3 +1,4 @@
+import {ignoresLocalRiver} from './prompt-environment';
 import {world as configWorld} from '../explorer.config.json';
 import {fieldworkAt,FIELDWORK_VERSION} from './fieldwork';
 import {deriveRatings} from './fields';
@@ -28,7 +29,7 @@ export function contextFor(seed:string,x:number,y:number){
  return {version:VERSION,seed,x,y,exists:exists(seed,x,y),distance:Math.hypot(x,y),protectedOrigin:safe,safeApproach:safe,connections:open,portalExits,adjacentTerrain:surroundings.map(n=>({direction:n.direction,terrain:boundaryTerrain(n.values)})).filter(n=>n.terrain.length>0),ratings,regions:refs,fieldwork:stack.fields,occurrences,
  hostilityPolicy:{enforcesForeignHonors:false,condition:'',originExempt:true},biome:broadTerrain(v),environment:{climate:'',moisture:'',landcover:'',relief:''},situations:[] as {id:string;description:string}[],
  transport:occurrences?.teleport?{mechanism:'teleport',destination:occurrences.teleport}:null,stateRule:null as import('./traits').StateRule|null,
- features:{water:!!(v['natural.ocean']||v['biome.river']||v['biome.lakes_ponds']),built:!!v['civilization.footprint'],trap:!!occurrences?.death,treasure:!!occurrences?.gift,portal:!!occurrences?.teleport,transport:!!occurrences?.teleport},
+ features:{water:!!(v['natural.ocean']||!ignoresLocalRiver({fieldwork:stack.fields})&&v['biome.river']||v['biome.lakes_ponds']),built:!!v['civilization.footprint'],trap:!!occurrences?.death,treasure:!!occurrences?.gift,portal:!!occurrences?.teleport,transport:!!occurrences?.teleport},
  blocked:surroundings.filter(n=>!open[n.direction]&&!portalExits.some(p=>p.direction===n.direction)).map(n=>({direction:n.direction,reason:blockedReason(n.glimpse),terrain:boundaryTerrain(n.values)})),presentFeatures:ratings.filter(r=>r.applicable&&r.value>0).map(r=>({id:r.id,name:r.name,strength:r.value})),event:null as {id:string;kind:string;mode:string;cause:string|null;deathId:string|null;entityId:string|null;outcome?:string}|null,portalDestination:occurrences?.teleport??null,
  edges:surroundings.filter(n=>open[n.direction]).map(({direction,dx,dy,values,glimpse,visibleFeatures})=>{const id=JSON.stringify([[x,y],[x+dx,y+dy]].sort((a,b)=>a[0]-b[0]||a[1]-b[1]));const built=v['civilization.inside']||values['civilization.inside'],roof=v['biome.underground']||values['biome.underground'];return {id,direction,glimpse,visibleFeatures,material:['stone','earth','local material'][hash(seed+id)%3],opening:built?'doorway or architectural opening':roof?'natural cave opening':'open passage across the terrain'};}).concat(portalExits.map(p=>({id:'origin-portal:'+p.direction,direction:p.direction,glimpse:'',visibleFeatures:[],material:'local material',opening:'teleporter to a nonadjacent destination'})))};
 }

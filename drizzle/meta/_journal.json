@@ -260,6 +260,13 @@
       "when": 1789085491441,
       "tag": "0036_regenerate_rootbound_hollow",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "6",
+      "when": 1789089285401,
+      "tag": "0037_reset_quiet_thresholds",
+      "breakpoints": true
     }
   ]
 }

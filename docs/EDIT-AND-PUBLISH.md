@@ -18,3 +18,5 @@ Migration 0033 is the explicitly requested adventure-economy world reset; it pre
 ## Current source map
 
 The root README describes current behavior and validation. sandbox/README.md documents the standalone noise app. Runtime defaults in lib/fieldwork-baseline.json must match sandbox/reviewed-project.json. Maintain db/schema.ts and migration snapshots alongside schema changes; never create a duplicate migration for a column already applied.
+
+Migration 0037 is the owner-requested encounter/environment tuning reset with seed `quiet-thresholds-beyond-the-ash`; it preserves accounts, credentials, sessions and defining traits while clearing world content and progress.
