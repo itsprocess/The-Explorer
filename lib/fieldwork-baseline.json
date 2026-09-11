@@ -3831,8 +3831,8 @@
           "invert": false,
           "constant": 0.5,
           "noiseTransform": "band",
-          "bandLow": 0.44,
-          "bandHigh": 0.56
+          "bandLow": 0.48,
+          "bandHigh": 0.52
         },
         {
           "id": "e6157d0c-87e7-45d5-a8af-cd58d0b069bb",
@@ -3856,7 +3856,7 @@
           "invert": false,
           "constant": 0.5,
           "patchSpacing": 8.48528137423857,
-          "patchChance": 0.35,
+          "patchChance": 0.11666666666666665,
           "patchMinDiameter": 1,
           "patchMaxDiameter": 4,
           "patchRoughness": 0.75

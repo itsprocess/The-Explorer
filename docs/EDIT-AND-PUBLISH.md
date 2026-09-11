@@ -22,3 +22,5 @@ The root README describes current behavior and validation. sandbox/README.md doc
 Migration 0037 is the owner-requested encounter/environment tuning reset with seed `quiet-thresholds-beyond-the-ash`; it preserves accounts, credentials, sessions and defining traits while clearing world content and progress.
 
 Migration 0038 is the explicitly requested altitude-language world reset, preserving the current seed `quiet-thresholds-beyond-the-ash` as well as accounts and logins.
+
+Migration 0039 is the requested connected-passages reset with seed `lanterns-along-the-open-road`, preserving accounts, credentials, sessions and defining traits.

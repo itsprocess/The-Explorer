@@ -13,7 +13,7 @@ test('automatic deaths and check outcomes do not stack penalties or rewards',()=
 });
 test('underground and developed settlements ignore local rivers but retain neighbor rivers',()=>{
  for(const field of ['biome.underground','civilization.inside','civilization.footprint']){
- const c:any={x:0,y:0,fieldwork:[{id:field,present:true,value:1},{id:'biome.river',present:true,value:.8},{id:'biome.river_barrier',present:true,value:1}],adjacentTerrain:[{direction:'north',terrain:[{kind:'river',strength:.9}]}]};
+ const c:any={x:0,y:0,edges:[],fieldwork:[{id:field,present:true,value:1},{id:'biome.river',present:true,value:.8},{id:'biome.river_barrier',present:true,value:1}],adjacentTerrain:[{direction:'north',terrain:[{kind:'river',strength:.9}]}]};
  assert.equal(riverSetting(c),undefined);assert.ok(!environmentPromptFields(c).some(f=>f.id.startsWith('biome.river')));assert.deepEqual(settingInput([c],[]).cells[0].adjacentTerrain,c.adjacentTerrain);
  }
  assert.equal(riverSetting({fieldwork:[{id:'biome.river',present:true,value:.8}]} as any)?.strength,.8);

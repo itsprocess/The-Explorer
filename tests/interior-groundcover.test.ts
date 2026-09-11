@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {settingInput,sceneInstructionsFor} from '../lib/lean-generation';
 import {environmentPromptFields,settingCachePrefix} from '../lib/prompt-environment';
-const cell=(inside:number,underground:number):any=>({x:1,y:2,occurrences:null,fieldwork:[
+const cell=(inside:number,underground:number):any=>({x:1,y:2,edges:[],occurrences:null,fieldwork:[
  {id:'biome.groundcover',name:'Groundcover',category:'biome',type:'gradient',present:true,value:.9,low:'low',high:'high'},
  {id:'civilization.inside',name:'Inside',category:'civilization',type:'boolean',present:true,value:inside,low:'outside',high:'inside'},
  {id:'biome.underground',name:'Underground',category:'biome',type:'boolean',present:true,value:underground,low:'above',high:'below'}

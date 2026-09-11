@@ -34,7 +34,7 @@
     "rateLimitPauseMs": 60000
   },
   "world": {
-    "seed": "quiet-thresholds-beyond-the-ash",
+    "seed": "lanterns-along-the-open-road",
     "version": "world-7",
     "coordinateLimit": 1000000000
   },

@@ -113,7 +113,7 @@ export async function ensureCell(x:number,y:number):Promise<CellPackage>{
    const nextSetting=settings.get(next.x+':'+next.y)!;
    const edge=context.edges.find(e=>e.direction===direction)!;
    edge.glimpse=nextSetting.peek;
-   if(saved)neighbors.push({direction,...neighborContinuity(next,edge.glimpse,saved.scene.exits.find(e=>e.direction===({north:'south',south:'north',east:'west',west:'east'} as Record<string,string>)[direction])?.description)});
+   neighbors.push({direction,...neighborContinuity(next,edge.glimpse,saved?.scene.exits.find(e=>e.direction===({north:'south',south:'north',east:'west',west:'east'} as Record<string,string>)[direction])?.description)});
   }
   const prompt=scenePrompt(context,regions,{details:[],regional_texture:JSON.stringify(interpreted)},neighbors);
   const sceneInput=JSON.parse(prompt.input);

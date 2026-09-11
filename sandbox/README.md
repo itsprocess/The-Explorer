@@ -37,3 +37,5 @@ A subset of option candidates instead produces a personal locked object or locat
 There are exactly three world-wide identities in each of factions, kingdoms and religions. Each has a stable shared cache key; nine distinct name prefixes prevent name collisions. Regional appearances retain the same identity and standing. Indoor/underground prompt inputs omit weather severity; scene instructions disallow local outdoor weather. Migration 0033 resets progress for this economy and preserves accounts, password hashes, sessions and defining traits.
 
 Current defaults slightly narrow Underground veins (0.44–0.56) and use 35% pocket candidates. Vibrance and Psychedelic quiet backgrounds cap at 10%, retaining their distance escalation and high-end sparks.
+
+Underground tuning: vein band 0.48–0.52 (one-third the prior width), pocket chance 0.1167 (one-third the prior chance). Coverage is approximate and seed-dependent. Civilization density is unchanged. Passage prompts distinguish interior connections from outdoor entrances, including ungenerated neighboring cells.
