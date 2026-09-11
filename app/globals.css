@@ -104,3 +104,5 @@ button.map-cell:focus-visible{outline:2px solid #b5c7ff;outline-offset:2px;z-ind
 .masthead nav{flex-wrap:wrap}
 
 .bonus-label,.option-cost{display:block;font-size:13px;color:#b6cbff;margin:4px 0}.personal-lock{border:1px solid #8c7851;border-radius:10px;padding:20px;margin:20px 0}
+
+.death-records{margin:1.5rem 0;padding:1rem 1.25rem;border:1px solid var(--border,#343941);border-radius:10px}.death-records>summary{cursor:pointer;font-weight:600}.death-record{padding:1rem 0;border-bottom:1px solid var(--border,#343941)}.death-record:last-of-type{border-bottom:0}.death-record time{font-size:.85rem;color:#aeb5c3}.death-record p{margin:.5rem 0}.death-records>button{margin-top:1rem}
