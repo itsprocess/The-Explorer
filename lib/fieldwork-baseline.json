@@ -7,26 +7,26 @@
       "id": "natural.elevation",
       "appName": "natural.elevation",
       "naturalName": "Altitude",
-      "description": "Vertical position of the terrain, from the deepest depressions to the highest summits; water coverage is determined separately.",
+      "description": "Terrain altitude from ordinary lowlands through rolling hills and uplands to mountains and the highest peaks. Water coverage, underground enclosure and off-the-ground settings are separate.",
       "color": "#c5b18a",
       "type": "gradient",
       "cutoff": 0.5,
       "off": "Absent",
       "on": "Present",
-      "low": "Profoundly sunken terrain: deep basins, hollowed depressions and the lowest reaches of the world.",
+      "low": "Ordinary ground and lowlands. Low altitude is unremarkable and can go unmentioned; it does not imply a depression or submerged terrain.",
       "high": "Soaring summits and monumental ridgelines tower above the surrounding world.",
       "steps": [
         {
           "id": "37c9bd08-0bf4-4bd0-88da-ce4969038901",
           "name": "Low",
           "cutoff": 0,
-          "description": "Profoundly sunken terrain: deep basins, hollowed depressions and the lowest reaches of the world."
+          "description": "Ordinary ground and lowlands. Low altitude is unremarkable and can go unmentioned; it does not imply a depression or submerged terrain."
         },
         {
           "id": "97cad9bf-16f5-4449-944b-131dfec5a64a",
           "name": "Medium",
           "cutoff": 0.4,
-          "description": "A balanced intermediate expression of altitude, between its two poles; preserve the local context."
+          "description": "Rolling hills and uplands, rising above ordinary lowland ground."
         },
         {
           "id": "5a40d165-f294-4ca2-9b0f-8d8f580b48a9",

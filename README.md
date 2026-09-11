@@ -105,3 +105,5 @@ There are exactly three world-wide identities in each of factions, kingdoms and 
 Automatic incidents have one consequence: fatal outcomes carry no standing penalty, and automatic checks do not stack gifts or portals. Choices retain their assigned tradeoffs. Cached mixed automatic outcomes are normalized and re-authored on load, without rewriting visits.
 
 Underground/interior and developed-settlement tiles (civilization footprint at least 0.35) omit local river and river-barrier inputs from scene interpretation; neighboring river terrain and raw traversal remain authoritative. Underground vein width is 0.44–0.56 with 35% pocket candidates. Vibrance and Psychedelic quiet backgrounds are capped at 10%; distant escalation and rare spikes remain available. Low-intensity interpretation omits the irrelevant high-end pole.
+
+Altitude language starts at ordinary lowlands (usually unmentioned), rises through hills/uplands to mountain peaks, and never implies submerged or underground terrain from a low value alone. Noise values and traversal are unchanged.
