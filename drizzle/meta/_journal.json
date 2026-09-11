@@ -267,6 +267,13 @@
       "when": 1789089285401,
       "tag": "0037_reset_quiet_thresholds",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "6",
+      "when": 1789089908022,
+      "tag": "0038_reset_altitude_language",
+      "breakpoints": true
     }
   ]
 }
