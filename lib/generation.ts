@@ -1,3 +1,4 @@
+import {makeLegacyItemEncounterOptional} from './automatic-encounters';
 import baseline from './fieldwork-baseline.json';
 import {settingCachePrefix} from './prompt-environment';
 import {needsDeathNarrativeRepair,narrativeOutcomes} from './occurrence-narrative';
@@ -79,6 +80,7 @@ export async function ensureCell(x:number,y:number):Promise<CellPackage>{
    cached.presentationRevision=3;
    await db().prepare('UPDATE packages SET value=? WHERE key=? AND lease=0').bind(JSON.stringify(cached),cellKey(x,y)).run();
   }
+  if(makeLegacyItemEncounterOptional(cached))await db().prepare('UPDATE packages SET value=? WHERE key=? AND lease=0').bind(JSON.stringify(cached),cellKey(x,y)).run();
   return cached;
  }await assertProviderReady();
  const context=contextFor(worldSeed(),x,y);if(!context.exists)throw Error('There is no cell at those coordinates.');

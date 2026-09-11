@@ -1,3 +1,5 @@
+import {makeLegacyItemEncounterOptional} from '../lib/automatic-encounters';
+import {occurrencesFor} from '../lib/occurrences';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import baseline from '../lib/fieldwork-baseline.json';
@@ -28,13 +30,27 @@ test('locks are personal, tiered, permanent through death, and gate all encounte
  c.traits=[item('Legendary key','key','legendary')];const r=unlockPersonal(c,p,'unlock');assert.equal(lockState(r.character,p),null);assert.equal(r.character.traits!.length,0);assert.ok(r.character.pendingOption);
  r.character.deaths++;assert.equal(lockState(r.character,p),null);assert.notEqual(lockState(player(),p),null);assert.throws(()=>unlockPersonal(r.character,p,'again'),/not available/);
 });
-test('successful automatic item checks consume once and cannot farm rewards; death awards no badge',()=>{
+test('cached automatic item checks become choices; arrival never spends items and rewards remain single claim',()=>{
  const p=packet();p.context.occurrences.option=null;p.context.occurrences.challenge={kind:'challenge',requirement:{kind:'possession',purpose:'tools'},present:{kind:'give',awards:[item('reward','key','rare')],badge:false},absent:{kind:'kill'}};
  p.occurrenceText.outcomes=[{key:'challenge:present',text:'{character_name} spent {requirement_name} and earned a key.',awards:[{name:'Rare key',description:'Earned by repairing the gate.'}],repeatText:'Already repaired.'},{key:'challenge:absent',text:'{character_name} died beneath the gate.',rescueText:'{protection_name} saved {character_name}.',awards:[]}];
- const c=player();c.traits=[item('Tool','tools','common')];const first=resolveOccurrences(c,p,'one');first.character.traits!.push(item('Spare','tools','common'));const again=resolveOccurrences(first.character,p,'two');assert.ok(again.character.traits!.some(t=>t.id==='Spare'));assert.equal(again.event.stateChanges.length,0);
- const dead=resolveOccurrences(player(),p,'death');assert.equal(dead.character.alive,false);assert.equal(dead.event.newBadge,null);assert.equal(dead.character.badges.length,0);
+ const c=player();c.traits=[item('Tool','tools','common')];assert.throws(()=>resolveOccurrences(c,p,'one'),/explicit choice/);assert.equal(makeLegacyItemEncounterOptional(p),true);assert.equal(makeLegacyItemEncounterOptional(p),false);const arrival=resolveOccurrences(c,p,'one');assert.equal(arrival.character.traits!.length,1);assert.equal(arrival.event.stateChanges.length,0);assert.ok(arrival.character.pendingOption);const first=resolveOccurrences(arrival.character,p,'choice',1);assert.equal(first.character.traits!.some(t=>t.id==='Tool'),false);first.character.traits!.push(item('Spare','tools','common'));const again=resolveOccurrences(first.character,p,'two');assert.ok(again.character.traits!.some(t=>t.id==='Spare'));assert.equal(again.event.stateChanges.length,0);
+ const dead=resolveOccurrences(player(),p,'death',1);assert.equal(dead.character.alive,false);assert.equal(dead.event.newBadge,null);assert.equal(dead.character.badges.length,0);
 });
 test('three identities in each affiliation family and no weather in enclosed locations',()=>{
  for(const f of ['faction','kingdom','religion'])assert.equal(baseline.variables.find(v=>v.appName==='civilization.'+f)!.steps.length,3);
  for(const enclosure of ['civilization.inside','biome.underground']){const c:any={fieldwork:[{id:enclosure,present:true,value:1},{id:'biome.weather_severity',present:true,value:1},{id:'biome.groundcover',present:true,value:1}]};const fields=environmentPromptFields(c);assert.ok(!fields.some(f=>f.id==='biome.weather_severity'));assert.equal(fields.some(f=>f.id==='biome.groundcover'),enclosure==='biome.underground');}
+});
+
+test('new automatic checks use identity, never inventory',()=>{
+ const v={'occurrences.challenge':1};
+ const o=occurrencesFor('keys-beneath-the-lanterns',3,-4,v,[]);
+ assert.equal(o.challenge?.requirement.kind,'defining');assert.equal(o.option,null);
+ const social=occurrencesFor('fixture',3,-4,v,[{id:'civilization.faction',enumId:'a'}]);
+ assert.ok(['defining','affiliation'].includes(social.challenge!.requirement.kind));
+});
+
+test('automatic outcomes never emit lasting traces',()=>{
+ const p=packet();p.context.occurrences.option=null;p.context.occurrences.gift={kind:'give',awards:[],badge:false};
+ p.occurrenceText.outcomes=[{key:'gift',text:'A gift.',awards:[],imprint:'An automatic trace.'}];
+ assert.equal(resolveOccurrences(player(),p,'arrival').event.imprint,undefined);
 });

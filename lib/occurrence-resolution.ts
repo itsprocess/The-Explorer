@@ -28,7 +28,7 @@ export function resolveOccurrences(original:Character,p:CellPackage,visit:string
  const kill=()=>{if(!c.alive)return;assertPlayerDeath(narrative?.text||t?.death);if(rescue())return;c.alive=false;c.deaths++;delete c.pendingOption;delete c.pendingTransport;const lost=deathTraits(c.traits!);c.traits=lost.traits;event.stateChanges.push(...lost.changes);event.kind='death';};
  const apply=(r:Outcome,label:string,yes?:string,no?:string)=>{
   if(!c.alive||rescued)return;
-  if(r.kind==='challenge'){if(c.consumed.includes(key+':'+label)){event.kind='revisit';return;}const matched=requirementPresent(c,r.requirement);requirementName=r.requirement.kind==='defining'?r.requirement.value:r.requirement.kind==='affiliation'?(c.standings?.find(s=>s.family===(r.requirement as Extract<Requirement,{kind:'affiliation'}>).family&&s.value===(r.requirement as Extract<Requirement,{kind:'affiliation'}>).value)?.names.join(', ')||r.requirement.family):findTrait(c.traits!,r.requirement)?.name??'';if(matched)c.consumed.push(key+':'+label);if(matched&&r.requirement.kind==='possession'){const item=findTrait(c.traits!,r.requirement)!;const used=useTrait(c.traits!,item);c.traits=used.traits;event.stateChanges.push(...used.changes);}say(matched?yes:no);apply(matched?r.present:challengeFailure(r.absent),label+(matched?':present':':absent'));return;}
+  if(r.kind==='challenge'){if(selected===undefined&&r.requirement.kind==='possession')throw Error('Item encounters require an explicit choice.');if(c.consumed.includes(key+':'+label)){event.kind='revisit';return;}const matched=requirementPresent(c,r.requirement);requirementName=r.requirement.kind==='defining'?r.requirement.value:r.requirement.kind==='affiliation'?(c.standings?.find(s=>s.family===(r.requirement as Extract<Requirement,{kind:'affiliation'}>).family&&s.value===(r.requirement as Extract<Requirement,{kind:'affiliation'}>).value)?.names.join(', ')||r.requirement.family):findTrait(c.traits!,r.requirement)?.name??'';if(matched)c.consumed.push(key+':'+label);if(matched&&r.requirement.kind==='possession'){const item=findTrait(c.traits!,r.requirement)!;const used=useTrait(c.traits!,item);c.traits=used.traits;event.stateChanges.push(...used.changes);}say(matched?yes:no);apply(matched?r.present:challengeFailure(r.absent),label+(matched?':present':':absent'));return;}
   narrative=t?.outcomes?.find(n=>n.key===label);say(narrative?.text?.replaceAll('{requirement_name}',()=>requirementName));
   if(r.standing){c.standingClaims??=[];const claim=key+':'+label;if(!c.standingClaims.includes(claim)){changeStanding(c,r.standing);c.standingClaims.push(claim);}}
   if(r.kind==='kill'){kill();return;}
@@ -44,7 +44,7 @@ export function resolveOccurrences(original:Character,p:CellPackage,visit:string
   if(!o.option||!c.pendingOption||c.pendingOption.key!==key||!Number.isInteger(selected)||selected<0||selected>=o.option.choices.length)throw Error('This option is not available.');
   if(c.optionConsumed.includes(key))throw Error('This encounter is already resolved.');
   if(selected===2){const r=o.option.bonusRequirement;if(!r||!requirementPresent(c,r))throw Error('The bonus option is not unlocked.');if(r.kind==='possession'){const item=findTrait(c.traits!,r)!;requirementName=item.name;const used=useTrait(c.traits!,item);c.traits=used.traits;event.stateChanges.push(...used.changes);}}
-  const choice=t?.choices[selected];if(choice?.label)event.choice=fillCharacter(choice.label,c.name);say(choice?.result);apply(o.option.choices[selected],'option-'+selected,choice?.present,choice?.absent);if(c.alive&&selected!==0)c.optionConsumed.push(key);delete c.pendingOption;
+  const choice=t?.choices[selected];if(choice?.label)event.choice=fillCharacter(choice.label,c.name);say(choice?.result);apply(o.option.choices[selected],o.option.legacyAutomatic&&selected===1?'challenge':'option-'+selected,choice?.present,choice?.absent);if(o.option.legacyAutomatic&&selected===1&&c.alive&&!rescued&&o.gift&&c.consumed.includes(key+':challenge')){const prior=event.text;apply(o.gift,'gift');event.text=prior+' '+event.text;}if(c.alive&&selected!==0)c.optionConsumed.push(key);delete c.pendingOption;
  }else{
   delete c.pendingOption;
   if(o.death){say(narrative?.text||t?.death);kill();}
@@ -54,12 +54,12 @@ export function resolveOccurrences(original:Character,p:CellPackage,visit:string
    const relicText=event.relic?.text;
    const passes=!o.challenge||requirementPresent(c,o.challenge.requirement);
    if(o.challenge)apply(o.challenge,'challenge',t?.challengePresent,t?.challengeAbsent);
-   if(c.alive&&!rescued&&passes&&o.gift){const previous=o.challenge?event.text+' ':'';say(t?.gift);apply(o.gift,'gift');event.text=previous+event.text;}
+   if(c.alive&&!rescued&&passes&&o.gift&&!o.option?.legacyAutomatic){const previous=o.challenge?event.text+' ':'';say(t?.gift);apply(o.gift,'gift');event.text=previous+event.text;}
    if(c.alive&&!rescued&&!c.pendingTransport&&o.teleport){say(t?.teleport);apply({kind:'teleport',destination:o.teleport},'teleport');}
    if(relicText&&event.text!==relicText)event.text=relicText+' '+event.text;
    if(c.alive&&!rescued&&!c.pendingTransport&&o.option&&(o.option.policy==='visit'||!c.optionConsumed.includes(key)))c.pendingOption={key,visit};
   }
  }
- if(!rescued&&leavesMark(p.context.seed,c.x,c.y)&&narrative?.imprint&&event.kind!=='revisit'&&event.kind!=='arrival'&&event.kind!=='transport_pending')event.imprint=fillCharacter(narrative.imprint.replaceAll('{requirement_name}',()=>requirementName),c.name);
+ if(selected!==undefined&&!rescued&&leavesMark(p.context.seed,c.x,c.y)&&narrative?.imprint&&event.kind!=='revisit'&&event.kind!=='arrival'&&event.kind!=='transport_pending')event.imprint=fillCharacter(narrative.imprint.replaceAll('{requirement_name}',()=>requirementName),c.name);
  awardDistanceBadges(c);return {character:c,event};
 }
